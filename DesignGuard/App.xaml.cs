@@ -23,13 +23,18 @@ public partial class App : Application
         var services = new ServiceCollection();
         var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DesignGuard");
         Directory.CreateDirectory(dir);
-        var cs = $"Data Source={Path.Combine(dir, "designguard.db")}";
+        var cs = $"Data Source={Path.Combine(dir, "designguard-v2.db")}";
         services.AddDbContextFactory<DesignGuardDbContext>(o => o.UseSqlite(cs));
         services.AddSingleton<IProjectRepository, ProjectRepository>();
         services.AddSingleton<DiagramLayoutService>();
         services.AddSingleton<ExportService>();
+        services.AddSingleton<AnalysisMergeService>();
+        services.AddSingleton<TraceabilityService>();
+        services.AddSingleton<ProjectTemplateService>();
         services.AddSingleton(_ => new ThreatGenerationService(new IThreatRule[]
         {
+            new InternetExposureThreatRule(),
+            new TrustBoundaryCrossingThreatRule(),
             new AuthenticationThreatRule(),
             new DatabaseThreatRule(),
             new ExternalApiThreatRule(),
@@ -38,16 +43,23 @@ public partial class App : Application
             new PersonalDataThreatRule(),
             new TransportAndApiThreatRule(),
             new DenialOfServiceThreatRule(),
-            new RepudiationAuditThreatRule()
+            new MissingLoggingThreatRule(),
+            new RepudiationAuditThreatRule(),
+            new BusinessCriticalThreatRule()
         }));
         services.AddSingleton(_ => new RequirementGenerationService(new IRequirementRule[]
         {
             new AuthenticationRequirementRule(),
+            new SessionManagementRequirementRule(),
             new AuthorizationRequirementRule(),
+            new AdministrativeAccessRequirementRule(),
             new DataProtectionRequirementRule(),
+            new PrivacyMinimizationRequirementRule(),
             new LoggingRequirementRule(),
             new SecureDevelopmentRequirementRule(),
+            new SecureConfigurationRequirementRule(),
             new InputValidationRequirementRule(),
+            new TrustBoundaryRequirementRule(),
             new ResilienceRequirementRule()
         }));
         services.AddSingleton<MainViewModel>();

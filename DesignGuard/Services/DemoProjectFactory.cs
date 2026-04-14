@@ -16,43 +16,59 @@ public static class DemoProjectFactory
                 "Voorbeeld: SPA-webshop met API, database, adminpaneel en externe betalingsprovider. Persoonsgegevens en uploads aanwezig.",
             SystemName = "Demo Webshop",
             SystemType = SystemType.WebApp,
+            DeploymentContext = DeploymentContext.Cloud,
+            InternetExposed = true,
             PersonalDataProcessed = true,
             HasAuthentication = true,
             HasAdmin = true,
             ExternalApis = true,
             FileUpload = true,
-            SensitiveDataStored = true
+            SensitiveDataStored = true,
+            LoggingMonitoringPresent = true,
+            CriticalBusinessFunction = false
         };
+
+        p.TrustBoundaries.Add(new TrustBoundaryModel { Name = "Publiek", Description = "Browser / CDN" });
+        p.TrustBoundaries.Add(new TrustBoundaryModel { Name = "Backend", Description = "API en data" });
 
         p.Components.Add(new ComponentModel
         {
             Name = "Web Frontend",
             Description = "React/SPA in de browser",
-            Tag = "frontend"
+            Tag = "frontend",
+            TrustBoundaryName = "Publiek",
+            IsEntryPoint = true
         });
         p.Components.Add(new ComponentModel
         {
             Name = "Backend API",
             Description = "REST API en bedrijfslogica",
-            Tag = "api"
+            Tag = "api",
+            TrustBoundaryName = "Backend",
+            IsEntryPoint = true
         });
         p.Components.Add(new ComponentModel
         {
             Name = "Database",
             Description = "Relationele database voor orders en profielen",
-            Tag = "database"
+            Tag = "database",
+            TrustBoundaryName = "Backend",
+            StoresOrProcesses = DataSensitivity.Personal
         });
         p.Components.Add(new ComponentModel
         {
             Name = "Admin Panel",
             Description = "Beheer voor medewerkers",
-            Tag = "admin"
+            Tag = "admin",
+            TrustBoundaryName = "Publiek",
+            IsEntryPoint = true
         });
         p.Components.Add(new ComponentModel
         {
             Name = "Payment Provider",
             Description = "Externe PSP voor betalingen",
-            Tag = "external"
+            Tag = "external",
+            TrustBoundaryName = "Publiek"
         });
 
         p.DataFlows.Add(new DataFlowModel

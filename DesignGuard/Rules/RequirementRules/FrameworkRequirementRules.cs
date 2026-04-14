@@ -51,7 +51,7 @@ public sealed class AuthorizationRequirementRule : IRequirementRule
         yield return new RequirementModel
         {
             Title = "Autorisatie en rolscheiding",
-            Category = "Toegangsbeheer",
+            Category = "Autorisatie",
             SourceTags = new List<string> { "OWASP", "NIS2", "CRA" },
             PlainExplanation =
                 "Elke actie en elk gegeven moet alleen toegankelijk zijn voor rollen die daar recht op hebben.",
@@ -71,7 +71,7 @@ public sealed class AuthorizationRequirementRule : IRequirementRule
         yield return new RequirementModel
         {
             Title = "Strikte scheiding van admin- en gebruikersfuncties",
-            Category = "Toegangsbeheer",
+            Category = "Administratieve toegang",
             SourceTags = new List<string> { "OWASP", "NIS2" },
             PlainExplanation =
                 "Beheerderspaden krijgen extra bescherming en mogen niet 'per ongeluk' voor normale gebruikers openstaan.",
@@ -140,7 +140,7 @@ public sealed class LoggingRequirementRule : IRequirementRule
         yield return new RequirementModel
         {
             Title = "Logging, monitoring en incidentrespons-basis",
-            Category = "Detectie & respons",
+            Category = "Logging en monitoring",
             SourceTags = new List<string> { "NIS2", "OWASP", "CRA" },
             PlainExplanation =
                 "Leg security-relevante gebeurtenissen vast op een manier die onderzoek en herstel mogelijk maakt.",
@@ -164,7 +164,7 @@ public sealed class SecureDevelopmentRequirementRule : IRequirementRule
         yield return new RequirementModel
         {
             Title = "Veilige configuratie en afhankelijkheden bijwerken",
-            Category = "Leveringsketen & onderhoud",
+            Category = "Secure development en onderhoud",
             SourceTags = new List<string> { "CRA", "OWASP" },
             PlainExplanation =
                 "Houd frameworks en libraries bij en sluit standaard onveilige instellingen uit.",
@@ -183,7 +183,7 @@ public sealed class SecureDevelopmentRequirementRule : IRequirementRule
             yield return new RequirementModel
             {
                 Title = "Integraties en leveranciers afschermen",
-                Category = "Integraties",
+                Category = "Externe afhankelijkheden en integraties",
                 SourceTags = new List<string> { "NIS2", "CRA", "OWASP" },
                 PlainExplanation =
                     "Externe diensten krijgen alleen de sleutels en data die nodig zijn; contracten en logging zijn helder.",
@@ -210,7 +210,7 @@ public sealed class InputValidationRequirementRule : IRequirementRule
         yield return new RequirementModel
         {
             Title = "Invoervalidatie en veilige foutafhandeling",
-            Category = "Applicatiebeveiliging",
+            Category = "Invoervalidatie",
             SourceTags = new List<string> { "OWASP" },
             PlainExplanation =
                 "Alle invoer wordt gecontroleerd; foutmeldingen geven geen interne details prijs.",
@@ -230,7 +230,7 @@ public sealed class InputValidationRequirementRule : IRequirementRule
         yield return new RequirementModel
         {
             Title = "Veilige verwerking van uploads",
-            Category = "Applicatiebeveiliging",
+            Category = "Bestandsverwerking",
             SourceTags = new List<string> { "OWASP", "CRA" },
             PlainExplanation =
                 "Uploads worden getypeerd, beperkt in grootte en los van uitvoerbare paden opgeslagen.",
@@ -256,7 +256,8 @@ public sealed class ResilienceRequirementRule : IRequirementRule
         yield return new RequirementModel
         {
             Title = "Beschikbaarheid: limieten en degradeer netjes",
-            Category = "Beschikbaarheid",
+            Category = "Beschikbaarheid en veerkracht",
+            Priority = RequirementPriority.Medium,
             SourceTags = new List<string> { "NIS2", "OWASP" },
             PlainExplanation =
                 "Beperk misbruik van endpoints en zorg dat afhankelijkheden het systeem niet onnodig laten crashen.",
@@ -267,6 +268,141 @@ public sealed class ResilienceRequirementRule : IRequirementRule
                 WhatItMeans = "Het systeem blijft bruikbaar ook als het druk wordt of een onderdeel faalt.",
                 WhyItMatters = "Beschikbaarheid is onderdeel van vertrouwen en continuïteit.",
                 WhyIncluded = "Je model bevat een API-laag."
+            }
+        };
+    }
+}
+
+public sealed class SessionManagementRequirementRule : IRequirementRule
+{
+    public IEnumerable<RequirementModel> Evaluate(SystemDesignContext ctx)
+    {
+        if (!ctx.Project.HasAuthentication) yield break;
+
+        yield return new RequirementModel
+        {
+            Title = "Sessiebeheer: timeouts, rotatie en diefstal beperken",
+            Category = "Sessiebeheer",
+            Priority = ctx.Project.InternetExposed ? RequirementPriority.High : RequirementPriority.Medium,
+            SourceTags = new List<string> { "OWASP", "CRA" },
+            PlainExplanation =
+                "Sessies moeten voorspelbaar verlopen en moeilijk te stelen of te hergebruiken zijn.",
+            WhyApplies = "Bij web en API's zijn sessies een veelgebruikte aanvalsvector.",
+            ImplementationDirection =
+                "Secure/HttpOnly/SameSite cookies of tokens met korte TTL, refresh-flow, server-side invalidatie bij uitloggen.",
+            Explanation = new ExplanationModel
+            {
+                WhatItMeans = "Een sessie is je 'ingelogd blijven' — dat moet strak geregeld zijn.",
+                WhyItMatters = "Gestolen sessies voelen voor het systeem hetzelfde als de echte gebruiker.",
+                WhyIncluded = "Authenticatie is onderdeel van je ontwerp."
+            }
+        };
+    }
+}
+
+public sealed class SecureConfigurationRequirementRule : IRequirementRule
+{
+    public IEnumerable<RequirementModel> Evaluate(SystemDesignContext ctx)
+    {
+        if (!ctx.HasApiLayer && !ctx.HasFrontend) yield break;
+
+        yield return new RequirementModel
+        {
+            Title = "Veilige standaardconfiguratie (headers, secrets, omgevingen)",
+            Category = "Veilige configuratie",
+            Priority = RequirementPriority.Medium,
+            SourceTags = new List<string> { "OWASP", "NIS2" },
+            PlainExplanation =
+                "Productie verschilt van dev: geen debug, geen default-wachtwoorden, geen secrets in repo.",
+            WhyApplies = "Publieke lagen en API's hebben harde configuratie-eisen om misbruik te beperken.",
+            ImplementationDirection =
+                "Secret manager, strikte CORS, security headers waar passend, least privilege voor service-accounts.",
+            Explanation = new ExplanationModel
+            {
+                WhatItMeans = "Het platform staat strak afgesteld, niet op 'makkelijk voor demo'.",
+                WhyItMatters = "Veel incidenten beginnen met een vergeten toggle of een gelekte sleutel.",
+                WhyIncluded = "Er is een publieke of API-laag in je model."
+            }
+        };
+    }
+}
+
+public sealed class PrivacyMinimizationRequirementRule : IRequirementRule
+{
+    public IEnumerable<RequirementModel> Evaluate(SystemDesignContext ctx)
+    {
+        if (!ctx.Project.PersonalDataProcessed) yield break;
+
+        yield return new RequirementModel
+        {
+            Title = "Privacy by design: minimale verwerking en duidelijke rollen",
+            Category = "Privacy en dataminimalisatie",
+            Priority = RequirementPriority.Medium,
+            SourceTags = new List<string> { "AVG", "OWASP" },
+            PlainExplanation =
+                "Leg vast wie welke persoonsgegevens mag zien en hoe lang data bewaard blijft — bij voorkeur in het ontwerp.",
+            WhyApplies = "Bij persoonsgegevens helpt vroeg nadenken over minimalisatie en transparantie.",
+            ImplementationDirection =
+                "Dataclassificatie per veld, rolbeperkingen, export/verwijder-flows voor gebruikers waar passend.",
+            Explanation = new ExplanationModel
+            {
+                WhatItMeans = "Je verwerkt alleen wat nodig is en maakt het voor gebruikers begrijpelijk.",
+                WhyItMatters = "Dit verlaagt risico en vergroot vertrouwen — richtinggevend, geen juridisch advies.",
+                WhyIncluded = "Je gaf aan dat er persoonsgegevens zijn."
+            }
+        };
+    }
+}
+
+public sealed class AdministrativeAccessRequirementRule : IRequirementRule
+{
+    public IEnumerable<RequirementModel> Evaluate(SystemDesignContext ctx)
+    {
+        if (!ctx.HasAdminSurface) yield break;
+
+        yield return new RequirementModel
+        {
+            Title = "Beheerdersaccounts beschermen (MFA, least privilege, logging)",
+            Category = "Administratieve toegang",
+            Priority = ctx.Project.InternetExposed ? RequirementPriority.High : RequirementPriority.Medium,
+            SourceTags = new List<string> { "OWASP", "NIS2", "CRA" },
+            PlainExplanation =
+                "Admin-rechten zijn hoog impact: extra controles en zicht op gebruik zijn nodig.",
+            WhyApplies = "Adminfunctionaliteit vergroot de schade bij misbruik.",
+            ImplementationDirection =
+                "Aparte admin-URL, MFA, break-glass procedure, volledige audit trail van admin-acties.",
+            Explanation = new ExplanationModel
+            {
+                WhatItMeans = "Beheerderspaden zijn zwaarder beveiligd dan normale gebruikersroutes.",
+                WhyItMatters = "Eén gecompromitteerd admin-account kan het hele systeem raken.",
+                WhyIncluded = "Je ontwerp bevat beheer of admin."
+            }
+        };
+    }
+}
+
+public sealed class TrustBoundaryRequirementRule : IRequirementRule
+{
+    public IEnumerable<RequirementModel> Evaluate(SystemDesignContext ctx)
+    {
+        if (!ctx.HasTrustBoundaryCrossing) yield break;
+
+        yield return new RequirementModel
+        {
+            Title = "Expliciete beveiliging op trust boundaries",
+            Category = "Architectuur en trust boundaries",
+            Priority = RequirementPriority.High,
+            SourceTags = new List<string> { "OWASP" },
+            PlainExplanation =
+                "Iedere grens tussen vertrouwde zones krijgt authenticatie, autorisatie en schema-afspraken.",
+            WhyApplies = "Datastromen kruisen trust boundaries — daar horen expliciete afspraken bij.",
+            ImplementationDirection =
+                "mTLS/overleg per integratie, allowlists, geen impliciet vertrouwen op 'intern netwerk'.",
+            Explanation = new ExplanationModel
+            {
+                WhatItMeans = "Je behandelt overgangen tussen zones als risicovolle punten.",
+                WhyItMatters = "Veel datalekken ontstaan doordat intern verkeer te veel vertrouwen krijgt.",
+                WhyIncluded = "Je model bevat minstens één grensoverschrijdende datastroom."
             }
         };
     }

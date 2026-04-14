@@ -1,0 +1,359 @@
+<Window x:Class="DesignGuard.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:conv="clr-namespace:DesignGuard.Converters"
+        mc:Ignorable="d"
+        Title="DesignGuard — Security-by-Design assistent"
+        Height="780" Width="1280"
+        Loaded="Window_Loaded">
+    <Window.Resources>
+        <conv:NotNullToVisibilityConverter x:Key="NotNullToVisibility" />
+    </Window.Resources>
+    <DockPanel>
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem Content="{Binding StatusMessage}" />
+        </StatusBar>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="240" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="320" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Links: projecten -->
+            <DockPanel Grid.Column="0" Margin="8">
+                <StackPanel DockPanel.Dock="Top" Orientation="Vertical">
+                    <TextBlock Text="Projecten" FontWeight="Bold" Margin="0,0,0,8" />
+                    <Button Content="Nieuw" Command="{Binding NewProjectCommand}" Margin="0,0,0,4" />
+                    <Button Content="Opslaan" Command="{Binding SaveProjectCommand}" Margin="0,0,0,4" />
+                    <Button Content="Verwijderen" Command="{Binding DeleteProjectCommand}" Margin="0,0,0,4" />
+                    <Button Content="Demo laden" Command="{Binding EnsureDemoCommand}" Margin="0,0,0,8" />
+                </StackPanel>
+                <ListBox ItemsSource="{Binding ProjectList}"
+                         SelectedItem="{Binding SelectedProjectSummary}"
+                         DisplayMemberPath="Name" />
+            </DockPanel>
+
+            <!-- Midden: tabs -->
+            <TabControl Grid.Column="1" Margin="8" SelectedIndex="{Binding MainTabIndex}">
+                <TabItem Header="Ontwerp">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <GroupBox Header="Project" Margin="0,0,0,8">
+                                <Grid Margin="8">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="140" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Naam" VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="1" Text="{Binding EditorProjectName, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Grid.Row="1" Text="Beschrijving" Margin="0,8,0,0" />
+                                    <TextBox Grid.Row="1" Grid.Column="1" Margin="0,8,0,0" Height="60"
+                                             TextWrapping="Wrap" AcceptsReturn="True"
+                                             Text="{Binding EditorProjectDescription, UpdateSourceTrigger=PropertyChanged}" />
+                                </Grid>
+                            </GroupBox>
+
+                            <GroupBox Header="Systeem" Margin="0,0,0,8">
+                                <Grid Margin="8">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="180" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Systeemnaam" VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="1" Text="{Binding EditorSystemName, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Grid.Row="1" Text="Systeemtype" Margin="0,8,0,0" VerticalAlignment="Center" />
+                                    <ComboBox Grid.Row="1" Grid.Column="1" Margin="0,8,0,0"
+                                              ItemsSource="{Binding SystemTypeOptions}"
+                                              SelectedItem="{Binding EditorSystemType}" />
+                                    <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Vertical" Margin="0,12,0,0">
+                                        <CheckBox Content="Persoonsgegevens verwerkt" IsChecked="{Binding FlagPersonalData}" />
+                                        <CheckBox Content="Authenticatie aanwezig" IsChecked="{Binding FlagAuth}" />
+                                        <CheckBox Content="Adminfunctionaliteit" IsChecked="{Binding FlagAdmin}" />
+                                        <CheckBox Content="Externe API's / diensten" IsChecked="{Binding FlagExternalApi}" />
+                                        <CheckBox Content="Bestandsupload" IsChecked="{Binding FlagUpload}" />
+                                        <CheckBox Content="Gevoelige data opgeslagen" IsChecked="{Binding FlagSensitiveStorage}" />
+                                    </StackPanel>
+                                </Grid>
+                            </GroupBox>
+
+                            <GroupBox Header="Componenten" Margin="0,0,0,8">
+                                <StackPanel Margin="8">
+                                    <Button Content="Component toevoegen" HorizontalAlignment="Left"
+                                            Command="{Binding AddComponentCommand}" Margin="0,0,0,8" />
+                                    <DataGrid ItemsSource="{Binding Components}"
+                                              SelectedItem="{Binding SelectedComponent}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              HeadersVisibility="Column"
+                                              Height="160">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                                            <DataGridTextColumn Header="Tag" Binding="{Binding Tag, UpdateSourceTrigger=PropertyChanged}" Width="80" />
+                                            <DataGridTextColumn Header="Omschrijving" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
+                                            <DataGridTemplateColumn Width="80">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <Button Content="Verwijder"
+                                                                Command="{Binding DataContext.RemoveComponentCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <GroupBox Header="Datastromen" Margin="0,0,0,8">
+                                <StackPanel Margin="8">
+                                    <Button Content="Stroom toevoegen" HorizontalAlignment="Left"
+                                            Command="{Binding AddDataFlowCommand}" Margin="0,0,0,8" />
+                                    <DataGrid ItemsSource="{Binding DataFlows}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              HeadersVisibility="Column"
+                                              Height="160">
+                                        <DataGrid.Columns>
+                                            <DataGridTemplateColumn Header="Van" Width="*">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                  SelectedItem="{Binding From, UpdateSourceTrigger=PropertyChanged}"
+                                                                  DisplayMemberPath="Name" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                            <DataGridTemplateColumn Header="Naar" Width="*">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                  SelectedItem="{Binding To, UpdateSourceTrigger=PropertyChanged}"
+                                                                  DisplayMemberPath="Name" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                            <DataGridTextColumn Header="Label" Binding="{Binding Label, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                                            <DataGridTemplateColumn Width="80">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <Button Content="Verwijder"
+                                                                Command="{Binding DataContext.RemoveDataFlowCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <GroupBox Header="Rollen" Margin="0,0,0,8">
+                                <StackPanel Margin="8">
+                                    <Button Content="Rol toevoegen" HorizontalAlignment="Left"
+                                            Command="{Binding AddRoleCommand}" Margin="0,0,0,8" />
+                                    <DataGrid ItemsSource="{Binding Roles}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              HeadersVisibility="Column"
+                                              Height="120">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                                            <DataGridTextColumn Header="Omschrijving" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
+                                            <DataGridTemplateColumn Width="80">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <Button Content="Verwijder"
+                                                                Command="{Binding DataContext.RemoveRoleCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <GroupBox Header="Visueel overzicht (eenvoudige layout)">
+                                <Border Margin="8" BorderBrush="#CCC" BorderThickness="1" Height="320" Background="#FAFAFA">
+                                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                                        <Grid Width="900" Height="400">
+                                            <ItemsControl ItemsSource="{Binding DiagramLines}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <Canvas />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Line Stroke="#888" StrokeThickness="2"
+                                                              X1="{Binding X1}" Y1="{Binding Y1}"
+                                                              X2="{Binding X2}" Y2="{Binding Y2}" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <ItemsControl ItemsSource="{Binding DiagramNodes}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <Canvas />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemContainerStyle>
+                                                    <Style TargetType="ContentPresenter">
+                                                        <Setter Property="Canvas.Left" Value="{Binding X}" />
+                                                        <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                                                    </Style>
+                                                </ItemsControl.ItemContainerStyle>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Width="168" Padding="6" Background="White" BorderBrush="#333"
+                                                                BorderThickness="1" CornerRadius="4">
+                                                            <StackPanel>
+                                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" TextWrapping="Wrap" />
+                                                                <TextBlock Text="{Binding Tag}" Foreground="Gray" FontSize="11" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Grid>
+                                    </ScrollViewer>
+                                </Border>
+                            </GroupBox>
+
+                            <Button Content="Analyse verversen" HorizontalAlignment="Left" Margin="0,8,0,0"
+                                    Command="{Binding RefreshAnalysisCommand}" />
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem Header="Dreigingen">
+                    <DockPanel Margin="8">
+                        <Button DockPanel.Dock="Top" Content="Analyse verversen" HorizontalAlignment="Left"
+                                Command="{Binding RefreshAnalysisCommand}" Margin="0,0,0,8" />
+                        <ListBox ItemsSource="{Binding Threats}" SelectedItem="{Binding SelectedThreat}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="4">
+                                        <TextBlock Text="{Binding Title}" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding StrideCategory}" Foreground="DarkBlue" FontSize="11" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </TabItem>
+
+                <TabItem Header="Eisen">
+                    <DockPanel Margin="8">
+                        <Button DockPanel.Dock="Top" Content="Analyse verversen" HorizontalAlignment="Left"
+                                Command="{Binding RefreshAnalysisCommand}" Margin="0,0,0,8" />
+                        <ListBox ItemsSource="{Binding Requirements}" SelectedItem="{Binding SelectedRequirement}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="4">
+                                        <TextBlock Text="{Binding Title}" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding Category}" FontSize="11" Foreground="Gray" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </TabItem>
+
+                <TabItem Header="Export">
+                    <DockPanel Margin="8">
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                            <Button Content="Markdown exporteren" Command="{Binding ExportMarkdownCommand}" Margin="0,0,8,0" />
+                            <Button Content="Tekst exporteren" Command="{Binding ExportPlainTextCommand}" />
+                        </StackPanel>
+                        <TextBox Text="{Binding ExportPreview}" VerticalScrollBarVisibility="Auto"
+                                 HorizontalScrollBarVisibility="Auto" TextWrapping="Wrap" AcceptsReturn="True"
+                                 FontFamily="Consolas" />
+                    </DockPanel>
+                </TabItem>
+            </TabControl>
+
+            <!-- Rechts: detail -->
+            <ScrollViewer Grid.Column="2" Margin="8">
+                <StackPanel>
+                    <TextBlock Text="Details" FontWeight="Bold" Margin="0,0,0,8" />
+
+                    <Border Visibility="{Binding SelectedThreat, Converter={StaticResource NotNullToVisibility}}"
+                            BorderBrush="#DDD" BorderThickness="1" Padding="8" Margin="0,0,0,8">
+                        <StackPanel DataContext="{Binding SelectedThreat}">
+                            <TextBlock Text="Dreiging" FontWeight="Bold" />
+                            <TextBlock Text="{Binding Title}" TextWrapping="Wrap" Margin="0,4,0,4" />
+                            <TextBlock Text="{Binding StrideCategory}" />
+                            <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,8,0,0" />
+                            <TextBlock Text="Mitigaties" FontWeight="Bold" Margin="0,8,0,0" />
+                            <ItemsControl ItemsSource="{Binding SuggestedMitigations}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="4,2,0,0" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Text="Uitleg" FontWeight="Bold" Margin="0,8,0,0" />
+                            <TextBlock Text="{Binding Explanation.WhatItMeans}" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding Explanation.WhyItMatters}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                            <TextBlock Text="{Binding Explanation.WhyIncluded}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Visibility="{Binding SelectedRequirement, Converter={StaticResource NotNullToVisibility}}"
+                            BorderBrush="#DDD" BorderThickness="1" Padding="8" Margin="0,0,0,8">
+                        <StackPanel DataContext="{Binding SelectedRequirement}">
+                            <TextBlock Text="Eis" FontWeight="Bold" />
+                            <TextBlock Text="{Binding Title}" TextWrapping="Wrap" Margin="0,4,0,4" />
+                            <TextBlock Text="{Binding Category}" />
+                            <TextBlock Text="Bronnen" FontWeight="Bold" Margin="0,8,0,0" />
+                            <ItemsControl ItemsSource="{Binding SourceTags}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" Margin="0,0,8,0" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                            <TextBlock Text="{Binding PlainExplanation}" TextWrapping="Wrap" Margin="0,8,0,0" />
+                            <TextBlock Text="Waarom van toepassing" FontWeight="Bold" Margin="0,8,0,0" />
+                            <TextBlock Text="{Binding WhyApplies}" TextWrapping="Wrap" />
+                            <TextBlock Text="Implementatie" FontWeight="Bold" Margin="0,8,0,0" />
+                            <TextBlock Text="{Binding ImplementationDirection}" TextWrapping="Wrap" />
+                            <TextBlock Text="Uitleg" FontWeight="Bold" Margin="0,8,0,0" />
+                            <TextBlock Text="{Binding Explanation.WhatItMeans}" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding Explanation.WhyItMatters}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                            <TextBlock Text="{Binding Explanation.WhyIncluded}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Visibility="{Binding SelectedComponent, Converter={StaticResource NotNullToVisibility}}"
+                            BorderBrush="#DDD" BorderThickness="1" Padding="8">
+                        <StackPanel DataContext="{Binding SelectedComponent}">
+                            <TextBlock Text="Component" FontWeight="Bold" />
+                            <TextBlock Text="{Binding Name}" TextWrapping="Wrap" Margin="0,4,0,4" />
+                            <TextBlock Text="{Binding Tag}" Foreground="Gray" />
+                            <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</Window>

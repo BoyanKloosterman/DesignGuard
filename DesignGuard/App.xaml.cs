@@ -1,0 +1,65 @@
+using System.IO;
+using System.Windows;
+using DesignGuard.Data;
+using DesignGuard.Export;
+using DesignGuard.Rules;
+using DesignGuard.Rules.RequirementRules;
+using DesignGuard.Rules.ThreatRules;
+using DesignGuard.Services;
+using DesignGuard.ViewModels;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace DesignGuard;
+
+public partial class App : Application
+{
+    // Volledige typenaam: geen verwarring met andere ServiceProvider-typen.
+    private Microsoft.Extensions.DependencyInjection.ServiceProvider? _provider;
+
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+        var services = new ServiceCollection();
+        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DesignGuard");
+        Directory.CreateDirectory(dir);
+        var cs = $"Data Source={Path.Combine(dir, "designguard.db")}";
+        services.AddDbContextFactory<DesignGuardDbContext>(o => o.UseSqlite(cs));
+        services.AddSingleton<IProjectRepository, ProjectRepository>();
+        services.AddSingleton<DiagramLayoutService>();
+        services.AddSingleton<ExportService>();
+        services.AddSingleton(_ => new ThreatGenerationService(new IThreatRule[]
+        {
+            new AuthenticationThreatRule(),
+            new DatabaseThreatRule(),
+            new ExternalApiThreatRule(),
+            new AdminThreatRule(),
+            new FileUploadThreatRule(),
+            new PersonalDataThreatRule(),
+            new TransportAndApiThreatRule(),
+            new DenialOfServiceThreatRule(),
+            new RepudiationAuditThreatRule()
+        }));
+        services.AddSingleton(_ => new RequirementGenerationService(new IRequirementRule[]
+        {
+            new AuthenticationRequirementRule(),
+            new AuthorizationRequirementRule(),
+            new DataProtectionRequirementRule(),
+            new LoggingRequirementRule(),
+            new SecureDevelopmentRequirementRule(),
+            new InputValidationRequirementRule(),
+            new ResilienceRequirementRule()
+        }));
+        services.AddSingleton<MainViewModel>();
+        services.AddSingleton<MainWindow>();
+        _provider = services.BuildServiceProvider();
+        var main = _provider.GetRequiredService<MainWindow>();
+        main.Show();
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        _provider?.Dispose();
+        base.OnExit(e);
+    }
+}

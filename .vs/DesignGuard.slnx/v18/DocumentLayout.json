@@ -1,0 +1,36 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\kloos\\Documents\\Apps\\CyberTool\\DesignGuard\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{23D79F81-E0D5-5A2B-6860-A7C55BCBFFF9}|DesignGuard\\DesignGuard.csproj|c:\\users\\kloos\\documents\\apps\\cybertool\\designguard\\designguard\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{23D79F81-E0D5-5A2B-6860-A7C55BCBFFF9}|DesignGuard\\DesignGuard.csproj|solutionrelative:designguard\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\kloos\\Documents\\Apps\\CyberTool\\DesignGuard\\DesignGuard\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "DesignGuard\\MainWindow.xaml",
+              "ToolTip": "C:\\Users\\kloos\\Documents\\Apps\\CyberTool\\DesignGuard\\DesignGuard\\MainWindow.xaml",
+              "RelativeToolTip": "DesignGuard\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-04-14T19:26:16.053Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

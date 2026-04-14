@@ -80,13 +80,23 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private ObservableCollection<RequirementModel> _requirements = new();
 
-    [ObservableProperty] private ThreatModel? _selectedThreat;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowProjectOverviewInDetails))]
+    private ThreatModel? _selectedThreat;
 
-    [ObservableProperty] private RequirementModel? _selectedRequirement;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowProjectOverviewInDetails))]
+    private RequirementModel? _selectedRequirement;
 
-    [ObservableProperty] private ComponentRowViewModel? _selectedComponent;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowProjectOverviewInDetails))]
+    private ComponentRowViewModel? _selectedComponent;
 
     [ObservableProperty] private string _exportPreview = "";
+
+    /// <summary>Detailpaneel: project tonen als er geen rij uit lijsten gekozen is.</summary>
+    public bool ShowProjectOverviewInDetails =>
+        SelectedThreat == null && SelectedRequirement == null && SelectedComponent == null;
 
     partial void OnSelectedProjectSummaryChanged(ProjectSummaryItem? value)
     {
@@ -170,6 +180,9 @@ public partial class MainViewModel : ObservableObject
         DiagramNodes.Clear();
         DiagramLines.Clear();
         ExportPreview = "";
+        SelectedThreat = null;
+        SelectedRequirement = null;
+        SelectedComponent = null;
     }
 
     private void ApplyModelToEditor(ProjectModel p)
@@ -413,11 +426,22 @@ public partial class MainViewModel : ObservableObject
     {
         try
         {
+            var prevThreat = SelectedThreat;
+            var prevReq = SelectedRequirement;
             var m = BuildModelFromEditor();
             var t = _threatService.Generate(m);
             var r = _requirementService.Generate(m);
             Threats = new ObservableCollection<ThreatModel>(t);
             Requirements = new ObservableCollection<RequirementModel>(r);
+            // Zelfde item weer kiezen na regeneratie (nieuwe objecten/Id's).
+            SelectedThreat = prevThreat == null
+                ? null
+                : Threats.FirstOrDefault(x =>
+                    x.Title == prevThreat.Title && x.StrideCategory == prevThreat.StrideCategory);
+            SelectedRequirement = prevReq == null
+                ? null
+                : Requirements.FirstOrDefault(x =>
+                    x.Title == prevReq.Title && x.Category == prevReq.Category);
         }
         catch (Exception ex)
         {

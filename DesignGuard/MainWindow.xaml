@@ -10,6 +10,7 @@
         Loaded="Window_Loaded">
     <Window.Resources>
         <conv:NotNullToVisibilityConverter x:Key="NotNullToVisibility" />
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
     </Window.Resources>
     <DockPanel>
         <StatusBar DockPanel.Dock="Bottom">
@@ -289,6 +290,32 @@
             <ScrollViewer Grid.Column="2" Margin="8">
                 <StackPanel>
                     <TextBlock Text="Details" FontWeight="Bold" Margin="0,0,0,8" />
+
+                    <!-- Geen component/dreiging/eis gekozen: toon project (Ontwerp-tab blijft dan niet leeg). -->
+                    <Border Visibility="{Binding ShowProjectOverviewInDetails, Converter={StaticResource BoolToVis}}"
+                            BorderBrush="#DDD" BorderThickness="1" Padding="8" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="Projectoverzicht" FontWeight="Bold" />
+                            <TextBlock Text="Naam" Foreground="Gray" FontSize="11" Margin="0,8,0,0" />
+                            <TextBlock Text="{Binding EditorProjectName}" TextWrapping="Wrap" />
+                            <TextBlock Text="Beschrijving" Foreground="Gray" FontSize="11" Margin="0,8,0,0" />
+                            <TextBlock Text="{Binding EditorProjectDescription}" TextWrapping="Wrap" />
+                            <TextBlock Text="Systeem" Foreground="Gray" FontSize="11" Margin="0,8,0,0" />
+                            <TextBlock Text="{Binding EditorSystemName}" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding EditorSystemType}" Margin="0,2,0,0" />
+                            <TextBlock Text="Scope (analyse)" Foreground="Gray" FontSize="11" Margin="0,8,0,0" />
+                            <StackPanel Margin="0,4,0,0" IsEnabled="False">
+                                <CheckBox Content="Persoonsgegevens verwerkt" IsChecked="{Binding FlagPersonalData}" />
+                                <CheckBox Content="Authenticatie aanwezig" IsChecked="{Binding FlagAuth}" />
+                                <CheckBox Content="Adminfunctionaliteit" IsChecked="{Binding FlagAdmin}" />
+                                <CheckBox Content="Externe API's / diensten" IsChecked="{Binding FlagExternalApi}" />
+                                <CheckBox Content="Bestandsupload" IsChecked="{Binding FlagUpload}" />
+                                <CheckBox Content="Gevoelige data opgeslagen" IsChecked="{Binding FlagSensitiveStorage}" />
+                            </StackPanel>
+                            <TextBlock Text="Kies een component in de tabel voor componentdetails, of open Dreigingen/Eisen en selecteer een rij."
+                                       TextWrapping="Wrap" Foreground="Gray" FontSize="11" Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Border>
 
                     <Border Visibility="{Binding SelectedThreat, Converter={StaticResource NotNullToVisibility}}"
                             BorderBrush="#DDD" BorderThickness="1" Padding="8" Margin="0,0,0,8">

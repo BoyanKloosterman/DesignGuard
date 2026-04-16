@@ -1,0 +1,98 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style x:Key="DgText.Title" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource DgFontSize.Title}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource DgBrush.TextPrimary}" />
+    </Style>
+
+    <Style x:Key="DgText.SectionLabel" TargetType="TextBlock">
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{DynamicResource DgBrush.TextSecondary}" />
+        <Setter Property="Margin" Value="0,0,0,6" />
+    </Style>
+
+    <Style x:Key="DgText.Muted" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource DgBrush.TextMuted}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style x:Key="DgButton.Toolbar" TargetType="Button">
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="Margin" Value="0,0,8,8" />
+        <Setter Property="MinHeight" Value="28" />
+        <Setter Property="Background" Value="{DynamicResource DgBrush.Surface}" />
+        <Setter Property="Foreground" Value="{DynamicResource DgBrush.TextPrimary}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DgBrush.Border}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+    </Style>
+
+    <Style x:Key="DgButton.Accent" TargetType="Button" BasedOn="{StaticResource DgButton.Toolbar}">
+        <Setter Property="Background" Value="{DynamicResource DgBrush.Accent}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DgBrush.Accent}" />
+    </Style>
+
+    <Style x:Key="DgCard" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource DgBrush.Surface}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DgBrush.Border}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="{DynamicResource DgThickness.CardPadding}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+    </Style>
+
+    <Style x:Key="DgNavListBox" TargetType="ListBox">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Padding" Value="10,8" />
+                    <Setter Property="Margin" Value="0,0,0,2" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Foreground" Value="{DynamicResource DgBrush.TextPrimary}" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <Border x:Name="Bd" CornerRadius="6" Padding="{TemplateBinding Padding}"
+                                        Background="Transparent" SnapsToDevicePixels="True">
+                                    <ContentPresenter />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Bd" Property="Background"
+                                                Value="{DynamicResource DgBrush.AccentMuted}" />
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Bd" Property="Background"
+                                                Value="{DynamicResource DgBrush.NavSelected}" />
+                                        <Setter Property="FontWeight" Value="SemiBold" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="DgGroupBox" TargetType="GroupBox">
+        <Setter Property="Foreground" Value="{DynamicResource DgBrush.TextPrimary}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DgBrush.Border}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="8,10,8,8" />
+        <Setter Property="Margin" Value="0,10,0,0" />
+    </Style>
+
+    <Style TargetType="StatusBar">
+        <Setter Property="Background" Value="{DynamicResource DgBrush.Sidebar}" />
+        <Setter Property="Foreground" Value="{DynamicResource DgBrush.TextSecondary}" />
+    </Style>
+</ResourceDictionary>

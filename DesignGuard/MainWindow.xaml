@@ -5,13 +5,16 @@
         xmlns:conv="clr-namespace:DesignGuard.Converters"
         mc:Ignorable="d"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        Title="DesignGuard v5 — Security-by-design werkbench"
+        Title="DesignGuard v6 — Security-by-design werkbench"
         Height="820" Width="1320"
+        Background="{DynamicResource DgBrush.Window}"
+        Foreground="{DynamicResource DgBrush.TextPrimary}"
         Loaded="Window_Loaded">
     <Window.Resources>
         <conv:NotNullToVisibilityConverter x:Key="NotNullToVisibility" />
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
         <conv:IntEqualsToVisibilityConverter x:Key="IntEqVis" />
+        <conv:StringEqualsToVisibilityConverter x:Key="StrEqVis" />
     </Window.Resources>
     <DockPanel>
         <StatusBar DockPanel.Dock="Bottom">
@@ -19,84 +22,127 @@
         </StatusBar>
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="220" />
+                <ColumnDefinition Width="248" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="320" />
+                <ColumnDefinition Width="328" />
             </Grid.ColumnDefinitions>
 
-            <DockPanel Grid.Column="0" Margin="8,8,4,8">
-                <StackPanel DockPanel.Dock="Top">
-                    <TextBlock Text="Projecten" FontWeight="Bold" Margin="0,0,0,8" />
-                    <Button Content="Nieuw" Command="{Binding NewProjectCommand}" Margin="0,0,0,4" />
-                    <Button Content="Wizard" Command="{Binding OpenProjectWizardCommand}" Margin="0,0,0,4" />
-                    <Button Content="Opslaan" Command="{Binding SaveProjectCommand}" Margin="0,0,0,4" />
-                    <Button Content="Verwijderen" Command="{Binding DeleteProjectCommand}" Margin="0,0,0,4" />
-                    <Button Content="Demo" Command="{Binding EnsureDemoCommand}" Margin="0,0,0,12" />
-                    <TextBlock Text="Navigatie" FontWeight="Bold" Margin="0,0,0,4" />
-                    <ListBox BorderThickness="0" Background="Transparent" MinHeight="240"
-                             SelectedIndex="{Binding NavSection, Mode=TwoWay}">
-                        <ListBoxItem Content="Dashboard" />
-                        <ListBoxItem Content="Ontwerp" />
-                        <ListBoxItem Content="Dreigingen" />
-                        <ListBoxItem Content="Eisen" />
-                        <ListBoxItem Content="Controls" />
-                        <ListBoxItem Content="Beslissingen" />
-                        <ListBoxItem Content="Review board" />
-                        <ListBoxItem Content="Traceability" />
-                        <ListBoxItem Content="Export" />
-                        <ListBoxItem Content="Instellingen" />
-                        <ListBoxItem Content="App security review" />
-                    </ListBox>
-                </StackPanel>
-                <ListBox DockPanel.Dock="Bottom" Margin="0,12,0,0"
-                         ItemsSource="{Binding ProjectList}"
-                         SelectedItem="{Binding SelectedProjectSummary}"
-                         DisplayMemberPath="Name" />
-            </DockPanel>
+            <Border Grid.Column="0" Background="{DynamicResource DgBrush.Sidebar}"
+                    BorderBrush="{DynamicResource DgBrush.Border}" BorderThickness="0,0,1,0"
+                    Padding="{DynamicResource DgThickness.SidebarPad}">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top">
+                        <TextBlock Text="DesignGuard" Style="{StaticResource DgText.SectionLabel}" FontSize="11"
+                                   Foreground="{DynamicResource DgBrush.TextMuted}" Margin="0,0,0,2" />
+                        <TextBlock Text="Projecten" FontWeight="SemiBold" Margin="0,0,0,8"
+                                   Foreground="{DynamicResource DgBrush.TextPrimary}" />
+                        <Button Content="Nieuw project" Style="{StaticResource DgButton.Accent}"
+                                Command="{Binding NewProjectCommand}" />
+                        <Button Content="Wizard" Style="{StaticResource DgButton.Toolbar}"
+                                Command="{Binding OpenProjectWizardCommand}" />
+                        <Button Content="Opslaan" Style="{StaticResource DgButton.Toolbar}"
+                                Command="{Binding SaveProjectCommand}" />
+                        <Button Content="Verwijderen" Style="{StaticResource DgButton.Toolbar}"
+                                Command="{Binding DeleteProjectCommand}" />
+                        <Button Content="Demoproject" Style="{StaticResource DgButton.Toolbar}"
+                                Command="{Binding EnsureDemoCommand}" Margin="0,0,0,12" />
+                        <TextBlock Text="Werkruimte" Style="{StaticResource DgText.SectionLabel}" />
+                        <ListBox Style="{StaticResource DgNavListBox}" MinHeight="220"
+                                 SelectedIndex="{Binding NavSection, Mode=TwoWay}">
+                            <ListBoxItem Content="Dashboard" />
+                            <ListBoxItem Content="Ontwerp" />
+                            <ListBoxItem Content="Dreigingen" />
+                            <ListBoxItem Content="Eisen" />
+                            <ListBoxItem Content="Controls" />
+                            <ListBoxItem Content="Beslissingen" />
+                            <ListBoxItem Content="Review" />
+                            <ListBoxItem Content="Traceability" />
+                            <ListBoxItem Content="Export" />
+                            <ListBoxItem Content="Instellingen" />
+                            <ListBoxItem Content="App security review" />
+                        </ListBox>
+                        <TextBlock Text="Weergave" Style="{StaticResource DgText.SectionLabel}" Margin="0,12,0,4" />
+                        <TextBlock Text="Thema" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                        <ComboBox Margin="0,2,0,8" ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding UiTheme}" />
+                        <TextBlock Text="Uitlegniveau" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}"
+                                   ToolTip="Beginner: korte hulp en minder jargon in beeld. Advanced: alle technische velden." />
+                        <ComboBox Margin="0,2,0,8" ItemsSource="{Binding DetailLevelOptions}"
+                                  SelectedItem="{Binding DetailLevel}" />
+                        <TextBlock Text="Dichtheid" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                        <ComboBox Margin="0,2,0,0" ItemsSource="{Binding UiDensityOptions}"
+                                  SelectedItem="{Binding UiDensity}" />
+                    </StackPanel>
+                    <ListBox DockPanel.Dock="Bottom" Margin="0,12,0,0" MinHeight="100"
+                             Background="Transparent" BorderThickness="0"
+                             ItemsSource="{Binding ProjectList}"
+                             SelectedItem="{Binding SelectedProjectSummary}"
+                             DisplayMemberPath="Name" />
+                </DockPanel>
+            </Border>
 
-            <Grid Grid.Column="1" Margin="4,8,4,8">
+            <Grid Grid.Column="1" Margin="{DynamicResource DgThickness.PageMargin}">
                 <!-- Dashboard -->
                 <ScrollViewer Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=0}"
                               VerticalScrollBarVisibility="Auto">
                     <StackPanel>
-                        <TextBlock Text="Dashboard" FontSize="22" FontWeight="SemiBold" />
-                        <TextBlock TextWrapping="Wrap" Foreground="Gray" Margin="0,8,0,16"
-                                   Text="Werkbank v5: MongoDB-data, kennis-packs, PDF-export en diagram. Geen compliance-claim." />
+                        <TextBlock Text="Dashboard" Style="{StaticResource DgText.Title}" />
+                        <TextBlock Style="{StaticResource DgText.Muted}" Margin="0,8,0,12" FontSize="{DynamicResource DgFontSize.Subtitle}"
+                                   Text="Overzicht van je ontwerp en volgende stappen. DesignGuard helpt structureren — geen formele compliance-bewijs." />
+                        <Border Style="{StaticResource DgCard}" Margin="0,0,0,16"
+                                Visibility="{Binding HasNoProject, Converter={StaticResource BoolToVis}}">
+                            <StackPanel>
+                                <TextBlock Text="Welkom" FontWeight="SemiBold" />
+                                <TextBlock Margin="0,6,0,0" Style="{StaticResource DgText.Muted}" FontSize="12"
+                                           Text="Kies een project hiernaast, maak een nieuw project of start met het demoproject. Daarna: vul 'Ontwerp' in en werk naar dreigingen, eisen en export." TextWrapping="Wrap" />
+                                <TextBlock Margin="0,10,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" TextWrapping="Wrap"
+                                           Text="1) Project kiezen of aanmaken · 2) Systeem en componenten · 3) Analyse vernieuwen · 4) PDF of Markdown export" />
+                            </StackPanel>
+                        </Border>
                         <WrapPanel Margin="0,0,0,12">
-                            <Button Content="Snapshot (lokaal)" Command="{Binding SaveProjectSnapshotCommand}" Margin="0,0,8,8" />
-                            <Button Content="Control-bibliotheek" Command="{Binding ApplyControlLibraryCommand}" Margin="0,0,8,8" />
+                            <Button Content="Snapshot (lokaal)" Style="{StaticResource DgButton.Toolbar}"
+                                    Command="{Binding SaveProjectSnapshotCommand}" />
+                            <Button Content="Control-bibliotheek" Style="{StaticResource DgButton.Toolbar}"
+                                    Command="{Binding ApplyControlLibraryCommand}" />
                         </WrapPanel>
                         <UniformGrid Columns="2" Margin="0,0,0,16">
-                            <Border Padding="12" Margin="0,0,8,8" Background="White" BorderBrush="#DDE1E6" BorderThickness="1">
+                            <Border Style="{StaticResource DgCard}" Margin="0,0,8,8">
                                 <StackPanel>
-                                    <TextBlock Text="Open dreigingen" Foreground="Gray" FontSize="11" />
-                                    <TextBlock Text="{Binding OpenThreatCount}" FontSize="26" FontWeight="Bold" />
+                                    <TextBlock Text="Openstaande dreigingen" Style="{StaticResource DgText.Muted}" FontSize="11" />
+                                    <TextBlock Text="{Binding OpenThreatCount}" FontSize="26" FontWeight="Bold"
+                                               Foreground="{DynamicResource DgBrush.TextPrimary}" />
                                 </StackPanel>
                             </Border>
-                            <Border Padding="12" Margin="8,0,0,8" Background="White" BorderBrush="#DDE1E6" BorderThickness="1">
+                            <Border Style="{StaticResource DgCard}" Margin="8,0,0,8">
                                 <StackPanel>
-                                    <TextBlock Text="Gemigreerd / geaccepteerd" Foreground="Gray" FontSize="11" />
-                                    <TextBlock Text="{Binding MitigatedThreatCount}" FontSize="26" FontWeight="Bold" />
+                                    <TextBlock Text="Afgewezen / beperkt risico" Style="{StaticResource DgText.Muted}" FontSize="11"
+                                               ToolTip="Dreigingen met status opgelost of geaccepteerd (met rationale)." />
+                                    <TextBlock Text="{Binding MitigatedThreatCount}" FontSize="26" FontWeight="Bold"
+                                               Foreground="{DynamicResource DgBrush.TextPrimary}" />
                                 </StackPanel>
                             </Border>
-                            <Border Padding="12" Margin="0,0,8,0" Background="White" BorderBrush="#DDE1E6" BorderThickness="1">
+                            <Border Style="{StaticResource DgCard}" Margin="0,0,8,0">
                                 <StackPanel>
-                                    <TextBlock Text="Eisen (werk open)" Foreground="Gray" FontSize="11" />
-                                    <TextBlock Text="{Binding OpenRequirementCount}" FontSize="26" FontWeight="Bold" />
+                                    <TextBlock Text="Eisen in uitvoering" Style="{StaticResource DgText.Muted}" FontSize="11" />
+                                    <TextBlock Text="{Binding OpenRequirementCount}" FontSize="26" FontWeight="Bold"
+                                               Foreground="{DynamicResource DgBrush.TextPrimary}" />
                                 </StackPanel>
                             </Border>
-                            <Border Padding="12" Margin="8,0,0,0" Background="White" BorderBrush="#DDE1E6" BorderThickness="1">
+                            <Border Style="{StaticResource DgCard}" Margin="8,0,0,0">
                                 <StackPanel>
-                                    <TextBlock Text="Eisen geïmplementeerd" Foreground="Gray" FontSize="11" />
-                                    <TextBlock Text="{Binding ImplementedRequirementCount}" FontSize="26" FontWeight="Bold" />
+                                    <TextBlock Text="Eisen afgerond" Style="{StaticResource DgText.Muted}" FontSize="11" />
+                                    <TextBlock Text="{Binding ImplementedRequirementCount}" FontSize="26" FontWeight="Bold"
+                                               Foreground="{DynamicResource DgBrush.TextPrimary}" />
                                 </StackPanel>
                             </Border>
                         </UniformGrid>
-                        <TextBlock Text="Sjablonen" FontWeight="Bold" />
-                        <ItemsControl ItemsSource="{Binding TemplateList}" Margin="0,8,0,0">
+                        <TextBlock Text="Start met een sjabloon" Style="{StaticResource DgText.SectionLabel}" Margin="0,4,0,0" />
+                        <TextBlock Style="{StaticResource DgText.Muted}" FontSize="11" Margin="0,0,0,8"
+                                   Text="Sjablonen vullen het ontwerp voorbeeldgewijs; daarna kun je alles aanpassen." />
+                        <ItemsControl ItemsSource="{Binding TemplateList}" Margin="0,0,0,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Button Content="{Binding Title}" Margin="0,0,8,8" HorizontalAlignment="Left"
+                                    <Button Content="{Binding Title}" Style="{StaticResource DgButton.Toolbar}"
+                                            HorizontalAlignment="Left"
                                             Command="{Binding DataContext.ApplyTemplateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                             CommandParameter="{Binding Key}" />
                                 </DataTemplate>
@@ -321,16 +367,19 @@
                         </GroupBox>
                         <GroupBox Header="Architectuurdiagram" Margin="0,8,0,0">
                             <StackPanel Margin="8">
+                                <TextBlock Margin="0,0,0,6" Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"
+                                           Text="Tip: groene rand = ingang, oranje streep = gevoelige data. Trust boundary = vertrouwensgrens tussen twee omgevingen (bijv. internet vs intern)." />
                                 <WrapPanel Margin="0,0,0,8">
-                                    <Button Content="Zoom −" Command="{Binding DiagramZoomOutCommand}" Margin="0,0,6,6" Padding="10,4" />
-                                    <Button Content="100%" Command="{Binding DiagramFitToScreenCommand}" Margin="0,0,6,6" Padding="10,4" />
-                                    <Button Content="Zoom +" Command="{Binding DiagramZoomInCommand}" Margin="0,0,16,6" Padding="10,4" />
+                                    <Button Content="Zoom −" Style="{StaticResource DgButton.Toolbar}" Command="{Binding DiagramZoomOutCommand}" />
+                                    <Button Content="100%" Style="{StaticResource DgButton.Toolbar}" Command="{Binding DiagramFitToScreenCommand}" />
+                                    <Button Content="Zoom +" Style="{StaticResource DgButton.Toolbar}" Command="{Binding DiagramZoomInCommand}" />
                                     <CheckBox Content="Raster" IsChecked="{Binding DiagramShowGrid}" VerticalAlignment="Center" Margin="0,0,12,6" />
                                     <CheckBox Content="Trust boundaries" IsChecked="{Binding DiagramOverlayTrustBoundaries}" VerticalAlignment="Center" Margin="0,0,12,6" />
                                     <CheckBox Content="Gevoelige data" IsChecked="{Binding DiagramOverlaySensitiveData}" VerticalAlignment="Center" Margin="0,0,12,6" />
                                     <CheckBox Content="Dreiging → component" IsChecked="{Binding DiagramOverlayThreatLinks}" VerticalAlignment="Center" Margin="0,0,0,6" />
                                 </WrapPanel>
-                                <Border BorderBrush="#CBD5E1" BorderThickness="1" Height="420" Background="#F1F5F9" CornerRadius="6">
+                                <Border BorderBrush="{DynamicResource DgBrush.Border}" BorderThickness="1" Height="420"
+                                        Background="{DynamicResource DgBrush.DiagramCanvas}" CornerRadius="8">
                                     <Border.Style>
                                         <Style TargetType="Border">
                                             <Style.Triggers>
@@ -358,7 +407,11 @@
                                         </Style>
                                     </Border.Style>
                                     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                                        <Grid Width="{Binding DiagramContentWidth}" Height="{Binding DiagramContentHeight}" Background="Transparent">
+                                        <Grid Width="{Binding DiagramContentWidth}" Height="{Binding DiagramContentHeight}"
+                                              Background="Transparent">
+                                            <Grid.LayoutTransform>
+                                                <ScaleTransform ScaleX="{Binding DiagramZoom}" ScaleY="{Binding DiagramZoom}" />
+                                            </Grid.LayoutTransform>
                                             <ItemsControl ItemsSource="{Binding DiagramTrustOverlays}">
                                                 <ItemsControl.ItemsPanel>
                                                     <ItemsPanelTemplate>
@@ -482,7 +535,10 @@
                 <!-- Dreigingen -->
                 <DockPanel Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=2}">
                     <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
-                        <TextBlock Text="Threat model" FontSize="22" FontWeight="SemiBold" />
+                        <TextBlock Text="Dreigingen (threat model)" Style="{StaticResource DgText.Title}" />
+                        <TextBlock Margin="0,6,0,0" Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"
+                                   Text="Wat kan misgaan met jouw ontwerp? STRIDE groepeert soorten risico (bijv. spoofing, datalek). Kies een item voor uitleg en mitigaties in het rechterpaneel."
+                                   Visibility="{Binding DetailLevel, Converter={StaticResource StrEqVis}, ConverterParameter=Beginner}" />
                         <WrapPanel Margin="0,8,0,0">
                             <Button Content="Analyse vernieuwen" Command="{Binding RegenerateFromDesignCommand}" Margin="0,0,8,8" />
                             <Button Content="Handmatige dreiging" Command="{Binding AddCustomThreatCommand}" Margin="0,0,8,8" />
@@ -519,7 +575,10 @@
                 <!-- Eisen -->
                 <DockPanel Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=3}">
                     <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
-                        <TextBlock Text="Security-eisen" FontSize="22" FontWeight="SemiBold" />
+                        <TextBlock Text="Security-eisen" Style="{StaticResource DgText.Title}" />
+                        <TextBlock Margin="0,6,0,0" Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"
+                                   Text="Eisen vertellen wat je systeem moet kunnen of moet afdwingen (bijv. logging, toegang). Ze zijn gekoppeld aan dreigingen en controls."
+                                   Visibility="{Binding DetailLevel, Converter={StaticResource StrEqVis}, ConverterParameter=Beginner}" />
                         <WrapPanel Margin="0,8,0,0">
                             <Button Content="Analyse vernieuwen" Command="{Binding RegenerateFromDesignCommand}" Margin="0,0,8,8" />
                             <Button Content="Handmatige eis" Command="{Binding AddCustomRequirementCommand}" Margin="0,0,8,8" />
@@ -789,14 +848,16 @@
             </Grid>
 
             <!-- Inspector -->
-            <ScrollViewer Grid.Column="2" Margin="4,8,8,8">
+            <ScrollViewer Grid.Column="2" Margin="{DynamicResource DgThickness.PageMargin}" Padding="4,0,0,0">
                 <StackPanel>
-                    <TextBlock Text="Inspector" FontWeight="Bold" Margin="0,0,0,8" />
-                    <TextBlock Text="Suggesties (regels)" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Text="Details" Style="{StaticResource DgText.Title}" Margin="0,0,0,4" />
+                    <TextBlock Style="{StaticResource DgText.Muted}" FontSize="11" Margin="0,0,0,12" TextWrapping="Wrap"
+                               Text="Context voor het geselecteerde item. Suggesties hieronder komen uit je ontwerp (geen automatische goedkeuring)." />
+                    <TextBlock Text="Suggesties" Style="{StaticResource DgText.SectionLabel}" />
                     <ItemsControl ItemsSource="{Binding Suggestions}" Margin="0,0,0,12">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border BorderBrush="#E0E0E0" BorderThickness="1" Padding="8" Margin="0,0,0,8" Background="#FAFAFA">
+                                <Border Style="{StaticResource DgCard}" Margin="0,0,0,8">
                                     <StackPanel>
                                         <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
                                         <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" FontSize="11" Margin="0,4,0,0" />
@@ -810,130 +871,168 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                     <Border Visibility="{Binding ShowProjectOverviewInDetails, Converter={StaticResource BoolToVis}}"
-                            BorderBrush="#DDD" BorderThickness="1" Padding="8" Margin="0,0,0,8">
+                            Style="{StaticResource DgCard}" Margin="0,0,0,8">
                         <StackPanel>
-                            <TextBlock Text="Project" FontWeight="SemiBold" />
-                            <TextBlock Text="{Binding EditorProjectName}" TextWrapping="Wrap" Margin="0,4,0,0" />
-                            <TextBlock Text="Selecteer een component, dreiging of eis." Foreground="Gray" FontSize="11" Margin="0,8,0,0" />
+                            <TextBlock Text="Geen selectie" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding EditorProjectName}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                       Foreground="{DynamicResource DgBrush.TextSecondary}" />
+                            <TextBlock Text="Klik op een component in het diagram of kies een dreiging of eis in de lijst."
+                                       Style="{StaticResource DgText.Muted}" FontSize="11" Margin="0,8,0,0" />
                         </StackPanel>
                     </Border>
-                    <Border Visibility="{Binding SelectedThreat, Converter={StaticResource NotNullToVisibility}}" BorderBrush="#DDD" BorderThickness="1" Padding="8" Margin="0,0,0,8">
+                    <Border Visibility="{Binding SelectedThreat, Converter={StaticResource NotNullToVisibility}}" Style="{StaticResource DgCard}" Margin="0,0,0,8">
                         <StackPanel DataContext="{Binding SelectedThreat}">
                             <TextBlock Text="Dreiging" FontWeight="SemiBold" />
-                            <TextBlock Text="Titel" Margin="0,8,0,0" FontSize="11" Foreground="Gray" />
-                            <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" />
-                            <TextBlock Text="STRIDE / Ernst / Status" Margin="0,8,0,0" FontSize="11" Foreground="Gray" />
-                            <ComboBox ItemsSource="{Binding DataContext.AllStrideCategories, RelativeSource={RelativeSource AncestorType=Window}}"
-                                      SelectedItem="{Binding StrideCategory}" />
-                            <ComboBox Margin="0,4,0,0"
-                                      ItemsSource="{Binding DataContext.AllSeverities, RelativeSource={RelativeSource AncestorType=Window}}"
-                                      SelectedItem="{Binding Severity}" />
-                            <ComboBox Margin="0,4,0,0"
-                                      ItemsSource="{Binding DataContext.AllThreatStatuses, RelativeSource={RelativeSource AncestorType=Window}}"
-                                      SelectedItem="{Binding Status}" />
-                            <TextBlock Text="Beschrijving" Margin="0,8,0,0" FontSize="11" Foreground="Gray" />
+                            <TextBlock Text="Titel" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                            <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" MinHeight="28" />
+                            <TextBlock Text="Beschrijving" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
                             <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" Height="72" />
-                            <TextBlock Text="Notities" Margin="0,8,0,0" FontSize="11" Foreground="Gray" />
-                            <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" />
-                            <TextBlock Text="Triggers" FontWeight="SemiBold" Margin="0,8,0,0" />
-                            <ItemsControl ItemsSource="{Binding TriggerKeys}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding}" FontSize="11" Margin="0,2,0,0" />
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                            <CheckBox Content="Behoud bij hergeneratie (UserModified)" IsChecked="{Binding UserModified}" Margin="0,8,0,0" />
-                            <TextBlock Text="Mitigaties" FontWeight="SemiBold" Margin="0,8,0,0" />
-                            <ItemsControl ItemsSource="{Binding SuggestedMitigations}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2,0,0" FontSize="11" />
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                            <TextBlock Text="Bronspoor (knowledge pack)" FontWeight="SemiBold" Margin="0,12,0,4" FontSize="11" Foreground="Gray" />
-                            <TextBlock TextWrapping="Wrap" FontSize="11">
-                                <Run Text="Pack: " /><Run Text="{Binding SourceAttribution.KnowledgePackDisplayLabel, Mode=OneWay}" />
-                                <Run Text=" (" /><Run Text="{Binding SourceAttribution.KnowledgePackVersionLabel, Mode=OneWay}" /><Run Text=")" />
-                            </TextBlock>
-                            <ItemsControl ItemsSource="{Binding SourceAttribution.GuidanceItemIds}" Margin="0,4,0,0">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Margin="0,0,6,4" Padding="4,2" Background="#EDF2F7" CornerRadius="2">
-                                            <TextBlock Text="{Binding}" FontSize="10" />
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                            <TextBlock Margin="0,2,0,0" FontSize="10" Foreground="Gray" TextWrapping="Wrap">
-                                <Run Text="Aard: " /><Run Text="{Binding SourceAttribution.Nature, Mode=OneWay}" />
-                            </TextBlock>
-                            <Button Content="Verwijder dreiging" Margin="0,12,0,0"
+                            <TextBlock Text="Notities (voor jouw team)" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                            <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" MinHeight="40" />
+                            <StackPanel Margin="0,10,0,0"
+                                        Visibility="{Binding DataContext.DetailLevel, Converter={StaticResource StrEqVis}, ConverterParameter=Beginner, RelativeSource={RelativeSource AncestorType=Window}}">
+                                <TextBlock Text="In het kort" FontWeight="SemiBold" FontSize="11" />
+                                <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,4,0,0" Foreground="{DynamicResource DgBrush.TextSecondary}"
+                                           Text="{Binding Explanation.WhatItMeans, Mode=OneWay}" />
+                                <TextBlock Text="Waarom dit telt" FontWeight="SemiBold" FontSize="11" Margin="0,8,0,0" />
+                                <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,4,0,0" Foreground="{DynamicResource DgBrush.TextSecondary}"
+                                           Text="{Binding Explanation.WhyItMatters, Mode=OneWay}" />
+                                <TextBlock Text="Waarom dit item er staat" FontWeight="SemiBold" FontSize="11" Margin="0,8,0,0" />
+                                <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,4,0,0" Foreground="{DynamicResource DgBrush.TextSecondary}"
+                                           Text="{Binding Explanation.WhyIncluded, Mode=OneWay}" />
+                            </StackPanel>
+                            <Expander Margin="0,12,0,0" Background="Transparent"
+                                      IsExpanded="{Binding DataContext.IsAdvancedDetail, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay}">
+                                <Expander.Header>
+                                    <TextBlock Text="Classificatie (STRIDE), triggers &amp; bronverwijzing"
+                                               FontWeight="SemiBold" TextWrapping="Wrap" />
+                                </Expander.Header>
+                                <StackPanel Margin="0,8,0,0">
+                                    <TextBlock Text="STRIDE / ernst / status" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}"
+                                               ToolTip="STRIDE groepeert soorten aanvallen: Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privilege." />
+                                    <ComboBox ItemsSource="{Binding DataContext.AllStrideCategories, RelativeSource={RelativeSource AncestorType=Window}}"
+                                              SelectedItem="{Binding StrideCategory}" />
+                                    <ComboBox Margin="0,4,0,0"
+                                              ItemsSource="{Binding DataContext.AllSeverities, RelativeSource={RelativeSource AncestorType=Window}}"
+                                              SelectedItem="{Binding Severity}" />
+                                    <ComboBox Margin="0,4,0,0"
+                                              ItemsSource="{Binding DataContext.AllThreatStatuses, RelativeSource={RelativeSource AncestorType=Window}}"
+                                              SelectedItem="{Binding Status}" />
+                                    <TextBlock Text="Triggers (welk ontwerp activeerde dit?)" FontWeight="SemiBold" Margin="0,8,0,0" />
+                                    <ItemsControl ItemsSource="{Binding TriggerKeys}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" FontSize="11" Margin="0,2,0,0" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <CheckBox Content="Behoud bij opnieuw genereren (handmatig aangepast)" IsChecked="{Binding UserModified}" Margin="0,8,0,0" />
+                                    <TextBlock Text="Voorgestelde mitigaties" FontWeight="SemiBold" Margin="0,8,0,0" />
+                                    <ItemsControl ItemsSource="{Binding SuggestedMitigations}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2,0,0" FontSize="11" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock Text="Bron (knowledge pack)" FontWeight="SemiBold" Margin="0,12,0,4" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                                    <TextBlock TextWrapping="Wrap" FontSize="11">
+                                        <Run Text="Pack: " /><Run Text="{Binding SourceAttribution.KnowledgePackDisplayLabel, Mode=OneWay}" />
+                                        <Run Text=" (" /><Run Text="{Binding SourceAttribution.KnowledgePackVersionLabel, Mode=OneWay}" /><Run Text=")" />
+                                    </TextBlock>
+                                    <ItemsControl ItemsSource="{Binding SourceAttribution.GuidanceItemIds}" Margin="0,4,0,0">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Margin="0,0,6,4" Padding="4,2" Background="{DynamicResource DgBrush.AccentMuted}" CornerRadius="2">
+                                                    <TextBlock Text="{Binding}" FontSize="10" />
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock Margin="0,2,0,0" FontSize="10" Foreground="{DynamicResource DgBrush.TextMuted}" TextWrapping="Wrap">
+                                        <Run Text="Aard: " /><Run Text="{Binding SourceAttribution.Nature, Mode=OneWay}" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </Expander>
+                            <Button Content="Verwijder dreiging" Style="{StaticResource DgButton.Toolbar}" Margin="0,12,0,0"
                                     Command="{Binding DataContext.RemoveThreatCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                     CommandParameter="{Binding}" />
                         </StackPanel>
                     </Border>
-                    <Border Visibility="{Binding SelectedRequirement, Converter={StaticResource NotNullToVisibility}}" BorderBrush="#DDD" BorderThickness="1" Padding="8" Margin="0,0,0,8">
+                    <Border Visibility="{Binding SelectedRequirement, Converter={StaticResource NotNullToVisibility}}" Style="{StaticResource DgCard}" Margin="0,0,0,8">
                         <StackPanel DataContext="{Binding SelectedRequirement}">
                             <TextBlock Text="Eis" FontWeight="SemiBold" />
-                            <TextBlock Text="Titel" Margin="0,8,0,0" FontSize="11" Foreground="Gray" />
-                            <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock Text="Categorie" Margin="0,8,0,0" FontSize="11" Foreground="Gray" />
+                            <TextBlock Text="Titel" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                            <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" MinHeight="28" />
+                            <TextBlock Text="Categorie" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
                             <TextBox Text="{Binding Category, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock Text="Prioriteit / Status" Margin="0,8,0,0" FontSize="11" Foreground="Gray" />
+                            <TextBlock Text="Prioriteit / status" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
                             <ComboBox ItemsSource="{Binding DataContext.AllRequirementPriorities, RelativeSource={RelativeSource AncestorType=Window}}"
                                       SelectedItem="{Binding Priority}" />
                             <ComboBox Margin="0,4,0,0"
                                       ItemsSource="{Binding DataContext.AllRequirementStatuses, RelativeSource={RelativeSource AncestorType=Window}}"
                                       SelectedItem="{Binding Status}" />
-                            <TextBlock Text="Uitleg" Margin="0,8,0,0" FontSize="11" Foreground="Gray" />
+                            <TextBlock Text="Uitleg in gewone taal" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
                             <TextBox Text="{Binding PlainExplanation, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" Height="60" />
-                            <TextBlock Text="Waarom van toepassing" Margin="0,8,0,0" FontSize="11" Foreground="Gray" />
+                            <TextBlock Text="Waarom dit voor jouw systeem geldt" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
                             <TextBox Text="{Binding WhyApplies, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" Height="48" />
-                            <TextBlock Text="Bron-tags (richtinggevend)" Margin="0,8,0,0" FontSize="11" Foreground="Gray" />
-                            <ItemsControl ItemsSource="{Binding SourceTags}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Margin="0,2,0,0" Padding="4,2" Background="#EDF2F7" HorizontalAlignment="Left" CornerRadius="2">
-                                            <TextBlock Text="{Binding}" FontSize="10" />
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                            <TextBlock Text="Bronspoor (knowledge pack)" FontWeight="SemiBold" Margin="0,12,0,4" FontSize="11" Foreground="Gray" />
-                            <TextBlock TextWrapping="Wrap" FontSize="11">
-                                <Run Text="Pack: " /><Run Text="{Binding SourceAttribution.KnowledgePackDisplayLabel, Mode=OneWay}" />
-                            </TextBlock>
-                            <ItemsControl ItemsSource="{Binding SourceAttribution.GuidanceItemIds}" Margin="0,4,0,0">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Margin="0,0,6,4" Padding="4,2" Background="#EDF2F7" CornerRadius="2">
-                                            <TextBlock Text="{Binding}" FontSize="10" />
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                            <TextBlock Margin="0,2,0,0" FontSize="10" Foreground="Gray" TextWrapping="Wrap">
-                                <Run Text="Aard: " /><Run Text="{Binding SourceAttribution.Nature, Mode=OneWay}" />
-                            </TextBlock>
-                            <CheckBox Content="Behoud bij hergeneratie" IsChecked="{Binding UserModified}" Margin="0,8,0,0" />
-                            <Button Content="Verwijder eis" Margin="0,12,0,0"
+                            <StackPanel Margin="0,10,0,0"
+                                        Visibility="{Binding DataContext.DetailLevel, Converter={StaticResource StrEqVis}, ConverterParameter=Beginner, RelativeSource={RelativeSource AncestorType=Window}}">
+                                <TextBlock Text="Extra samenvatting" FontWeight="SemiBold" FontSize="11" />
+                                <TextBlock TextWrapping="Wrap" FontSize="11" Margin="0,4,0,0" Foreground="{DynamicResource DgBrush.TextSecondary}"
+                                           Text="{Binding Explanation.WhatItMeans, Mode=OneWay}" />
+                            </StackPanel>
+                            <Expander Margin="0,12,0,0" Background="Transparent"
+                                      IsExpanded="{Binding DataContext.IsAdvancedDetail, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay}">
+                                <Expander.Header>
+                                    <TextBlock Text="Tags, bronverwijzing &amp; technische details" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                </Expander.Header>
+                                <StackPanel Margin="0,8,0,0">
+                                    <TextBlock Text="Bron-tags" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                                    <ItemsControl ItemsSource="{Binding SourceTags}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Margin="0,2,0,0" Padding="4,2" Background="{DynamicResource DgBrush.AccentMuted}" HorizontalAlignment="Left" CornerRadius="2">
+                                                    <TextBlock Text="{Binding}" FontSize="10" />
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock Text="Bron (knowledge pack)" FontWeight="SemiBold" Margin="0,12,0,4" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                                    <TextBlock TextWrapping="Wrap" FontSize="11">
+                                        <Run Text="Pack: " /><Run Text="{Binding SourceAttribution.KnowledgePackDisplayLabel, Mode=OneWay}" />
+                                    </TextBlock>
+                                    <ItemsControl ItemsSource="{Binding SourceAttribution.GuidanceItemIds}" Margin="0,4,0,0">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Margin="0,0,6,4" Padding="4,2" Background="{DynamicResource DgBrush.AccentMuted}" CornerRadius="2">
+                                                    <TextBlock Text="{Binding}" FontSize="10" />
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock Margin="0,2,0,0" FontSize="10" Foreground="{DynamicResource DgBrush.TextMuted}" TextWrapping="Wrap">
+                                        <Run Text="Aard: " /><Run Text="{Binding SourceAttribution.Nature, Mode=OneWay}" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </Expander>
+                            <CheckBox Content="Behoud bij opnieuw genereren" IsChecked="{Binding UserModified}" Margin="0,8,0,0" />
+                            <Button Content="Verwijder eis" Style="{StaticResource DgButton.Toolbar}" Margin="0,12,0,0"
                                     Command="{Binding DataContext.RemoveRequirementCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                     CommandParameter="{Binding}" />
                         </StackPanel>
                     </Border>
-                    <Border Visibility="{Binding SelectedComponent, Converter={StaticResource NotNullToVisibility}}" BorderBrush="#DDD" BorderThickness="1" Padding="8">
+                    <Border Visibility="{Binding SelectedComponent, Converter={StaticResource NotNullToVisibility}}" Style="{StaticResource DgCard}">
                         <StackPanel DataContext="{Binding SelectedComponent}">
                             <TextBlock Text="Component" FontWeight="SemiBold" />
                             <TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="0,8,0,0" />
@@ -960,6 +1059,17 @@
                     </Border>
                 </StackPanel>
             </ScrollViewer>
+
+            <Border Grid.ColumnSpan="3" Panel.ZIndex="200"
+                    Background="{DynamicResource DgBrush.OverlayScrim}"
+                    Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
+                    IsHitTestVisible="True">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="420" Margin="24">
+                    <ProgressBar IsIndeterminate="True" Height="4" />
+                    <TextBlock Text="{Binding BusyMessage}" Foreground="White" TextWrapping="Wrap" TextAlignment="Center"
+                               FontSize="13" Margin="0,14,0,0" />
+                </StackPanel>
+            </Border>
         </Grid>
     </DockPanel>
 </Window>

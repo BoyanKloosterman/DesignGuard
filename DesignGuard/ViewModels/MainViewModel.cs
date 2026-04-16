@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DesignGuard.Export;
@@ -11,6 +12,12 @@ namespace DesignGuard.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
+    private static readonly JsonSerializerOptions SnapshotJsonOpts = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     private readonly IProjectRepository _projects;
     private readonly ThreatGenerationService _threatService;
     private readonly RequirementGenerationService _requirementService;
@@ -19,6 +26,9 @@ public partial class MainViewModel : ObservableObject
     private readonly AnalysisMergeService _merge;
     private readonly TraceabilityService _traceability;
     private readonly ProjectTemplateService _templates;
+    private readonly ControlLibraryService _controlLibrary;
+    private readonly ModelingSuggestionService _suggestionService;
+    private HashSet<string> _dismissedSuggestionKeys = new(StringComparer.Ordinal);
 
     public MainViewModel(
         IProjectRepository projects,
@@ -28,7 +38,9 @@ public partial class MainViewModel : ObservableObject
         ExportService export,
         AnalysisMergeService merge,
         TraceabilityService traceability,
-        ProjectTemplateService templates)
+        ProjectTemplateService templates,
+        ControlLibraryService controlLibrary,
+        ModelingSuggestionService suggestionService)
     {
         _projects = projects;
         _threatService = threatService;
@@ -38,6 +50,8 @@ public partial class MainViewModel : ObservableObject
         _merge = merge;
         _traceability = traceability;
         _templates = templates;
+        _controlLibrary = controlLibrary;
+        _suggestionService = suggestionService;
         SystemTypeOptions = Enum.GetNames(typeof(SystemType)).ToList();
         DeploymentContextOptions = Enum.GetNames(typeof(DeploymentContext)).ToList();
         ThreatStatusOptions = Enum.GetNames(typeof(ThreatStatus)).ToList();
@@ -47,6 +61,7 @@ public partial class MainViewModel : ObservableObject
         DesignNoteKindOptions = Enum.GetNames(typeof(DesignNoteKind)).ToList();
         FilteredThreats = new ObservableCollection<ThreatModel>();
         FilteredRequirements = new ObservableCollection<RequirementModel>();
+        Suggestions = new ObservableCollection<ModelingSuggestion>();
     }
 
     public IReadOnlyList<string> SystemTypeOptions { get; }
@@ -73,14 +88,32 @@ public partial class MainViewModel : ObservableObject
     public IReadOnlyList<RequirementPriority> AllRequirementPriorities { get; } =
         Enum.GetValues(typeof(RequirementPriority)).Cast<RequirementPriority>().ToArray();
 
+    public IReadOnlyList<ControlLifecycleStatus> AllControlLifecycleStatuses { get; } =
+        Enum.GetValues(typeof(ControlLifecycleStatus)).Cast<ControlLifecycleStatus>().ToArray();
+
+    public IReadOnlyList<ReviewWorkflowStatus> AllReviewWorkflowStatuses { get; } =
+        Enum.GetValues(typeof(ReviewWorkflowStatus)).Cast<ReviewWorkflowStatus>().ToArray();
+
+    public IReadOnlyList<ReviewSubjectKind> AllReviewSubjectKinds { get; } =
+        Enum.GetValues(typeof(ReviewSubjectKind)).Cast<ReviewSubjectKind>().ToArray();
+
+    public IReadOnlyList<string> ReviewSubjectKindOptions { get; } =
+        Enum.GetNames(typeof(ReviewSubjectKind)).ToList();
+
+    public IReadOnlyList<string> ReviewWorkflowStatusOptions { get; } =
+        Enum.GetNames(typeof(ReviewWorkflowStatus)).ToList();
+
+    public IReadOnlyList<string> ControlLifecycleStatusOptions { get; } =
+        Enum.GetNames(typeof(ControlLifecycleStatus)).ToList();
+
     [ObservableProperty] private ObservableCollection<ProjectSummaryItem> _projectList = new();
 
     [ObservableProperty] private ProjectSummaryItem? _selectedProjectSummary;
 
-    /// <summary>0 Dashboard, 1 Ontwerp, 2 Dreigingen, 3 Eisen, 4 Beslissingen, 5 Traceability, 6 Export</summary>
+    /// <summary>0 Dashboard, 1 Ontwerp, 2 Dreigingen, 3 Eisen, 4 Controls, 5 Beslissingen, 6 Review, 7 Traceability, 8 Export</summary>
     [ObservableProperty] private int _navSection;
 
-    [ObservableProperty] private string _statusMessage = "DesignGuard v2 — lokaal security-by-design.";
+    [ObservableProperty] private string _statusMessage = "DesignGuard v3 — lokaal security-by-design.";
 
     [ObservableProperty] private int _currentProjectId;
 
@@ -127,6 +160,16 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<DesignNoteRowViewModel> _designNotes = new();
 
     [ObservableProperty] private ObservableCollection<ControlRowViewModel> _controls = new();
+
+    [ObservableProperty] private ObservableCollection<EntryPointRowViewModel> _entryPoints = new();
+
+    [ObservableProperty] private ObservableCollection<SensitiveDataRowViewModel> _sensitiveDataRows = new();
+
+    [ObservableProperty] private ObservableCollection<ReviewItemRowViewModel> _reviewItems = new();
+
+    [ObservableProperty] private ObservableCollection<SnapshotRowViewModel> _snapshots = new();
+
+    [ObservableProperty] private ObservableCollection<ModelingSuggestion> _suggestions = new();
 
     [ObservableProperty] private ObservableCollection<DiagramNodeViewModel> _diagramNodes = new();
 
@@ -197,8 +240,9 @@ public partial class MainViewModel : ObservableObject
             UpdateDashboard();
         }
 
-        if (value == 5) RefreshTraceability();
-        if (value == 6) RefreshExportPreview();
+        if (value == 7) RefreshTraceability();
+        if (value == 8) RefreshExportPreview();
+        if (value is 0 or 1 or 4 or 5 or 6) RefreshSuggestions();
     }
 
     partial void OnThreatFilterTextChanged(string value) => RefreshFilters();
@@ -219,7 +263,7 @@ public partial class MainViewModel : ObservableObject
             await ReloadProjectListAsync();
             var demo = ProjectList.FirstOrDefault(p => p.Name.StartsWith("Demo", StringComparison.Ordinal));
             SelectedProjectSummary = demo ?? ProjectList.FirstOrDefault();
-            StatusMessage = "Database gereed (v2). Demo-project beschikbaar.";
+            StatusMessage = "Database gereed (v3). Demo-project beschikbaar.";
         }
         catch (Exception ex)
         {
@@ -281,6 +325,12 @@ public partial class MainViewModel : ObservableObject
         Assets.Clear();
         DesignNotes.Clear();
         Controls.Clear();
+        EntryPoints.Clear();
+        SensitiveDataRows.Clear();
+        ReviewItems.Clear();
+        Snapshots.Clear();
+        Suggestions.Clear();
+        _dismissedSuggestionKeys.Clear();
         Threats.Clear();
         Requirements.Clear();
         DiagramNodes.Clear();
@@ -313,6 +363,7 @@ public partial class MainViewModel : ObservableObject
         FlagLoggingMonitoring = p.LoggingMonitoringPresent;
         FlagCriticalBusiness = p.CriticalBusinessFunction;
         OpenIssuesSummary = p.OpenIssuesSummary;
+        _dismissedSuggestionKeys = new HashSet<string>(p.DismissedSuggestionKeys, StringComparer.Ordinal);
 
         TrustBoundaries.Clear();
         foreach (var b in p.TrustBoundaries)
@@ -407,10 +458,75 @@ public partial class MainViewModel : ObservableObject
             Controls.Add(new ControlRowViewModel
             {
                 Id = c.Id,
+                StableId = c.StableId,
                 Title = c.Title,
+                Category = c.Category,
+                SourceTags = string.Join(", ", c.SourceTags),
                 Description = c.Description,
+                ImplementationGuidance = c.ImplementationGuidance,
                 LinkedThreatStableId = c.LinkedThreatStableId,
-                StatusNotes = c.StatusNotes
+                LinkedRequirementStableIds = string.Join(", ", c.LinkedRequirementStableIds),
+                Status = c.Status.ToString(),
+                StatusNotes = c.StatusNotes,
+                LibraryDefinitionId = c.LibraryDefinitionId
+            });
+        }
+
+        EntryPoints.Clear();
+        foreach (var ep in p.EntryPoints)
+        {
+            EntryPoints.Add(new EntryPointRowViewModel
+            {
+                Id = ep.Id,
+                Name = ep.Name,
+                Description = ep.Description,
+                RelatedComponentId = ep.RelatedComponentId,
+                Notes = ep.Notes,
+                ExposureNotes = ep.ExposureNotes
+            });
+        }
+
+        SensitiveDataRows.Clear();
+        foreach (var s in p.SensitiveDataItems)
+        {
+            SensitiveDataRows.Add(new SensitiveDataRowViewModel
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Category = s.Category,
+                Description = s.Description,
+                RelatedComponentId = s.RelatedComponentId,
+                StorageLocation = s.StorageLocation,
+                Notes = s.Notes
+            });
+        }
+
+        ReviewItems.Clear();
+        foreach (var r in p.ReviewItems)
+        {
+            ReviewItems.Add(new ReviewItemRowViewModel
+            {
+                Id = r.Id,
+                SubjectKind = r.SubjectKind.ToString(),
+                SubjectStableId = r.SubjectStableId,
+                SubjectTitle = r.SubjectTitle,
+                Status = r.Status.ToString(),
+                Notes = r.Notes,
+                Rationale = r.Rationale,
+                Owner = r.Owner,
+                CreatedAtUtc = r.CreatedAtUtc
+            });
+        }
+
+        Snapshots.Clear();
+        foreach (var s in p.Snapshots)
+        {
+            Snapshots.Add(new SnapshotRowViewModel
+            {
+                Id = s.Id,
+                Name = s.Name,
+                CreatedAtUtc = s.CreatedAtUtc,
+                SnapshotJson = s.SnapshotJson
             });
         }
 
@@ -418,6 +534,7 @@ public partial class MainViewModel : ObservableObject
         Requirements = new ObservableCollection<RequirementModel>(p.Requirements);
         RefreshFilters();
         UpdateDashboard();
+        RefreshSuggestions();
     }
 
     private ProjectModel BuildModelFromEditor()
@@ -503,10 +620,65 @@ public partial class MainViewModel : ObservableObject
         var ctrl = Controls.Select(c => new ControlModel
         {
             Id = c.Id,
+            StableId = c.StableId,
             Title = c.Title,
+            Category = c.Category,
+            SourceTags = SplitCommaList(c.SourceTags),
             Description = c.Description,
+            ImplementationGuidance = c.ImplementationGuidance,
             LinkedThreatStableId = c.LinkedThreatStableId,
-            StatusNotes = c.StatusNotes
+            LinkedRequirementStableIds = SplitCommaList(c.LinkedRequirementStableIds),
+            Status = Enum.TryParse<ControlLifecycleStatus>(c.Status, out var cst)
+                ? cst
+                : ControlLifecycleStatus.Draft,
+            StatusNotes = c.StatusNotes,
+            LibraryDefinitionId = c.LibraryDefinitionId
+        }).ToList();
+
+        var entryList = EntryPoints.Select(e => new EntryPointModel
+        {
+            Id = e.Id,
+            Name = e.Name,
+            Description = e.Description,
+            RelatedComponentId = e.RelatedComponentId,
+            Notes = e.Notes,
+            ExposureNotes = e.ExposureNotes
+        }).ToList();
+
+        var sensList = SensitiveDataRows.Select(s => new SensitiveDataModel
+        {
+            Id = s.Id,
+            Name = s.Name,
+            Category = s.Category,
+            Description = s.Description,
+            RelatedComponentId = s.RelatedComponentId,
+            StorageLocation = s.StorageLocation,
+            Notes = s.Notes
+        }).ToList();
+
+        var revList = ReviewItems.Select(r => new ReviewItemModel
+        {
+            Id = r.Id,
+            SubjectKind = Enum.TryParse<ReviewSubjectKind>(r.SubjectKind, out var sk)
+                ? sk
+                : ReviewSubjectKind.OpenQuestion,
+            SubjectStableId = r.SubjectStableId,
+            SubjectTitle = r.SubjectTitle,
+            Status = Enum.TryParse<ReviewWorkflowStatus>(r.Status, out var rs)
+                ? rs
+                : ReviewWorkflowStatus.Draft,
+            Notes = r.Notes,
+            Rationale = r.Rationale,
+            Owner = r.Owner,
+            CreatedAtUtc = r.CreatedAtUtc
+        }).ToList();
+
+        var snapList = Snapshots.Select(s => new SnapshotModel
+        {
+            Id = s.Id,
+            Name = s.Name,
+            CreatedAtUtc = s.CreatedAtUtc,
+            SnapshotJson = s.SnapshotJson
         }).ToList();
 
         return new ProjectModel
@@ -534,9 +706,21 @@ public partial class MainViewModel : ObservableObject
             Assets = assetList,
             DesignNotes = notes,
             Controls = ctrl,
+            EntryPoints = entryList,
+            SensitiveDataItems = sensList,
+            ReviewItems = revList,
+            Snapshots = snapList,
             Threats = Threats.ToList(),
-            Requirements = Requirements.ToList()
+            Requirements = Requirements.ToList(),
+            DismissedSuggestionKeys = _dismissedSuggestionKeys.ToList()
         };
+    }
+
+    private static List<string> SplitCommaList(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return new List<string>();
+        return raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(s => s.Length > 0).ToList();
     }
 
     [RelayCommand]
@@ -655,11 +839,14 @@ public partial class MainViewModel : ObservableObject
             _merge.MergeThreats(m, genT);
             _merge.MergeRequirements(m, genR);
             RequirementThreatLinker.Link(m);
+            _controlLibrary.ApplyRecommendations(m);
             Threats = new ObservableCollection<ThreatModel>(m.Threats);
             Requirements = new ObservableCollection<RequirementModel>(m.Requirements);
+            MergeLibraryControlsIntoRows(m);
             RefreshFilters();
             UpdateDashboard();
             RefreshTraceability();
+            RefreshSuggestions();
             StatusMessage = "Analyse vernieuwd (samengevoegd met handmatige items).";
         }
         catch (Exception ex)
@@ -832,6 +1019,148 @@ public partial class MainViewModel : ObservableObject
     {
         if (row == null) return;
         Roles.Remove(row);
+    }
+
+    private void MergeLibraryControlsIntoRows(ProjectModel m)
+    {
+        foreach (var c in m.Controls.Where(x => !string.IsNullOrWhiteSpace(x.LibraryDefinitionId)))
+        {
+            if (Controls.Any(r =>
+                    string.Equals(r.LibraryDefinitionId, c.LibraryDefinitionId, StringComparison.OrdinalIgnoreCase)))
+                continue;
+            Controls.Add(new ControlRowViewModel
+            {
+                Id = c.Id,
+                StableId = c.StableId,
+                Title = c.Title,
+                Category = c.Category,
+                SourceTags = string.Join(", ", c.SourceTags),
+                Description = c.Description,
+                ImplementationGuidance = c.ImplementationGuidance,
+                LinkedThreatStableId = c.LinkedThreatStableId,
+                LinkedRequirementStableIds = string.Join(", ", c.LinkedRequirementStableIds),
+                Status = c.Status.ToString(),
+                StatusNotes = c.StatusNotes,
+                LibraryDefinitionId = c.LibraryDefinitionId
+            });
+        }
+    }
+
+    private void RefreshSuggestions()
+    {
+        try
+        {
+            var m = BuildModelFromEditor();
+            var list = _suggestionService.Evaluate(m, _dismissedSuggestionKeys);
+            Suggestions = new ObservableCollection<ModelingSuggestion>(list);
+        }
+        catch
+        {
+            Suggestions.Clear();
+        }
+    }
+
+    [RelayCommand]
+    private void DismissSuggestion(ModelingSuggestion? s)
+    {
+        if (s == null || string.IsNullOrWhiteSpace(s.Key)) return;
+        _dismissedSuggestionKeys.Add(s.Key);
+        RefreshSuggestions();
+    }
+
+    [RelayCommand]
+    private void ApplyControlLibrary()
+    {
+        try
+        {
+            var m = BuildModelFromEditor();
+            _controlLibrary.ApplyRecommendations(m);
+            MergeLibraryControlsIntoRows(m);
+            RefreshSuggestions();
+            StatusMessage = "Control-bibliotheek toegepast.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Control-bibliotheek: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void AddEntryPointRow()
+    {
+        EntryPoints.Add(new EntryPointRowViewModel { Name = "Ingang" });
+        RefreshSuggestions();
+    }
+
+    [RelayCommand]
+    private void RemoveEntryPointRow(EntryPointRowViewModel? row)
+    {
+        if (row == null) return;
+        EntryPoints.Remove(row);
+        RefreshSuggestions();
+    }
+
+    [RelayCommand]
+    private void AddSensitiveDataRow()
+    {
+        SensitiveDataRows.Add(new SensitiveDataRowViewModel { Name = "Dataset", Category = "PII" });
+        RefreshSuggestions();
+    }
+
+    [RelayCommand]
+    private void RemoveSensitiveDataRow(SensitiveDataRowViewModel? row)
+    {
+        if (row == null) return;
+        SensitiveDataRows.Remove(row);
+        RefreshSuggestions();
+    }
+
+    [RelayCommand]
+    private void AddReviewItemRow()
+    {
+        ReviewItems.Add(new ReviewItemRowViewModel
+        {
+            SubjectTitle = "Review-item",
+            SubjectKind = ReviewSubjectKind.OpenQuestion.ToString()
+        });
+    }
+
+    [RelayCommand]
+    private void RemoveReviewItemRow(ReviewItemRowViewModel? row)
+    {
+        if (row == null) return;
+        ReviewItems.Remove(row);
+    }
+
+    [RelayCommand]
+    private void SaveProjectSnapshot()
+    {
+        try
+        {
+            var m = BuildModelFromEditor();
+            var backupSnaps = m.Snapshots.ToList();
+            m.Snapshots = new List<SnapshotModel>();
+            var json = JsonSerializer.Serialize(m, SnapshotJsonOpts);
+            m.Snapshots = backupSnaps;
+            Snapshots.Add(new SnapshotRowViewModel
+            {
+                Name = $"Snapshot {DateTime.Now:yyyy-MM-dd HH:mm}",
+                CreatedAtUtc = DateTime.UtcNow,
+                SnapshotJson = json
+            });
+            StatusMessage = "Snapshot toegevoegd. Sla het project op om vast te leggen.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Snapshot mislukt: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void RemoveSnapshotRow(SnapshotRowViewModel? row)
+    {
+        if (row == null) return;
+        Snapshots.Remove(row);
     }
 
     [RelayCommand]

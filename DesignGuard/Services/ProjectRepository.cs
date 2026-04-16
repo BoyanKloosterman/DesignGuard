@@ -43,6 +43,10 @@ public sealed class ProjectRepository : IProjectRepository
             .Include(p => p.Assets)
             .Include(p => p.DesignNotes)
             .Include(p => p.Controls)
+            .Include(p => p.EntryPoints)
+            .Include(p => p.SensitiveDataItems)
+            .Include(p => p.ReviewItems)
+            .Include(p => p.Snapshots)
             .Include(p => p.Threats)
             .Include(p => p.Requirements)
             .FirstOrDefaultAsync(p => p.Id == id, ct);
@@ -63,6 +67,10 @@ public sealed class ProjectRepository : IProjectRepository
             .Include(p => p.Assets)
             .Include(p => p.DesignNotes)
             .Include(p => p.Controls)
+            .Include(p => p.EntryPoints)
+            .Include(p => p.SensitiveDataItems)
+            .Include(p => p.ReviewItems)
+            .Include(p => p.Snapshots)
             .Include(p => p.Threats)
             .Include(p => p.Requirements)
             .FirstOrDefaultAsync(p => p.Id == model.Id, ct);
@@ -86,6 +94,10 @@ public sealed class ProjectRepository : IProjectRepository
         AddAssets(existing, model, nameToCompId);
         AddDesignNotes(existing, model);
         AddControls(existing, model);
+        AddEntryPoints(existing, model, nameToCompId);
+        AddSensitiveDataItems(existing, model, nameToCompId);
+        AddReviewItems(existing, model);
+        AddSnapshots(existing, model);
         await db.SaveChangesAsync(ct);
 
         var noteMap = BuildDesignNoteIdMap(model.DesignNotes, existing.DesignNotes);
@@ -101,6 +113,10 @@ public sealed class ProjectRepository : IProjectRepository
     {
         db.Threats.RemoveRange(existing.Threats);
         db.Requirements.RemoveRange(existing.Requirements);
+        db.Snapshots.RemoveRange(existing.Snapshots);
+        db.ReviewItems.RemoveRange(existing.ReviewItems);
+        db.SensitiveDataItems.RemoveRange(existing.SensitiveDataItems);
+        db.EntryPoints.RemoveRange(existing.EntryPoints);
         db.Controls.RemoveRange(existing.Controls);
         db.DataFlows.RemoveRange(existing.DataFlows);
         foreach (var c in existing.Components)
@@ -112,6 +128,10 @@ public sealed class ProjectRepository : IProjectRepository
         db.TrustBoundaries.RemoveRange(existing.TrustBoundaries);
         existing.Threats.Clear();
         existing.Requirements.Clear();
+        existing.Snapshots.Clear();
+        existing.ReviewItems.Clear();
+        existing.SensitiveDataItems.Clear();
+        existing.EntryPoints.Clear();
         existing.Controls.Clear();
         existing.DataFlows.Clear();
         existing.Components.Clear();
@@ -139,6 +159,7 @@ public sealed class ProjectRepository : IProjectRepository
         e.LoggingMonitoringPresent = m.LoggingMonitoringPresent;
         e.CriticalBusinessFunction = m.CriticalBusinessFunction;
         e.OpenIssuesSummary = m.OpenIssuesSummary;
+        e.DismissedSuggestionKeysJson = JsonBlobs.Serialize(m.DismissedSuggestionKeys);
     }
 
     private static void AddTrustBoundaries(ProjectEntity e, ProjectModel m)
@@ -260,10 +281,91 @@ public sealed class ProjectRepository : IProjectRepository
         {
             e.Controls.Add(new ControlEntity
             {
+                StableId = string.IsNullOrWhiteSpace(c.StableId) ? Guid.NewGuid().ToString("N") : c.StableId,
                 Title = c.Title,
+                Category = c.Category,
+                SourceTagsJson = JsonBlobs.Serialize(c.SourceTags),
                 Description = c.Description,
+                ImplementationGuidance = c.ImplementationGuidance,
                 LinkedThreatStableId = c.LinkedThreatStableId,
-                StatusNotes = c.StatusNotes
+                LinkedRequirementStableIdsJson = JsonBlobs.Serialize(c.LinkedRequirementStableIds),
+                Status = (int)c.Status,
+                StatusNotes = c.StatusNotes,
+                LibraryDefinitionId = c.LibraryDefinitionId
+            });
+        }
+    }
+
+    private static void AddEntryPoints(ProjectEntity e, ProjectModel m, IReadOnlyDictionary<string, int> nameToCompId)
+    {
+        foreach (var ep in m.EntryPoints)
+        {
+            var related = RemapComponentId(m, ep.RelatedComponentId, nameToCompId);
+            e.EntryPoints.Add(new EntryPointEntity
+            {
+                Name = ep.Name,
+                Description = ep.Description,
+                RelatedComponentId = related,
+                Notes = ep.Notes,
+                ExposureNotes = ep.ExposureNotes
+            });
+        }
+    }
+
+    private static void AddSensitiveDataItems(ProjectEntity e, ProjectModel m,
+        IReadOnlyDictionary<string, int> nameToCompId)
+    {
+        foreach (var s in m.SensitiveDataItems)
+        {
+            var related = RemapComponentId(m, s.RelatedComponentId, nameToCompId);
+            e.SensitiveDataItems.Add(new SensitiveDataEntity
+            {
+                Name = s.Name,
+                Category = s.Category,
+                Description = s.Description,
+                RelatedComponentId = related,
+                StorageLocation = s.StorageLocation,
+                Notes = s.Notes
+            });
+        }
+    }
+
+    private static int RemapComponentId(ProjectModel m, int oldId, IReadOnlyDictionary<string, int> nameToCompId)
+    {
+        if (oldId == 0) return 0;
+        var compName = m.Components.FirstOrDefault(c => c.Id == oldId)?.Name;
+        if (compName != null && nameToCompId.TryGetValue(compName, out var cid))
+            return cid;
+        return 0;
+    }
+
+    private static void AddReviewItems(ProjectEntity e, ProjectModel m)
+    {
+        foreach (var r in m.ReviewItems)
+        {
+            e.ReviewItems.Add(new ReviewItemEntity
+            {
+                SubjectKind = (int)r.SubjectKind,
+                SubjectStableId = r.SubjectStableId,
+                SubjectTitle = r.SubjectTitle,
+                Status = (int)r.Status,
+                Notes = r.Notes,
+                Rationale = r.Rationale,
+                Owner = r.Owner,
+                CreatedAtUtc = r.CreatedAtUtc == default ? DateTime.UtcNow : r.CreatedAtUtc
+            });
+        }
+    }
+
+    private static void AddSnapshots(ProjectEntity e, ProjectModel m)
+    {
+        foreach (var s in m.Snapshots)
+        {
+            e.Snapshots.Add(new SnapshotEntity
+            {
+                Name = s.Name,
+                CreatedAtUtc = s.CreatedAtUtc == default ? DateTime.UtcNow : s.CreatedAtUtc,
+                SnapshotJson = s.SnapshotJson
             });
         }
     }
@@ -355,7 +457,8 @@ public sealed class ProjectRepository : IProjectRepository
             SensitiveDataStored = model.SensitiveDataStored,
             LoggingMonitoringPresent = model.LoggingMonitoringPresent,
             CriticalBusinessFunction = model.CriticalBusinessFunction,
-            OpenIssuesSummary = model.OpenIssuesSummary
+            OpenIssuesSummary = model.OpenIssuesSummary,
+            DismissedSuggestionKeysJson = JsonBlobs.Serialize(model.DismissedSuggestionKeys)
         };
 
         db.Projects.Add(e);
@@ -372,6 +475,10 @@ public sealed class ProjectRepository : IProjectRepository
         AddAssets(e, model, nameToId);
         AddDesignNotes(e, model);
         AddControls(e, model);
+        AddEntryPoints(e, model, nameToId);
+        AddSensitiveDataItems(e, model, nameToId);
+        AddReviewItems(e, model);
+        AddSnapshots(e, model);
         await db.SaveChangesAsync(ct);
 
         var noteMap = BuildDesignNoteIdMap(model.DesignNotes, e.DesignNotes);
@@ -396,6 +503,10 @@ public sealed class ProjectRepository : IProjectRepository
             .Include(p => p.Assets)
             .Include(p => p.DesignNotes)
             .Include(p => p.Controls)
+            .Include(p => p.EntryPoints)
+            .Include(p => p.SensitiveDataItems)
+            .Include(p => p.ReviewItems)
+            .Include(p => p.Snapshots)
             .Include(p => p.Threats)
             .Include(p => p.Requirements)
             .FirstOrDefaultAsync(p => p.Id == projectId, ct);
@@ -423,6 +534,16 @@ public sealed class ProjectRepository : IProjectRepository
         target.DesignNotes.AddRange(fresh.DesignNotes);
         target.Controls.Clear();
         target.Controls.AddRange(fresh.Controls);
+        target.EntryPoints.Clear();
+        target.EntryPoints.AddRange(fresh.EntryPoints);
+        target.SensitiveDataItems.Clear();
+        target.SensitiveDataItems.AddRange(fresh.SensitiveDataItems);
+        target.ReviewItems.Clear();
+        target.ReviewItems.AddRange(fresh.ReviewItems);
+        target.Snapshots.Clear();
+        target.Snapshots.AddRange(fresh.Snapshots);
+        target.DismissedSuggestionKeys.Clear();
+        target.DismissedSuggestionKeys.AddRange(fresh.DismissedSuggestionKeys);
         target.Threats.Clear();
         target.Threats.AddRange(fresh.Threats);
         target.Requirements.Clear();

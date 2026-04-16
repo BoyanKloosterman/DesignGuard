@@ -23,9 +23,11 @@ public partial class App : Application
         var services = new ServiceCollection();
         var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DesignGuard");
         Directory.CreateDirectory(dir);
-        var cs = $"Data Source={Path.Combine(dir, "designguard-v2.db")}";
+        var cs = $"Data Source={Path.Combine(dir, "designguard-v3.db")}";
         services.AddDbContextFactory<DesignGuardDbContext>(o => o.UseSqlite(cs));
         services.AddSingleton<IProjectRepository, ProjectRepository>();
+        services.AddSingleton<ControlLibraryService>();
+        services.AddSingleton<ModelingSuggestionService>();
         services.AddSingleton<DiagramLayoutService>();
         services.AddSingleton<ExportService>();
         services.AddSingleton<AnalysisMergeService>();

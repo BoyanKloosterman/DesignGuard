@@ -18,6 +18,10 @@ public sealed class DesignGuardDbContext : DbContext
     public DbSet<AssetEntity> Assets => Set<AssetEntity>();
     public DbSet<DesignNoteEntity> DesignNotes => Set<DesignNoteEntity>();
     public DbSet<ControlEntity> Controls => Set<ControlEntity>();
+    public DbSet<EntryPointEntity> EntryPoints => Set<EntryPointEntity>();
+    public DbSet<SensitiveDataEntity> SensitiveDataItems => Set<SensitiveDataEntity>();
+    public DbSet<ReviewItemEntity> ReviewItems => Set<ReviewItemEntity>();
+    public DbSet<SnapshotEntity> Snapshots => Set<SnapshotEntity>();
     public DbSet<ThreatEntity> Threats => Set<ThreatEntity>();
     public DbSet<RequirementEntity> Requirements => Set<RequirementEntity>();
 
@@ -61,6 +65,26 @@ public sealed class DesignGuardDbContext : DbContext
             .HasForeignKey(c => c.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        project.HasMany(p => p.EntryPoints)
+            .WithOne(x => x.Project!)
+            .HasForeignKey(x => x.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        project.HasMany(p => p.SensitiveDataItems)
+            .WithOne(x => x.Project!)
+            .HasForeignKey(x => x.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        project.HasMany(p => p.ReviewItems)
+            .WithOne(x => x.Project!)
+            .HasForeignKey(x => x.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        project.HasMany(p => p.Snapshots)
+            .WithOne(x => x.Project!)
+            .HasForeignKey(x => x.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         project.HasMany(p => p.Threats)
             .WithOne(t => t.Project!)
             .HasForeignKey(t => t.ProjectId)
@@ -95,6 +119,10 @@ public sealed class DesignGuardDbContext : DbContext
         modelBuilder.Entity<AssetEntity>().HasKey(a => a.Id);
         modelBuilder.Entity<DesignNoteEntity>().HasKey(n => n.Id);
         modelBuilder.Entity<ControlEntity>().HasKey(c => c.Id);
+        modelBuilder.Entity<EntryPointEntity>().HasKey(x => x.Id);
+        modelBuilder.Entity<SensitiveDataEntity>().HasKey(x => x.Id);
+        modelBuilder.Entity<ReviewItemEntity>().HasKey(x => x.Id);
+        modelBuilder.Entity<SnapshotEntity>().HasKey(x => x.Id);
         modelBuilder.Entity<ThreatEntity>().HasKey(t => t.Id);
         modelBuilder.Entity<RequirementEntity>().HasKey(r => r.Id);
     }

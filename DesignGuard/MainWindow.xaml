@@ -76,7 +76,13 @@
                              Background="Transparent" BorderThickness="0"
                              ItemsSource="{Binding ProjectList}"
                              SelectedItem="{Binding SelectedProjectSummary}"
-                             DisplayMemberPath="Name" />
+                             DisplayMemberPath="Name">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                    </ListBox>
                 </DockPanel>
             </Border>
 
@@ -143,6 +149,7 @@
                                 <DataTemplate>
                                     <Button Content="{Binding Title}" Style="{StaticResource DgButton.Toolbar}"
                                             HorizontalAlignment="Left"
+                                            ToolTip="{Binding Description}"
                                             Command="{Binding DataContext.ApplyTemplateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                             CommandParameter="{Binding Key}" />
                                 </DataTemplate>
@@ -152,7 +159,8 @@
                 </ScrollViewer>
 
                 <!-- Ontwerp -->
-                <ScrollViewer Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=1}"
+                <ScrollViewer AutomationProperties.AutomationId="OntwerpDesignScroll"
+                              Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=1}"
                               VerticalScrollBarVisibility="Auto">
                     <StackPanel>
                         <TextBlock Text="Systeemontwerp" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,12" />

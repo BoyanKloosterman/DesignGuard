@@ -23,7 +23,6 @@ DesignGuard is een **Windows-desktopapp** (WPF) voor **security-by-design**: je 
 11. [Aanbevolen werkwijze](#aanbevolen-werkwijze)
 12. [Technische stack](#technische-stack-kort)
 13. [Documentatie](#documentatie)
-14. [Screenshots opnieuw maken](#screenshots-opnieuw-maken)
 
 ---
 
@@ -489,19 +488,6 @@ In de app: **Instellingen → Importeer SQLite → MongoDB** en selecteer het ou
 - [CONFIGURATION.md](CONFIGURATION.md) — omgevingsvariabelen en `.env`.
 - [DEPLOYMENT.md](DEPLOYMENT.md) — Docker, serverwissel, migratie.
 - [SECURITY_REVIEW.md](SECURITY_REVIEW.md) — engineering security note.
-
----
-
-## Screenshots opnieuw maken
-
-Onder `docs/screenshots/` staan de PNG’s die bij deze README horen. Lokaal opnieuw genereren na een UI-wijziging:
-
-```powershell
-dotnet build DesignGuard.sln -c Release
-powershell -ExecutionPolicy Bypass -File .\docs\capture-readme-screenshots.ps1
-```
-
-Het script kiest het demo-project (naam bevat `uitgebreid`, anders `Webshop` of `Demo`), wisselt tabs via UI Automation, en schrijft o.a. `02a`–`02e`, `08-traceability`, `09-export`, `10-instellingen`, `11-app-security-review`. Op **Ontwerp** wordt gescrolld via **UI Automation `ScrollPattern`** op de ScrollViewer met `AutomationId` **OntwerpDesignScroll** (niet via het muiswiel: anders pakt een **ListBox/DataGrid** onder de cursor het scrollen af). Bovenaan zetten gebeurt met `SetScrollPercent`; als dat faalt, valt het script terug op kort **Dashboard** ↔ **Ontwerp**. De variabelen **`$s02b`**, **`$s02c`**, **`$s02d`** in het script bepalen hoe ver onder **Trust boundaries/componenten**, **flows/rollen/assets** en **ingangen/gevoelige data** in beeld komen; zie de korte tabel bij [Tab Ontwerp](#tab-ontwerp-van-projectnaam-tot-diagram) en het overzicht in de [PNG-index](#png-index). Vereist MongoDB en een normale Windows-sessie (geen headless).
 
 ---
 

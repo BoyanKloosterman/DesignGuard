@@ -1,0 +1,37 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+    <Color x:Key="DgColor.Window">#FFF4F6F8</Color>
+    <Color x:Key="DgColor.Surface">#FFFFFFFF</Color>
+    <Color x:Key="DgColor.Sidebar">#FFEBEEF2</Color>
+    <Color x:Key="DgColor.Border">#FFD5DDE5</Color>
+    <Color x:Key="DgColor.BorderStrong">#FF9AA8B8</Color>
+    <Color x:Key="DgColor.TextPrimary">#FF1B2430</Color>
+    <Color x:Key="DgColor.TextSecondary">#FF4A5568</Color>
+    <Color x:Key="DgColor.TextMuted">#FF718096</Color>
+    <Color x:Key="DgColor.Accent">#FF2563EB</Color>
+    <Color x:Key="DgColor.AccentMuted">#FFE8EEFB</Color>
+    <Color x:Key="DgColor.NavSelected">#FFDCE7FF</Color>
+    <Color x:Key="DgColor.DiagramCanvas">#FFEEF2F6</Color>
+    <Color x:Key="DgColor.OverlayScrim">#66000000</Color>
+
+    <SolidColorBrush x:Key="DgBrush.Window" Color="{StaticResource DgColor.Window}" />
+    <SolidColorBrush x:Key="DgBrush.Surface" Color="{StaticResource DgColor.Surface}" />
+    <SolidColorBrush x:Key="DgBrush.Sidebar" Color="{StaticResource DgColor.Sidebar}" />
+    <SolidColorBrush x:Key="DgBrush.Border" Color="{StaticResource DgColor.Border}" />
+    <SolidColorBrush x:Key="DgBrush.BorderStrong" Color="{StaticResource DgColor.BorderStrong}" />
+    <SolidColorBrush x:Key="DgBrush.TextPrimary" Color="{StaticResource DgColor.TextPrimary}" />
+    <SolidColorBrush x:Key="DgBrush.TextSecondary" Color="{StaticResource DgColor.TextSecondary}" />
+    <SolidColorBrush x:Key="DgBrush.TextMuted" Color="{StaticResource DgColor.TextMuted}" />
+    <SolidColorBrush x:Key="DgBrush.Accent" Color="{StaticResource DgColor.Accent}" />
+    <SolidColorBrush x:Key="DgBrush.AccentMuted" Color="{StaticResource DgColor.AccentMuted}" />
+    <SolidColorBrush x:Key="DgBrush.NavSelected" Color="{StaticResource DgColor.NavSelected}" />
+    <SolidColorBrush x:Key="DgBrush.DiagramCanvas" Color="{StaticResource DgColor.DiagramCanvas}" />
+    <SolidColorBrush x:Key="DgBrush.OverlayScrim" Color="{StaticResource DgColor.OverlayScrim}" />
+
+    <Thickness x:Key="DgThickness.PageMargin">20,16,20,16</Thickness>
+    <Thickness x:Key="DgThickness.CardPadding">14,12,14,12</Thickness>
+    <Thickness x:Key="DgThickness.SidebarPad">12,14,10,14</Thickness>
+    <sys:Double x:Key="DgFontSize.Title">22</sys:Double>
+    <sys:Double x:Key="DgFontSize.Subtitle">13</sys:Double>
+</ResourceDictionary>

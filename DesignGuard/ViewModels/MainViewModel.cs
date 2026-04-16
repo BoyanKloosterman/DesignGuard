@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DesignGuard.Configuration;
@@ -11,6 +12,7 @@ using DesignGuard.Models;
 using DesignGuard.Security;
 using DesignGuard.Services;
 using DesignGuard.Settings;
+using DesignGuard.Theming;
 using Microsoft.Win32;
 
 namespace DesignGuard.ViewModels;
@@ -42,6 +44,8 @@ public partial class MainViewModel : ObservableObject
     private readonly IMongoDiagnosticsService _mongoDiagnostics;
     private readonly SqliteToMongoImportService _sqliteImport;
     private HashSet<string> _dismissedSuggestionKeys = new(StringComparer.Ordinal);
+    private readonly DispatcherTimer _filterDebounceTimer;
+    private bool _suppressPreferencePersist;
 
     public MainViewModel(
         IProjectRepository projects,
@@ -81,6 +85,23 @@ public partial class MainViewModel : ObservableObject
         _appConfiguration = appConfiguration;
         _mongoDiagnostics = mongoDiagnostics;
         _sqliteImport = sqliteImport;
+        _suppressPreferencePersist = true;
+        UiTheme = string.IsNullOrWhiteSpace(_userSettings.Current.Theme) ? "Light" : _userSettings.Current.Theme;
+        DetailLevel = string.IsNullOrWhiteSpace(_userSettings.Current.DetailLevel)
+            ? "Beginner"
+            : _userSettings.Current.DetailLevel;
+        UiDensity = string.IsNullOrWhiteSpace(_userSettings.Current.UiDensity)
+            ? "Comfortable"
+            : _userSettings.Current.UiDensity;
+        ThemeSwitcher.ApplyTheme(UiTheme);
+        ApplyUiDensity();
+        _suppressPreferencePersist = false;
+        _filterDebounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
+        _filterDebounceTimer.Tick += (_, _) =>
+        {
+            _filterDebounceTimer.Stop();
+            RefreshFilters();
+        };
         SystemTypeOptions = Enum.GetNames(typeof(SystemType)).ToList();
         DeploymentContextOptions = Enum.GetNames(typeof(DeploymentContext)).ToList();
         ThreatStatusOptions = Enum.GetNames(typeof(ThreatStatus)).ToList();
@@ -137,6 +158,12 @@ public partial class MainViewModel : ObservableObject
     public IReadOnlyList<string> ControlLifecycleStatusOptions { get; } =
         Enum.GetNames(typeof(ControlLifecycleStatus)).ToList();
 
+    public IReadOnlyList<string> ThemeOptions { get; } = new[] { "Light", "Dark" };
+
+    public IReadOnlyList<string> DetailLevelOptions { get; } = new[] { "Beginner", "Advanced" };
+
+    public IReadOnlyList<string> UiDensityOptions { get; } = new[] { "Comfortable", "Compact" };
+
     [ObservableProperty] private ObservableCollection<ProjectSummaryItem> _projectList = new();
 
     [ObservableProperty] private ProjectSummaryItem? _selectedProjectSummary;
@@ -144,7 +171,17 @@ public partial class MainViewModel : ObservableObject
     /// <summary>0 Dashboard, 1 Ontwerp, 2 Dreigingen, 3 Eisen, 4 Controls, 5 Beslissingen, 6 Review, 7 Traceability, 8 Export, 9 Instellingen (Mongo-diagnose), 10 App security review</summary>
     [ObservableProperty] private int _navSection;
 
-    [ObservableProperty] private string _statusMessage = "DesignGuard v5 — MongoDB security-by-design.";
+    [ObservableProperty] private string _statusMessage = "DesignGuard v6 — klaar.";
+
+    [ObservableProperty] private bool _isBusy;
+
+    [ObservableProperty] private string _busyMessage = "";
+
+    [ObservableProperty] private string _uiTheme = "Light";
+
+    [ObservableProperty] private string _detailLevel = "Beginner";
+
+    [ObservableProperty] private string _uiDensity = "Comfortable";
 
     [ObservableProperty] private string _mongoDiagEnvironment = "";
 
@@ -289,6 +326,60 @@ public partial class MainViewModel : ObservableObject
     public bool ShowProjectOverviewInDetails =>
         SelectedThreat == null && SelectedRequirement == null && SelectedComponent == null;
 
+    public bool HasOpenProject => CurrentProjectId != 0;
+
+    public bool HasNoProject => CurrentProjectId == 0;
+
+    public bool IsAdvancedDetail =>
+        string.Equals(DetailLevel, "Advanced", StringComparison.OrdinalIgnoreCase);
+
+    partial void OnCurrentProjectIdChanged(int value)
+    {
+        OnPropertyChanged(nameof(HasOpenProject));
+        OnPropertyChanged(nameof(HasNoProject));
+    }
+
+    partial void OnDetailLevelChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsAdvancedDetail));
+        PersistUserPreferences();
+    }
+
+    partial void OnUiThemeChanged(string value)
+    {
+        ThemeSwitcher.ApplyTheme(value);
+        PersistUserPreferences();
+    }
+
+    partial void OnUiDensityChanged(string value)
+    {
+        ApplyUiDensity();
+        PersistUserPreferences();
+    }
+
+    private void PersistUserPreferences()
+    {
+        if (_suppressPreferencePersist) return;
+        _userSettings.Current.Theme = UiTheme;
+        _userSettings.Current.DetailLevel = DetailLevel;
+        _userSettings.Current.UiDensity = UiDensity;
+        _userSettings.Save();
+    }
+
+    private void ApplyUiDensity()
+    {
+        var app = System.Windows.Application.Current;
+        if (app == null) return;
+
+        var compact = string.Equals(UiDensity, "Compact", StringComparison.OrdinalIgnoreCase);
+        app.Resources["DgThickness.PageMargin"] =
+            compact ? new System.Windows.Thickness(14, 10, 14, 10) : new System.Windows.Thickness(20, 16, 20, 16);
+        app.Resources["DgThickness.SidebarPad"] =
+            compact ? new System.Windows.Thickness(8, 10, 6, 10) : new System.Windows.Thickness(12, 14, 10, 14);
+        app.Resources["DgThickness.CardPadding"] =
+            compact ? new System.Windows.Thickness(10, 8, 10, 8) : new System.Windows.Thickness(14, 12, 14, 12);
+    }
+
     partial void OnSelectedProjectSummaryChanged(ProjectSummaryItem? value)
     {
         if (value == null)
@@ -326,16 +417,22 @@ public partial class MainViewModel : ObservableObject
 
     partial void OnDiagramOverlayThreatLinksChanged(bool value) => RefreshDiagram();
 
-    partial void OnDiagramZoomChanged(double value) => RefreshDiagram();
-
     partial void OnSelectedThreatChanged(ThreatModel? value)
     {
         if (NavSection == 1) RefreshDiagram();
     }
 
-    partial void OnThreatFilterTextChanged(string value) => RefreshFilters();
+    partial void OnThreatFilterTextChanged(string value)
+    {
+        _filterDebounceTimer.Stop();
+        _filterDebounceTimer.Start();
+    }
 
-    partial void OnRequirementFilterTextChanged(string value) => RefreshFilters();
+    partial void OnRequirementFilterTextChanged(string value)
+    {
+        _filterDebounceTimer.Stop();
+        _filterDebounceTimer.Start();
+    }
 
     partial void OnThreatSortChanged(string value) => RefreshFilters();
 
@@ -362,7 +459,7 @@ public partial class MainViewModel : ObservableObject
             var demo = ProjectList.FirstOrDefault(p => p.Name.StartsWith("Demo", StringComparison.Ordinal));
             SelectedProjectSummary = demo ?? ProjectList.FirstOrDefault();
             RefreshKnowledgePackRows();
-            StatusMessage = "MongoDB gereed (v5). Demo-project beschikbaar indien aangemaakt.";
+            StatusMessage = "MongoDB gereed. Demo-project beschikbaar indien aangemaakt.";
         }
         catch (Exception ex)
         {
@@ -462,7 +559,7 @@ public partial class MainViewModel : ObservableObject
 
             ApplyModelToEditor(p);
             if (p.Threats.Count == 0 && p.Requirements.Count == 0)
-                RegenerateFromDesign();
+                await RunRegenerateAnalysisAsync(showBusyOverlay: false);
             RefreshDiagram();
             RefreshFilters();
             UpdateDashboard();
@@ -999,17 +1096,29 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void RegenerateFromDesign()
+    private async Task RegenerateFromDesign() => await RunRegenerateAnalysisAsync(showBusyOverlay: true);
+
+    private async Task RunRegenerateAnalysisAsync(bool showBusyOverlay)
     {
         try
         {
             var m = BuildModelFromEditor();
-            var genT = _threatService.Generate(m);
-            var genR = _requirementService.Generate(m);
-            _merge.MergeThreats(m, genT);
-            _merge.MergeRequirements(m, genR);
-            RequirementThreatLinker.Link(m);
-            _controlLibrary.ApplyRecommendations(m);
+            if (showBusyOverlay)
+            {
+                IsBusy = true;
+                BusyMessage = "Analyse draait op de achtergrond…";
+            }
+
+            await Task.Run(() =>
+            {
+                var genT = _threatService.Generate(m);
+                var genR = _requirementService.Generate(m);
+                _merge.MergeThreats(m, genT);
+                _merge.MergeRequirements(m, genR);
+                RequirementThreatLinker.Link(m);
+                _controlLibrary.ApplyRecommendations(m);
+            });
+
             Threats = new ObservableCollection<ThreatModel>(m.Threats);
             Requirements = new ObservableCollection<RequirementModel>(m.Requirements);
             MergeLibraryControlsIntoRows(m);
@@ -1017,11 +1126,21 @@ public partial class MainViewModel : ObservableObject
             UpdateDashboard();
             RefreshTraceability();
             RefreshSuggestions();
+            if (NavSection == 1)
+                RefreshDiagram();
             StatusMessage = "Analyse vernieuwd (samengevoegd met handmatige items).";
         }
         catch (Exception ex)
         {
             StatusMessage = $"Analyse mislukt: {ex.Message}";
+        }
+        finally
+        {
+            if (showBusyOverlay)
+            {
+                IsBusy = false;
+                BusyMessage = "";
+            }
         }
     }
 
@@ -1239,12 +1358,14 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ApplyControlLibrary()
+    private async Task ApplyControlLibrary()
     {
         try
         {
             var m = BuildModelFromEditor();
-            _controlLibrary.ApplyRecommendations(m);
+            IsBusy = true;
+            BusyMessage = "Control-bibliotheek toepassen…";
+            await Task.Run(() => _controlLibrary.ApplyRecommendations(m));
             MergeLibraryControlsIntoRows(m);
             RefreshSuggestions();
             StatusMessage = "Control-bibliotheek toegepast.";
@@ -1252,6 +1373,11 @@ public partial class MainViewModel : ObservableObject
         catch (Exception ex)
         {
             StatusMessage = $"Control-bibliotheek: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+            BusyMessage = "";
         }
     }
 
@@ -1347,8 +1473,9 @@ public partial class MainViewModel : ObservableObject
         {
             var m = BuildModelFromEditor();
             var layout = _diagramLayout.Layout(m);
-            DiagramContentWidth = Math.Max(400, layout.ContentWidth * DiagramZoom);
-            DiagramContentHeight = Math.Max(300, layout.ContentHeight * DiagramZoom);
+            // Schaal via LayoutTransform in XAML — hier basispixels (geen zoom) voor vloeiend zoomen.
+            DiagramContentWidth = Math.Max(400, layout.ContentWidth);
+            DiagramContentHeight = Math.Max(300, layout.ContentHeight);
             var threat = NavSection == 1 && DiagramOverlayThreatLinks ? SelectedThreat : null;
             DiagramNodes = new ObservableCollection<DiagramNodeViewModel>(layout.Nodes.Select(n =>
             {
@@ -1362,8 +1489,8 @@ public partial class MainViewModel : ObservableObject
                     Name = n.Name,
                     Tag = n.Tag,
                     DataSensitivity = n.DataSensitivity.ToString(),
-                    X = n.X * DiagramZoom,
-                    Y = n.Y * DiagramZoom,
+                    X = n.X,
+                    Y = n.Y,
                     IsEntryPoint = n.IsEntryPoint,
                     IsHighlighted = SelectedComponent?.Id == n.ComponentId,
                     ShowSensitiveStripe = showSen,
@@ -1376,10 +1503,10 @@ public partial class MainViewModel : ObservableObject
                 var to = layout.Nodes.FirstOrDefault(x => x.ComponentId == e.ToId);
                 if (from == null || to == null) return null;
                 var (path, lx, ly) = DiagramEdgeGeometry.Build(
-                    from.X * DiagramZoom,
-                    from.Y * DiagramZoom,
-                    to.X * DiagramZoom,
-                    to.Y * DiagramZoom,
+                    from.X,
+                    from.Y,
+                    to.X,
+                    to.Y,
                     e.Label);
                 return new DiagramLineViewModel
                 {
@@ -1393,10 +1520,10 @@ public partial class MainViewModel : ObservableObject
             DiagramTrustOverlays = new ObservableCollection<TrustBoundaryOverlayViewModel>(
                 layout.TrustOverlays.Select(o => new TrustBoundaryOverlayViewModel
                 {
-                    X = o.X * DiagramZoom,
-                    Y = o.Y * DiagramZoom,
-                    Width = o.Width * DiagramZoom,
-                    Height = o.Height * DiagramZoom,
+                    X = o.X,
+                    Y = o.Y,
+                    Width = o.Width,
+                    Height = o.Height,
                     Name = o.Name,
                     Color = o.ColorHint,
                     IsVisible = DiagramOverlayTrustBoundaries
@@ -1657,13 +1784,13 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ExportPdf()
+    private async Task ExportPdf()
     {
         try
         {
             var m = BuildModelFromEditor();
-            var png = _diagramRasterizer.RenderPng(m);
-            var pdf = _pdfReport.BuildSecurityDesignReport(m, Threats.ToList(), Requirements.ToList(), png);
+            var threats = Threats.ToList();
+            var reqs = Requirements.ToList();
             var dlg = new SaveFileDialog
             {
                 Filter = "PDF (*.pdf)|*.pdf|All files (*.*)|*.*",
@@ -1676,12 +1803,26 @@ public partial class MainViewModel : ObservableObject
                 return;
             }
 
-            File.WriteAllBytes(path, pdf);
+            IsBusy = true;
+            BusyMessage = "PDF opbouwen (diagram + rapport)…";
+            var (png, pdf) = await Task.Run(() =>
+            {
+                var pngB = _diagramRasterizer.RenderPng(m);
+                var pdfB = _pdfReport.BuildSecurityDesignReport(m, threats, reqs, pngB);
+                return (pngB, pdfB);
+            }).ConfigureAwait(true);
+
+            await File.WriteAllBytesAsync(path, pdf);
             StatusMessage = "PDF geëxporteerd.";
         }
         catch (Exception ex)
         {
             StatusMessage = $"PDF-export mislukt: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+            BusyMessage = "";
         }
     }
 

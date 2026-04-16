@@ -3,6 +3,8 @@ using System.IO;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DesignGuard.Configuration;
+using DesignGuard.Data.Mongo;
 using DesignGuard.Export;
 using DesignGuard.Knowledge;
 using DesignGuard.Models;
@@ -36,6 +38,9 @@ public partial class MainViewModel : ObservableObject
     private readonly PdfReportService _pdfReport;
     private readonly DiagramRasterizer _diagramRasterizer;
     private readonly AppSecurityReviewService _appSecurityReview;
+    private readonly IAppConfigurationService _appConfiguration;
+    private readonly IMongoDiagnosticsService _mongoDiagnostics;
+    private readonly SqliteToMongoImportService _sqliteImport;
     private HashSet<string> _dismissedSuggestionKeys = new(StringComparer.Ordinal);
 
     public MainViewModel(
@@ -53,7 +58,10 @@ public partial class MainViewModel : ObservableObject
         UserSettingsService userSettings,
         PdfReportService pdfReport,
         DiagramRasterizer diagramRasterizer,
-        AppSecurityReviewService appSecurityReview)
+        AppSecurityReviewService appSecurityReview,
+        IAppConfigurationService appConfiguration,
+        IMongoDiagnosticsService mongoDiagnostics,
+        SqliteToMongoImportService sqliteImport)
     {
         _projects = projects;
         _threatService = threatService;
@@ -70,6 +78,9 @@ public partial class MainViewModel : ObservableObject
         _pdfReport = pdfReport;
         _diagramRasterizer = diagramRasterizer;
         _appSecurityReview = appSecurityReview;
+        _appConfiguration = appConfiguration;
+        _mongoDiagnostics = mongoDiagnostics;
+        _sqliteImport = sqliteImport;
         SystemTypeOptions = Enum.GetNames(typeof(SystemType)).ToList();
         DeploymentContextOptions = Enum.GetNames(typeof(DeploymentContext)).ToList();
         ThreatStatusOptions = Enum.GetNames(typeof(ThreatStatus)).ToList();
@@ -130,10 +141,30 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private ProjectSummaryItem? _selectedProjectSummary;
 
-    /// <summary>0 Dashboard, 1 Ontwerp, 2 Dreigingen, 3 Eisen, 4 Controls, 5 Beslissingen, 6 Review, 7 Traceability, 8 Export, 9 Instellingen, 10 App security review</summary>
+    /// <summary>0 Dashboard, 1 Ontwerp, 2 Dreigingen, 3 Eisen, 4 Controls, 5 Beslissingen, 6 Review, 7 Traceability, 8 Export, 9 Instellingen (Mongo-diagnose), 10 App security review</summary>
     [ObservableProperty] private int _navSection;
 
-    [ObservableProperty] private string _statusMessage = "DesignGuard v4 — lokaal security-by-design.";
+    [ObservableProperty] private string _statusMessage = "DesignGuard v5 — MongoDB security-by-design.";
+
+    [ObservableProperty] private string _mongoDiagEnvironment = "";
+
+    [ObservableProperty] private string _mongoDiagEnvVars = "";
+
+    [ObservableProperty] private string _mongoDiagDatabase = "";
+
+    [ObservableProperty] private string _mongoDiagMaskedConnection = "";
+
+    [ObservableProperty] private string _mongoDiagAppName = "";
+
+    [ObservableProperty] private string _mongoDiagOptions = "";
+
+    [ObservableProperty] private string _mongoDiagWarning = "";
+
+    [ObservableProperty] private bool _mongoDiagHasConfigWarning;
+
+    [ObservableProperty] private string _mongoDiagPing = "";
+
+    [ObservableProperty] private bool _mongoDiagFullyConfigured;
 
     [ObservableProperty] private int _currentProjectId;
 
@@ -280,7 +311,11 @@ public partial class MainViewModel : ObservableObject
 
         if (value == 7) RefreshTraceability();
         if (value == 8) RefreshExportPreview();
-        if (value == 9) RefreshKnowledgePackRows();
+        if (value == 9)
+        {
+            RefreshKnowledgePackRows();
+            RefreshMongoDiagnostics();
+        }
         if (value == 10) RefreshAppSecurityReview();
         if (value is 0 or 1 or 4 or 5 or 6) RefreshSuggestions();
     }
@@ -309,19 +344,100 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task InitializeAsync()
     {
+        RefreshMongoDiagnostics();
         try
         {
+            if (!_appConfiguration.Current.IsMongoFullyConfigured)
+            {
+                await ReloadProjectListAsync();
+                StatusMessage = _appConfiguration.Current.ConfigurationWarning ??
+                                "MongoDB niet geconfigureerd — zie Instellingen.";
+                RefreshKnowledgePackRows();
+                return;
+            }
+
             await _projects.EnsureDatabaseAsync();
             await _projects.EnsureDemoProjectAsync();
             await ReloadProjectListAsync();
             var demo = ProjectList.FirstOrDefault(p => p.Name.StartsWith("Demo", StringComparison.Ordinal));
             SelectedProjectSummary = demo ?? ProjectList.FirstOrDefault();
             RefreshKnowledgePackRows();
-            StatusMessage = "Database gereed (v4). Demo-project beschikbaar.";
+            StatusMessage = "MongoDB gereed (v5). Demo-project beschikbaar indien aangemaakt.";
         }
         catch (Exception ex)
         {
             StatusMessage = $"Initialisatie mislukt: {ex.Message}";
+        }
+    }
+
+    private void RefreshMongoDiagnostics()
+    {
+        var s = _mongoDiagnostics.BuildSnapshot();
+        MongoDiagEnvironment = string.IsNullOrWhiteSpace(s.EnvironmentName) ? "(niet gezet)" : s.EnvironmentName;
+        MongoDiagEnvVars =
+            $"connection string: {(s.HasConnectionStringEnv ? "gevonden" : "ontbreekt")}; database: {(s.HasDatabaseEnv ? "gevonden" : "ontbreekt")}; appName: {(s.HasAppNameEnv ? "gevonden" : "optioneel")}; omgeving: {(s.HasEnvironmentEnv ? "gevonden" : "optioneel")}";
+        MongoDiagDatabase = s.DatabaseName;
+        MongoDiagMaskedConnection = s.MaskedConnection;
+        MongoDiagAppName = string.IsNullOrWhiteSpace(s.ApplicationName) ? "(default driver)" : s.ApplicationName!;
+        var opt = new List<string>();
+        if (s.TimeoutSeconds is { } t) opt.Add($"timeout {t}s");
+        if (s.TlsFlag) opt.Add("TLS-flag true");
+        if (!string.IsNullOrWhiteSpace(s.ReadPreference)) opt.Add($"readPreference={s.ReadPreference}");
+        MongoDiagOptions = opt.Count == 0 ? "(geen optionele flags)" : string.Join(", ", opt);
+        MongoDiagWarning = s.ConfigurationWarning ?? "";
+        MongoDiagHasConfigWarning = !string.IsNullOrWhiteSpace(s.ConfigurationWarning);
+        MongoDiagPing = "";
+        MongoDiagFullyConfigured = s.IsFullyConfigured;
+    }
+
+    [RelayCommand]
+    private async Task TestMongoConnectionAsync()
+    {
+        RefreshMongoDiagnostics();
+        try
+        {
+            var r = await _mongoDiagnostics.PingAsync();
+            MongoDiagPing = r.Message;
+            StatusMessage = r.Ok ? "MongoDB ping geslaagd." : "MongoDB ping mislukt — zie Instellingen.";
+        }
+        catch (Exception ex)
+        {
+            MongoDiagPing = ex.Message;
+            StatusMessage = "Ping-uitzondering — zie Instellingen.";
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportSqliteToMongoAsync()
+    {
+        if (!_appConfiguration.Current.IsMongoFullyConfigured)
+        {
+            StatusMessage = "Eerst MongoDB configureren.";
+            return;
+        }
+
+        var dlg = new OpenFileDialog
+        {
+            Title = "SQLite DesignGuard-database (designguard-v3.db)",
+            Filter = "SQLite database (*.db)|*.db|Alle bestanden (*.*)|*.*"
+        };
+        if (dlg.ShowDialog() != true)
+        {
+            StatusMessage = "Import geannuleerd.";
+            return;
+        }
+
+        try
+        {
+            var progress = new Progress<string>(msg => StatusMessage = msg);
+            var r = await _sqliteImport.ImportAllProjectsAsync(dlg.FileName, progress);
+            await ReloadProjectListAsync();
+            StatusMessage =
+                $"SQLite-import klaar: {r.ImportedCount}/{r.SourceProjectCount} projecten naar MongoDB.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Import mislukt: {ex.Message}";
         }
     }
 

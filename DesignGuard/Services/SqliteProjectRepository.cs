@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DesignGuard.Services;
 
-public sealed class ProjectRepository : IProjectRepository
+public sealed class SqliteProjectRepository : IProjectRepository
 {
     private readonly IDbContextFactory<DesignGuardDbContext> _factory;
 
-    public ProjectRepository(IDbContextFactory<DesignGuardDbContext> factory)
+    public SqliteProjectRepository(IDbContextFactory<DesignGuardDbContext> factory)
     {
         _factory = factory;
     }
@@ -18,39 +18,7 @@ public sealed class ProjectRepository : IProjectRepository
     {
         await using var db = await _factory.CreateDbContextAsync(ct);
         await db.Database.EnsureCreatedAsync(ct);
-        await EnsureSqliteColumnsAsync(db, ct);
-    }
-
-    /// <summary>SQLite: voegt kolommen toe voor bestaande v3-databases (EnsureCreated wijzigt schema niet).</summary>
-    private static async Task EnsureSqliteColumnsAsync(DesignGuardDbContext db, CancellationToken ct)
-    {
-        var conn = db.Database.GetDbConnection();
-        await conn.OpenAsync(ct);
-        try
-        {
-            await AddColumnIfMissingAsync(conn, "Requirements", "SourceAttributionJson", "TEXT NOT NULL DEFAULT '{}'", ct);
-            await AddColumnIfMissingAsync(conn, "Threats", "SourceAttributionJson", "TEXT NOT NULL DEFAULT '{}'", ct);
-        }
-        finally
-        {
-            await conn.CloseAsync();
-        }
-    }
-
-    private static async Task AddColumnIfMissingAsync(
-        System.Data.Common.DbConnection conn,
-        string table,
-        string column,
-        string columnDef,
-        CancellationToken ct)
-    {
-        await using var q = conn.CreateCommand();
-        q.CommandText = $"SELECT COUNT(*) FROM pragma_table_info('{table}') WHERE name='{column}'";
-        var n = Convert.ToInt64(await q.ExecuteScalarAsync(ct));
-        if (n > 0) return;
-        await using var alter = conn.CreateCommand();
-        alter.CommandText = $"ALTER TABLE \"{table}\" ADD COLUMN \"{column}\" {columnDef}";
-        await alter.ExecuteNonQueryAsync(ct);
+        await SqliteLegacySchema.EnsureAsync(db, ct);
     }
 
     public async Task<IReadOnlyList<(int Id, string Name, DateTime UpdatedAtUtc)>> ListSummariesAsync(

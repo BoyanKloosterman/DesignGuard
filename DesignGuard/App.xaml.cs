@@ -1,6 +1,8 @@
 using System.IO;
 using System.Windows;
+using DesignGuard.Configuration;
 using DesignGuard.Data;
+using DesignGuard.Data.Mongo;
 using DesignGuard.Export;
 using DesignGuard.Knowledge;
 using DesignGuard.Rules;
@@ -9,7 +11,6 @@ using DesignGuard.Rules.ThreatRules;
 using DesignGuard.Services;
 using DesignGuard.Settings;
 using DesignGuard.ViewModels;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using QuestPDF.Infrastructure;
 
@@ -17,19 +18,26 @@ namespace DesignGuard;
 
 public partial class App : Application
 {
-    // Volledige typenaam: geen verwarring met andere ServiceProvider-typen.
     private Microsoft.Extensions.DependencyInjection.ServiceProvider? _provider;
 
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
         QuestPDF.Settings.License = LicenseType.Community;
+
+        DevelopmentEnvFileLoader.TryApplyOptionalDotEnv();
+
         var services = new ServiceCollection();
         var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DesignGuard");
         Directory.CreateDirectory(dir);
-        var cs = $"Data Source={Path.Combine(dir, "designguard-v3.db")}";
-        services.AddDbContextFactory<DesignGuardDbContext>(o => o.UseSqlite(cs));
-        services.AddSingleton<IProjectRepository, ProjectRepository>();
+
+        services.AddSingleton<EnvironmentConfigurationProvider>();
+        services.AddSingleton<IAppConfigurationService, AppConfigurationService>();
+        services.AddSingleton<MongoConnectionFactory>();
+        services.AddSingleton<IMongoDiagnosticsService, MongoDiagnosticsService>();
+        services.AddSingleton<IProjectRepository, MongoProjectRepository>();
+        services.AddSingleton<SqliteToMongoImportService>();
+
         services.AddSingleton(_ => new UserSettingsService(dir));
         services.AddSingleton(sp =>
         {

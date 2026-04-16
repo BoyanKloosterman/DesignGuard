@@ -1,12 +1,12 @@
 {
   "items": [
     {
-      "domain": "Lokale opslag",
-      "item": "SQLite-database staat onder gebruikersprofiel (LocalApplicationData), geen gedeelde netwerkschijf als default.",
+      "domain": "Data / MongoDB",
+      "item": "MongoDB-connection string en secrets staan in omgeving of secrets-store; niet in broncode of git.",
       "status": "Manual",
-      "rationale": "Beperkt blootstelling van projectdata op gedeelde machines.",
-      "recommendation": "Documenteer waar data staat; overweeg OS-encryptie (BitLocker) op laptops.",
-      "evidence": "App.xaml.cs — connection string naar LocalApplicationData.",
+      "rationale": "Netwerk-database en gedeelde clusters vereisen strikte credential-hygiëne.",
+      "recommendation": "TLS, least-privilege DB-user, rotatie bij lek; zie CONFIGURATION.md en SECURITY_REVIEW.md.",
+      "evidence": "EnvironmentConfigurationProvider; gemaskeerde diagnose op Instellingen.",
       "sourceTag": "Desktop-hardening-inspired"
     },
     {

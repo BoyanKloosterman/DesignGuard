@@ -302,7 +302,7 @@ public sealed class ExportService
         sb.AppendLine("table{border-collapse:collapse;width:100%;margin:8px 0;} td,th{border:1px solid #e2e8f0;padding:8px;text-align:left;} th{background:#f8fafc;font-weight:600;}");
         sb.AppendLine(".meta{color:#64748b;font-size:10pt;} .tag{font-size:9pt;color:#475569;}</style></head><body>");
         sb.AppendLine($"<h1>{Esc(project.Name)}</h1>");
-        sb.AppendLine($"<p class=\"meta\">DesignGuard v4 — export UTC {exportUtc:O} — project: {Esc(project.Name)}</p>");
+        sb.AppendLine($"<p class=\"meta\">DesignGuard v5 — export UTC {exportUtc:O} — project: {Esc(project.Name)}</p>");
         sb.AppendLine("<div class=\"disclaimer\"><strong>Belangrijk.</strong> Dit rapport is bedoeld als ondersteuning bij security-by-design. " +
                       "Het is <strong>geen</strong> juridisch advies en maakt <strong>geen</strong> claim op conformiteit met OWASP, GDPR/AVG, NIS2, CRA of andere normen. " +
                       "Knowledge packs en bron-tags zijn richtinggevend; raadpleeg primaire bronnen.</div>");

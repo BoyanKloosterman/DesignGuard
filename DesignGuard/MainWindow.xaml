@@ -5,7 +5,7 @@
         xmlns:conv="clr-namespace:DesignGuard.Converters"
         mc:Ignorable="d"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        Title="DesignGuard v4 — Security-by-design werkbench"
+        Title="DesignGuard v5 — Security-by-design werkbench"
         Height="820" Width="1320"
         Loaded="Window_Loaded">
     <Window.Resources>
@@ -61,7 +61,7 @@
                     <StackPanel>
                         <TextBlock Text="Dashboard" FontSize="22" FontWeight="SemiBold" />
                         <TextBlock TextWrapping="Wrap" Foreground="Gray" Margin="0,8,0,16"
-                                   Text="Lokaal werkbank (v4): kennis-packs, PDF-export en verfijnd diagram. Geen compliance-claim." />
+                                   Text="Werkbank v5: MongoDB-data, kennis-packs, PDF-export en diagram. Geen compliance-claim." />
                         <WrapPanel Margin="0,0,0,12">
                             <Button Content="Snapshot (lokaal)" Command="{Binding SaveProjectSnapshotCommand}" Margin="0,0,8,8" />
                             <Button Content="Control-bibliotheek" Command="{Binding ApplyControlLibraryCommand}" Margin="0,0,8,8" />
@@ -727,9 +727,36 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <TextBlock Text="Dataopslag" FontWeight="SemiBold" />
-                        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="Gray" Margin="0,4,0,0"
-                                   Text="SQLite onder %LocalAppData%\DesignGuard\designguard-v3.db — zie SECURITY_REVIEW.md." />
+                        <TextBlock Text="Database / MongoDB" FontWeight="SemiBold" />
+                        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="Gray" Margin="0,4,0,12"
+                                   Text="Projectdata staat in MongoDB. Configureer omgevingsvariabelen (of .env in Development) — zie CONFIGURATION.md en DEPLOYMENT.md." />
+                        <TextBlock FontSize="11" Foreground="#334155">
+                            <Run Text="Omgeving: " /><Run Text="{Binding MongoDiagEnvironment, Mode=OneWay}" />
+                        </TextBlock>
+                        <TextBlock Text="Omgevingsvariabelen" FontSize="11" Foreground="#334155" Margin="0,4,0,0" FontWeight="SemiBold" />
+                        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#334155" Text="{Binding MongoDiagEnvVars}" />
+                        <TextBlock FontSize="11" Foreground="#334155" Margin="0,4,0,0">
+                            <Run Text="Database-naam: " /><Run Text="{Binding MongoDiagDatabase, Mode=OneWay}" />
+                        </TextBlock>
+                        <TextBlock FontSize="11" Foreground="#334155" Margin="0,4,0,0">
+                            <Run Text="ApplicationName: " /><Run Text="{Binding MongoDiagAppName, Mode=OneWay}" />
+                        </TextBlock>
+                        <TextBlock Text="Optionele opties" FontSize="11" Foreground="#334155" Margin="0,4,0,0" FontWeight="SemiBold" />
+                        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#334155" Text="{Binding MongoDiagOptions}" />
+                        <TextBlock Text="Connection (gemaskeerd)" FontSize="11" Foreground="#334155" Margin="0,4,0,0" FontWeight="SemiBold" />
+                        <TextBlock TextWrapping="Wrap" FontSize="11" FontFamily="Consolas" Foreground="#334155"
+                                   Text="{Binding MongoDiagMaskedConnection}" />
+                        <TextBlock Text="{Binding MongoDiagWarning}" TextWrapping="Wrap" Margin="0,8,0,0" FontSize="11"
+                                   Foreground="DarkOrange"
+                                   Visibility="{Binding MongoDiagHasConfigWarning, Converter={StaticResource BoolToVis}}" />
+                        <TextBlock Text="{Binding MongoDiagPing}" TextWrapping="Wrap" Margin="0,8,0,0" FontSize="11"
+                                   Foreground="#0F766E" />
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <Button Content="Verbinding testen (ping)" Command="{Binding TestMongoConnectionCommand}" Margin="0,0,8,0" />
+                            <Button Content="Importeer SQLite → MongoDB" Command="{Binding ImportSqliteToMongoCommand}" />
+                        </StackPanel>
+                        <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="Gray" Margin="0,8,0,0"
+                                   Text="Lokale voorkeuren en export-map blijven in user-settings.json onder %LocalAppData%\DesignGuard\." />
                     </StackPanel>
                 </ScrollViewer>
 

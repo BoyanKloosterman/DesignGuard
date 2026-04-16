@@ -1,6 +1,6 @@
 # DesignGuard
 
-DesignGuard is een **Windows-desktopapp** (WPF) voor **security-by-design**: je legt je systeemontwerp vast, de app helpt daarbij **dreigingen (STRIDE)** en **security-eisen** te genereren, te beheren en te **exporteren**. Het is een **lokale werkbank**; er is geen cloud of account nodig.
+DesignGuard is een **Windows-desktopapp** (WPF) voor **security-by-design**: je legt je systeemontwerp vast, de app helpt daarbij **dreigingen (STRIDE)** en **security-eisen** te genereren, te beheren en te **exporteren**. **v5** gebruikt **MongoDB** als primaire datastore; er is geen cloud-account in de app zelf nodig, wel een bereikbare MongoDB waar jij toegang toe geeft.
 
 > De app maakt **geen claim op juridische conformiteit** (AVG, NIS2, CRA, enz.). Export en bron-tags bij eisen zijn **ondersteunend**, geen certificering.
 
@@ -8,12 +8,26 @@ DesignGuard is een **Windows-desktopapp** (WPF) voor **security-by-design**: je 
 
 - **Windows** (WPF)
 - [.NET 10 SDK](https://dotnet.microsoft.com/download) (komt overeen met `TargetFramework` in het project)
+- **MongoDB** (lokaal, Docker, eigen server of Atlas) — zie [DEPLOYMENT.md](DEPLOYMENT.md)
 
 Controleer in een terminal:
 
 ```powershell
 dotnet --version
 ```
+
+## Configuratie (v5)
+
+Stel minimaal deze **omgevingsvariabelen** in (of gebruik een `.env` in development — zie [CONFIGURATION.md](CONFIGURATION.md)):
+
+```text
+DESIGNGUARD_MONGODB_CONNECTION_STRING=mongodb://localhost:27017
+DESIGNGUARD_MONGODB_DATABASE=designguard
+DESIGNGUARD_MONGODB_APPNAME=DesignGuard
+DESIGNGUARD_ENVIRONMENT=Development
+```
+
+Sjabloon zonder secrets: [.env.example](.env.example).
 
 ## Bouwen en starten
 
@@ -26,21 +40,30 @@ dotnet run --project DesignGuard\DesignGuard.csproj
 
 Of open `DesignGuard.sln` in Visual Studio en start met F5.
 
+Zorg dat MongoDB draait en bereikbaar is voordat je projecten opslaat.
+
 ## Waar worden gegevens opgeslagen?
 
-- De database is een **SQLite**-bestand: `%LOCALAPPDATA%\DesignGuard\designguard-v2.db`
-- **Back-up:** kopieer die map of het `.db`-bestand voordat je experimenteert of de app verwijdert.
+- **Projecten en ontwerpdata:** MongoDB-database (configureerbaar via env).
+- **Lokale voorkeuren:** `%LOCALAPPDATA%\DesignGuard\user-settings.json` (o.a. knowledge pack toggles, exportmap).
+- **Knowledge packs:** JSON onder `KnowledgePacks\` naast de executable.
+- **Back-up:** gebruik MongoDB-backups (`mongodump`, Atlas, enz.) en kopieer indien nodig de LocalAppData-map voor instellingen.
+
+### Migratie vanaf SQLite (v4)
+
+In de app: **Instellingen → Importeer SQLite → MongoDB** en selecteer het oude `.db`-bestand. Zie [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Eerste gebruik
 
-1. Start de app; bij de eerste start wordt de database aangemaakt.
-2. Er is een **Demo**-project beschikbaar (knop **Demo** of selectie in de projectlijst) om de werking te verkennen.
-3. De **statusbalk** onderaan toont meldingen (geladen project, fouten, enz.).
+1. Configureer MongoDB (env of `.env` in Development).
+2. Start de app; bij ontbrekende config zie je een waarschuwing op **Instellingen** en in de statusbalk.
+3. Gebruik **Verbinding testen (ping)** op Instellingen.
+4. Er is een **Demo**-project beschikbaar als de database bereikbaar is.
 
 ## Schermindeling
 
 - **Links — Projecten:** Nieuw, Wizard, Opslaan, Verwijderen, Demo; daaronder de **projectlijst**.
-- **Midden — Navigatie:** tabs voor Dashboard, Ontwerp, Dreigingen, Eisen, Beslissingen, Traceability, Export.
+- **Midden — Navigatie:** tabs voor Dashboard, Ontwerp, Dreigingen, Eisen, Beslissingen, Traceability, Export, **Instellingen** (Mongo-diagnose), App security review.
 - **Rechts — Inspector:** details en bewerking van de geselecteerde **dreiging**, **eis** of **component** (afhankelijk van je selectie).
 
 ## Aanbevolen werkwijze
@@ -58,7 +81,7 @@ Of open `DesignGuard.sln` in Visual Studio en start met F5.
    - Gebruik **Diagram verversen** om het architectuurdiagram bij te werken.
 
 3. **Analyse vernieuwen**
-   - Knop **Analyse vernieuwen** (ook wel **Regenerate from design** in de code): op basis van het ontwerp worden dreigingen en eisen opnieuw opgebouwd (met merge-logica: bestaande items kunnen behouden blijven als je dat zo instelt).
+   - Op basis van het ontwerp worden dreigingen en eisen opgebouwd (met merge-logica: bestaande items kunnen behouden blijven als je dat zo instelt).
    - Items die je **handmatig sterk wilt behouden** bij een volgende regeneratie: vink in de Inspector **Behoud bij hergeneratie (UserModified)** aan bij die dreiging of eis.
 
 4. **Dreigingen en eisen afwerken** (tabs **Dreigingen** / **Eisen**)
@@ -73,10 +96,10 @@ Of open `DesignGuard.sln` in Visual Studio en start met F5.
    - Geeft een **read-only overzicht** van relaties (handig voor review of documentatie).
 
 7. **Exporteren** (tab **Export**)
-   - **Markdown**, **Tekst**, **HTML**, **JSON**: preview in het scherm; gebruik dit voor wiki’s, rapporten of verdere verwerking.
+   - **Markdown**, **Tekst**, **HTML**, **JSON**, **PDF**: preview in het scherm; gebruik dit voor wiki’s, rapporten of verdere verwerking.
 
 8. **Opslaan**
-   - Gebruik **Opslaan** om wijzigingen naar de database te schrijven. Werk periodiek en vóór het sluiten van de app.
+   - Gebruik **Opslaan** om wijzigingen naar MongoDB te schrijven. Werk periodiek en vóór het sluiten van de app.
 
 ## Dashboard en sjablonen
 
@@ -87,11 +110,18 @@ Of open `DesignGuard.sln` in Visual Studio en start met F5.
 
 - Hoe **rijker** het ontwerp (boundaries, stromen, vinkjes), hoe **zinvoller** de voorgestelde dreigingen en eisen.
 - Na grote wijzigingen in het ontwerp: **Analyse vernieuwen** zodat de lijsten aansluiten — controleer daarna of handmatige aanpassingen nog kloppen.
-- Maak een **back-up** van `%LOCALAPPDATA%\DesignGuard\` als je meerdere machines gebruikt of vóór upgrades.
+- Zorg voor **back-ups** van MongoDB en van `%LOCALAPPDATA%\DesignGuard\` als je meerdere machines gebruikt of vóór upgrades.
 
 ## Technische stack (kort)
 
-- **.NET / WPF**, **Entity Framework Core** + **SQLite**, **CommunityToolkit.Mvvm**.
+- **.NET / WPF**, **MongoDB.Driver**, **CommunityToolkit.Mvvm**, **QuestPDF**.
+- **Entity Framework Core + SQLite** alleen nog voor **import** van oude databases.
+
+## Documentatie
+
+- [CONFIGURATION.md](CONFIGURATION.md) — omgevingsvariabelen en `.env`.
+- [DEPLOYMENT.md](DEPLOYMENT.md) — Docker, serverwissel, migratie.
+- [SECURITY_REVIEW.md](SECURITY_REVIEW.md) — engineering security note.
 
 ## Licentie en ondersteuning
 

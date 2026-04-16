@@ -30,7 +30,7 @@
 
 ## `.env` (alleen development)
 
-1. Kopieer `.env.example` naar `.env` naast `DesignGuard.exe` (of in de project-outputmap tijdens debug).
+1. Kopieer `.env.example` naar `.env`. De app zoekt (in volgorde) omhoog vanaf de map van de executable tot ca. 10 niveaus, en daarna in de huidige werkmap — een `.env` in de **repository-root** (`DesignGuard/.env`) wordt daardoor ook gevonden tijdens F5-debug.
 2. Het bestand wordt **alleen** gelezen als:
    - `DESIGNGUARD_ENVIRONMENT=Development` in het `.env`-bestand staat, **of**
    - `DESIGNGUARD_LOAD_DOTENV=1` in de **process**-omgeving staat vóór start.

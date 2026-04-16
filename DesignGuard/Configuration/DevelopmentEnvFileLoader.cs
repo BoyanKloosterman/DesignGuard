@@ -5,26 +5,36 @@ namespace DesignGuard.Configuration;
 /// <summary>
 /// Optioneel .env: alleen als het bestand Development aangeeft, of als DESIGNGUARD_LOAD_DOTENV=1 in de process-omgeving staat.
 /// Overschrijft nooit bestaande omgevingsvariabelen.
+/// Zoekt ook in bovenliggende mappen (handig: .env in repo-root terwijl de exe in bin/Debug staat).
 /// </summary>
 public static class DevelopmentEnvFileLoader
 {
+    private const int MaxWalkUpLevels = 10;
+
     public static void TryApplyOptionalDotEnv()
     {
-        var baseDir = AppContext.BaseDirectory;
-        string? path = null;
-        foreach (var candidate in new[]
-                 {
-                     Path.Combine(baseDir, ".env"),
-                     Path.Combine(Directory.GetCurrentDirectory(), ".env")
-                 })
+        foreach (var candidate in GetCandidateEnvPaths())
         {
             if (!File.Exists(candidate)) continue;
-            path = candidate;
-            break;
+            ApplyFileIfAllowed(candidate);
+            return;
+        }
+    }
+
+    private static IEnumerable<string> GetCandidateEnvPaths()
+    {
+        var current = new DirectoryInfo(AppContext.BaseDirectory);
+        for (var i = 0; i < MaxWalkUpLevels && current != null; i++)
+        {
+            yield return Path.Combine(current.FullName, ".env");
+            current = current.Parent;
         }
 
-        if (path == null) return;
+        yield return Path.Combine(Directory.GetCurrentDirectory(), ".env");
+    }
 
+    private static void ApplyFileIfAllowed(string path)
+    {
         var vars = ParseEnvFile(path);
         var loadDotEnv = string.Equals(Environment.GetEnvironmentVariable("DESIGNGUARD_LOAD_DOTENV"), "1",
             StringComparison.Ordinal);

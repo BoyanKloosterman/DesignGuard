@@ -35,8 +35,16 @@ public sealed class ProjectModel
     public List<DesignNoteModel> DesignNotes { get; set; } = new();
     public List<ControlModel> Controls { get; set; } = new();
 
+    public List<EntryPointModel> EntryPoints { get; set; } = new();
+    public List<SensitiveDataModel> SensitiveDataItems { get; set; } = new();
+    public List<ReviewItemModel> ReviewItems { get; set; } = new();
+    public List<SnapshotModel> Snapshots { get; set; } = new();
+
     public List<ThreatModel> Threats { get; set; } = new();
     public List<RequirementModel> Requirements { get; set; } = new();
 
     public string OpenIssuesSummary { get; set; } = "";
+
+    /// <summary>Afgewezen suggesties (rule keys), lokaal opgeslagen.</summary>
+    public List<string> DismissedSuggestionKeys { get; set; } = new();
 }

@@ -24,6 +24,7 @@ public sealed class ProjectEntity
     public bool CriticalBusinessFunction { get; set; }
 
     public string OpenIssuesSummary { get; set; } = "";
+    public string DismissedSuggestionKeysJson { get; set; } = "[]";
 
     public List<TrustBoundaryEntity> TrustBoundaries { get; set; } = new();
     public List<ComponentEntity> Components { get; set; } = new();
@@ -32,6 +33,10 @@ public sealed class ProjectEntity
     public List<AssetEntity> Assets { get; set; } = new();
     public List<DesignNoteEntity> DesignNotes { get; set; } = new();
     public List<ControlEntity> Controls { get; set; } = new();
+    public List<EntryPointEntity> EntryPoints { get; set; } = new();
+    public List<SensitiveDataEntity> SensitiveDataItems { get; set; } = new();
+    public List<ReviewItemEntity> ReviewItems { get; set; } = new();
+    public List<SnapshotEntity> Snapshots { get; set; } = new();
     public List<ThreatEntity> Threats { get; set; } = new();
     public List<RequirementEntity> Requirements { get; set; } = new();
 }

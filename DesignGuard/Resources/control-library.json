@@ -1,0 +1,100 @@
+{
+  "items": [
+    {
+      "id": "lib-admin-privileged-review",
+      "title": "Privileged access: expliciet ontwerp en periodieke review",
+      "category": "Administrative control",
+      "sourceTags": ["OWASP", "Architecture"],
+      "description": "Admin- en beheerpaden zijn high-impact: beperk bereik, forceer sterke authenticatie en leg besluiten vast.",
+      "implementationGuidance": "Scheid admin van normale gebruikersflows; MFA; just-in-time / break-glass indien van toepassing; auditlog van admin-acties.",
+      "when": {
+        "anyProjectFlag": ["HasAdmin"],
+        "anyThreatTriggerContains": ["admin"],
+        "anyComponentTagContains": ["admin"]
+      }
+    },
+    {
+      "id": "lib-privacy-data-minimization",
+      "title": "Privacy: dataminimalisatie en doelbinding",
+      "category": "Privacy controls",
+      "sourceTags": ["AVG", "GDPR-inspired"],
+      "description": "Bij persoonsgegevens: verzamel alleen wat nodig is en beperk bewaartermijnen.",
+      "implementationGuidance": "Inventariseer velden; retention; toegang op need-to-know; pseudonimisatie waar mogelijk.",
+      "when": {
+        "anyProjectFlag": ["PersonalDataProcessed"],
+        "anyThreatTriggerContains": ["privacy", "personal"]
+      }
+    },
+    {
+      "id": "lib-attack-surface-internet",
+      "title": "Aanvalsoppervlak: hardening en segmentatie",
+      "category": "Secure architecture",
+      "sourceTags": ["OWASP", "NIS2-inspired"],
+      "description": "Internetblootstelling vergroot kans op misbruik: beperk endpoints en monitor anomalieën.",
+      "implementationGuidance": "WAF/rate limits waar passend; TLS; geen admin op publiek endpoint; health checks en abuse-detectie.",
+      "when": {
+        "anyProjectFlag": ["InternetExposed"],
+        "anyThreatTriggerContains": ["internet", "exposure"]
+      }
+    },
+    {
+      "id": "lib-upload-validation-storage",
+      "title": "Uploads: validatie, quota en veilige opslag",
+      "category": "Input validation",
+      "sourceTags": ["OWASP"],
+      "description": "Bestandsuploads zijn veelvoorkomende vector voor malware en abuse.",
+      "implementationGuidance": "Type/size limits; server-side scanning; opslag buiten webroot; random filenames; geen directe uitvoering.",
+      "when": {
+        "anyProjectFlag": ["FileUpload"],
+        "anyThreatTriggerContains": ["upload", "file"]
+      }
+    },
+    {
+      "id": "lib-external-api-boundary",
+      "title": "Externe API's: trust, foutafhandeling en geheimen",
+      "category": "Dependency management",
+      "sourceTags": ["OWASP", "CRA-inspired"],
+      "description": "Integraties introduceren afhankelijkheden en supply-chain risico.",
+      "implementationGuidance": "Pin versies waar zinvol; timeouts/retries; secrets in vault; contracttests; fallback bij storing.",
+      "when": {
+        "anyProjectFlag": ["ExternalApis"],
+        "anyThreatTriggerContains": ["external", "api"]
+      }
+    },
+    {
+      "id": "lib-sensitive-storage",
+      "title": "Gevoelige data-at-rest: encryptie en sleutelbeheer",
+      "category": "Data protection",
+      "sourceTags": ["OWASP"],
+      "description": "Opslag van secrets of gevoelige datasets vraagt bescherming buiten de applicatielaag.",
+      "implementationGuidance": "Encryptie (TDE/app-level); KMS; rotation; geen secrets in repo; least privilege op DB.",
+      "when": {
+        "anyProjectFlag": ["SensitiveDataStored"],
+        "anyThreatTriggerContains": ["data", "storage", "database"]
+      }
+    },
+    {
+      "id": "lib-logging-detect",
+      "title": "Logging en detectie: security-relevante events",
+      "category": "Logging and monitoring",
+      "sourceTags": ["NIS2-inspired", "OWASP"],
+      "description": "Zonder signalen is incidentresponse en audit lastig.",
+      "implementationGuidance": "Auth failures; admin; policy changes; centrale aggregatie; retentie afgestemd op risico.",
+      "when": {
+        "anyThreatTriggerContains": ["log", "audit", "logging"]
+      }
+    },
+    {
+      "id": "lib-auth-session",
+      "title": "Authenticatie en sessiebeveiliging",
+      "category": "Identity and access management",
+      "sourceTags": ["OWASP"],
+      "description": "Zwakke auth/sessies leiden tot accountovername.",
+      "implementationGuidance": "Sterke policies; secure cookies; CSRF waar nodig; lockout/backoff; device/session management.",
+      "when": {
+        "anyProjectFlag": ["HasAuthentication"],
+        "anyThreatTriggerContains": ["auth", "session"]
+      }
+    }
+  ]
+}

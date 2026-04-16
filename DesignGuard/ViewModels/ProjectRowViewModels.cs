@@ -156,11 +156,92 @@ public partial class ControlRowViewModel : ObservableObject
 {
     [ObservableProperty] private int _id;
 
+    [ObservableProperty] private string _stableId = "";
+
     [ObservableProperty] private string _title = "";
+
+    [ObservableProperty] private string _category = "";
+
+    [ObservableProperty] private string _sourceTags = "";
 
     [ObservableProperty] private string _description = "";
 
+    [ObservableProperty] private string _implementationGuidance = "";
+
     [ObservableProperty] private string _linkedThreatStableId = "";
 
+    [ObservableProperty] private string _linkedRequirementStableIds = "";
+
+    [ObservableProperty] private string _status =
+        global::DesignGuard.Models.ControlLifecycleStatus.Draft.ToString();
+
     [ObservableProperty] private string _statusNotes = "";
+
+    [ObservableProperty] private string _libraryDefinitionId = "";
+}
+
+public partial class EntryPointRowViewModel : ObservableObject
+{
+    [ObservableProperty] private int _id;
+
+    [ObservableProperty] private string _name = "";
+
+    [ObservableProperty] private string _description = "";
+
+    [ObservableProperty] private int _relatedComponentId;
+
+    [ObservableProperty] private string _notes = "";
+
+    [ObservableProperty] private string _exposureNotes = "";
+}
+
+public partial class SensitiveDataRowViewModel : ObservableObject
+{
+    [ObservableProperty] private int _id;
+
+    [ObservableProperty] private string _name = "";
+
+    [ObservableProperty] private string _category = "";
+
+    [ObservableProperty] private string _description = "";
+
+    [ObservableProperty] private int _relatedComponentId;
+
+    [ObservableProperty] private string _storageLocation = "";
+
+    [ObservableProperty] private string _notes = "";
+}
+
+public partial class ReviewItemRowViewModel : ObservableObject
+{
+    [ObservableProperty] private int _id;
+
+    [ObservableProperty] private string _subjectKind =
+        global::DesignGuard.Models.ReviewSubjectKind.OpenQuestion.ToString();
+
+    [ObservableProperty] private string _subjectStableId = "";
+
+    [ObservableProperty] private string _subjectTitle = "";
+
+    [ObservableProperty] private string _status =
+        global::DesignGuard.Models.ReviewWorkflowStatus.Draft.ToString();
+
+    [ObservableProperty] private string _notes = "";
+
+    [ObservableProperty] private string _rationale = "";
+
+    [ObservableProperty] private string _owner = "";
+
+    [ObservableProperty] private DateTime _createdAtUtc = DateTime.UtcNow;
+}
+
+public partial class SnapshotRowViewModel : ObservableObject
+{
+    [ObservableProperty] private int _id;
+
+    [ObservableProperty] private string _name = "";
+
+    [ObservableProperty] private DateTime _createdAtUtc = DateTime.UtcNow;
+
+    [ObservableProperty] private string _snapshotJson = "";
 }

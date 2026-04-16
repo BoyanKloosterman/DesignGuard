@@ -5,7 +5,7 @@
         xmlns:conv="clr-namespace:DesignGuard.Converters"
         mc:Ignorable="d"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        Title="DesignGuard v2 — Security-by-design werkbench"
+        Title="DesignGuard v3 — Security-by-design werkbench"
         Height="820" Width="1320"
         Loaded="Window_Loaded">
     <Window.Resources>
@@ -33,13 +33,15 @@
                     <Button Content="Verwijderen" Command="{Binding DeleteProjectCommand}" Margin="0,0,0,4" />
                     <Button Content="Demo" Command="{Binding EnsureDemoCommand}" Margin="0,0,0,12" />
                     <TextBlock Text="Navigatie" FontWeight="Bold" Margin="0,0,0,4" />
-                    <ListBox BorderThickness="0" Background="Transparent" MinHeight="200"
+                    <ListBox BorderThickness="0" Background="Transparent" MinHeight="240"
                              SelectedIndex="{Binding NavSection, Mode=TwoWay}">
                         <ListBoxItem Content="Dashboard" />
                         <ListBoxItem Content="Ontwerp" />
                         <ListBoxItem Content="Dreigingen" />
                         <ListBoxItem Content="Eisen" />
+                        <ListBoxItem Content="Controls" />
                         <ListBoxItem Content="Beslissingen" />
+                        <ListBoxItem Content="Review board" />
                         <ListBoxItem Content="Traceability" />
                         <ListBoxItem Content="Export" />
                     </ListBox>
@@ -57,7 +59,11 @@
                     <StackPanel>
                         <TextBlock Text="Dashboard" FontSize="22" FontWeight="SemiBold" />
                         <TextBlock TextWrapping="Wrap" Foreground="Gray" Margin="0,8,0,16"
-                                   Text="Lokaal werkbank-overzicht. Vul Ontwerp in en vernieuw daarna de analyse." />
+                                   Text="Lokaal werkbank (v3). Vul Ontwerp in, pas Controls toe en vernieuw de analyse." />
+                        <WrapPanel Margin="0,0,0,12">
+                            <Button Content="Snapshot (lokaal)" Command="{Binding SaveProjectSnapshotCommand}" Margin="0,0,8,8" />
+                            <Button Content="Control-bibliotheek" Command="{Binding ApplyControlLibraryCommand}" Margin="0,0,8,8" />
+                        </WrapPanel>
                         <UniformGrid Columns="2" Margin="0,0,0,16">
                             <Border Padding="12" Margin="0,0,8,8" Background="White" BorderBrush="#DDE1E6" BorderThickness="1">
                                 <StackPanel>
@@ -272,6 +278,45 @@
                                 </DataGrid>
                             </StackPanel>
                         </GroupBox>
+                        <GroupBox Header="Ingangen (entry points)" Margin="0,8,0,0">
+                            <StackPanel Margin="8">
+                                <Button Content="Ingang toevoegen" Command="{Binding AddEntryPointRowCommand}" HorizontalAlignment="Left" Margin="0,0,0,8" />
+                                <DataGrid ItemsSource="{Binding EntryPoints}" AutoGenerateColumns="False" CanUserAddRows="False" Height="100">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                                        <DataGridTextColumn Header="Component-Id" Binding="{Binding RelatedComponentId, UpdateSourceTrigger=PropertyChanged}" Width="90" />
+                                        <DataGridTextColumn Header="Notities" Binding="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                                        <DataGridTemplateColumn Width="70">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Button Content="Verwijder" Command="{Binding DataContext.RemoveEntryPointRowCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </GroupBox>
+                        <GroupBox Header="Gevoelige data (categorie)" Margin="0,8,0,0">
+                            <StackPanel Margin="8">
+                                <Button Content="Rij toevoegen" Command="{Binding AddSensitiveDataRowCommand}" HorizontalAlignment="Left" Margin="0,0,0,8" />
+                                <DataGrid ItemsSource="{Binding SensitiveDataRows}" AutoGenerateColumns="False" CanUserAddRows="False" Height="100">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                                        <DataGridTextColumn Header="Categorie" Binding="{Binding Category, UpdateSourceTrigger=PropertyChanged}" Width="90" />
+                                        <DataGridTextColumn Header="Opslag" Binding="{Binding StorageLocation, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                                        <DataGridTextColumn Header="Comp-Id" Binding="{Binding RelatedComponentId, UpdateSourceTrigger=PropertyChanged}" Width="70" />
+                                        <DataGridTemplateColumn Width="70">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Button Content="Verwijder" Command="{Binding DataContext.RemoveSensitiveDataRowCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </GroupBox>
                         <GroupBox Header="Architectuurdiagram" Margin="0,8,0,0">
                             <StackPanel Margin="8">
                                 <Border BorderBrush="#CCC" BorderThickness="1" Height="340" Background="#FAFAFA">
@@ -422,15 +467,55 @@
                     </ListBox>
                 </DockPanel>
 
-                <!-- Beslissingen -->
+                <!-- Controls -->
                 <ScrollViewer Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=4}" VerticalScrollBarVisibility="Auto">
                     <StackPanel>
-                        <TextBlock Text="Beslissingen en controls" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,12" />
+                        <TextBlock Text="Controls / maatregelen" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,8" />
+                        <TextBlock TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,12"
+                                   Text="Bibliotheek is regelgebaseerd. Gebruik 'Control-bibliotheek' of vernieuw de analyse om suggesties toe te voegen." />
+                        <WrapPanel Margin="0,0,0,8">
+                            <Button Content="Handmatige control" Command="{Binding AddControlCommand}" Margin="0,0,8,8" />
+                            <Button Content="Pas bibliotheek toe" Command="{Binding ApplyControlLibraryCommand}" Margin="0,0,8,8" />
+                        </WrapPanel>
+                        <DataGrid ItemsSource="{Binding Controls}" AutoGenerateColumns="False" CanUserAddRows="False" MinHeight="200" HeadersVisibility="Column">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Titel" Binding="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
+                                <DataGridTextColumn Header="Categorie" Binding="{Binding Category, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                                <DataGridTextColumn Header="Tags" Binding="{Binding SourceTags, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                                <DataGridTemplateColumn Header="Status" Width="120">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox ItemsSource="{Binding DataContext.ControlLifecycleStatusOptions, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                      SelectedItem="{Binding Status, UpdateSourceTrigger=PropertyChanged}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Dreiging (stable id)" Binding="{Binding LinkedThreatStableId, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                                <DataGridTextColumn Header="Eisen (ids, komma)" Binding="{Binding LinkedRequirementStableIds, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                                <DataGridTextColumn Header="Library id" Binding="{Binding LibraryDefinitionId, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" Width="120" />
+                                <DataGridTextColumn Header="Uitleg" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
+                                <DataGridTextColumn Header="Implementatie" Binding="{Binding ImplementationGuidance, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
+                                <DataGridTemplateColumn Width="70">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="Verwijder" Command="{Binding DataContext.RemoveControlCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Beslissingen -->
+                <ScrollViewer Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=5}" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="Beslissingen en aannames" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,12" />
                         <TextBlock Text="Open issues / vervolg" FontWeight="SemiBold" />
                         <TextBox Text="{Binding OpenIssuesSummary, UpdateSourceTrigger=PropertyChanged}" Height="80" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,4,0,16" />
                         <TextBlock Text="Design-notities (soort als tekst: Assumption, Decision, ...)" FontWeight="SemiBold" />
                         <Button Content="Notitie toevoegen" HorizontalAlignment="Left" Command="{Binding AddDesignNoteCommand}" Margin="0,8,0,8" />
-                        <DataGrid ItemsSource="{Binding DesignNotes}" AutoGenerateColumns="False" CanUserAddRows="False" Height="160">
+                        <DataGrid ItemsSource="{Binding DesignNotes}" AutoGenerateColumns="False" CanUserAddRows="False" Height="200">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Soort" Binding="{Binding Kind, UpdateSourceTrigger=PropertyChanged}" Width="100" />
                                 <DataGridTextColumn Header="Titel" Binding="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Width="*" />
@@ -444,16 +529,57 @@
                                 </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
-                        <TextBlock Text="Aanbevolen controls" FontWeight="SemiBold" Margin="0,16,0,0" />
-                        <Button Content="Control toevoegen" Command="{Binding AddControlCommand}" HorizontalAlignment="Left" Margin="0,8,0,8" />
-                        <DataGrid ItemsSource="{Binding Controls}" AutoGenerateColumns="False" CanUserAddRows="False" Height="120">
+                        <TextBlock Text="Project-snapshots (bewaar met Opslaan)" FontWeight="SemiBold" Margin="0,16,0,0" />
+                        <Button Content="Snapshot vastleggen" Command="{Binding SaveProjectSnapshotCommand}" HorizontalAlignment="Left" Margin="0,8,0,8" />
+                        <DataGrid ItemsSource="{Binding Snapshots}" AutoGenerateColumns="False" CanUserAddRows="False" Height="100">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Titel" Binding="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                                <DataGridTextColumn Header="Beschrijving" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
+                                <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
+                                <DataGridTextColumn Header="UTC" Binding="{Binding CreatedAtUtc, StringFormat=u}" IsReadOnly="True" Width="*" />
                                 <DataGridTemplateColumn Width="70">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Button Content="Verwijder" Command="{Binding DataContext.RemoveControlCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" />
+                                            <Button Content="Verwijder" Command="{Binding DataContext.RemoveSnapshotRowCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Review board -->
+                <ScrollViewer Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=6}" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="Review board" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,8" />
+                        <TextBlock TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,12"
+                                   Text="Lichte workflow: koppel stable id's van dreigingen/eisen/controls of noteer open vragen." />
+                        <Button Content="Review-item" Command="{Binding AddReviewItemRowCommand}" HorizontalAlignment="Left" Margin="0,0,0,8" />
+                        <DataGrid ItemsSource="{Binding ReviewItems}" AutoGenerateColumns="False" CanUserAddRows="False" MinHeight="220">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Header="Onderwerp" Width="130">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox ItemsSource="{Binding DataContext.ReviewSubjectKindOptions, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                      SelectedItem="{Binding SubjectKind, UpdateSourceTrigger=PropertyChanged}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Stable id" Binding="{Binding SubjectStableId, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                                <DataGridTextColumn Header="Titel" Binding="{Binding SubjectTitle, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
+                                <DataGridTemplateColumn Header="Status" Width="140">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox ItemsSource="{Binding DataContext.ReviewWorkflowStatusOptions, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                      SelectedItem="{Binding Status, UpdateSourceTrigger=PropertyChanged}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Eigenaar" Binding="{Binding Owner, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                                <DataGridTextColumn Header="Notities" Binding="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                                <DataGridTemplateColumn Width="70">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="Verwijder" Command="{Binding DataContext.RemoveReviewItemRowCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" />
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
@@ -463,7 +589,7 @@
                 </ScrollViewer>
 
                 <!-- Traceability -->
-                <DockPanel Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=5}">
+                <DockPanel Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=7}">
                     <TextBlock DockPanel.Dock="Top" Text="Traceability" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,8" />
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <TextBox Text="{Binding TraceabilityText}" IsReadOnly="True" TextWrapping="Wrap" FontFamily="Consolas" FontSize="11" BorderThickness="0" />
@@ -471,7 +597,7 @@
                 </DockPanel>
 
                 <!-- Export -->
-                <DockPanel Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=6}">
+                <DockPanel Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=8}">
                     <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
                         <TextBlock Text="Export" FontSize="22" FontWeight="SemiBold" />
                         <WrapPanel Margin="0,8,0,0">
@@ -490,6 +616,23 @@
             <ScrollViewer Grid.Column="2" Margin="4,8,8,8">
                 <StackPanel>
                     <TextBlock Text="Inspector" FontWeight="Bold" Margin="0,0,0,8" />
+                    <TextBlock Text="Suggesties (regels)" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <ItemsControl ItemsSource="{Binding Suggestions}" Margin="0,0,0,12">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="#E0E0E0" BorderThickness="1" Padding="8" Margin="0,0,0,8" Background="#FAFAFA">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" FontSize="11" Margin="0,4,0,0" />
+                                        <TextBlock Text="{Binding Because}" Foreground="Gray" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                        <Button Content="Negeren" HorizontalAlignment="Left" Margin="0,6,0,0" FontSize="11"
+                                                Command="{Binding DataContext.DismissSuggestionCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding}" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                     <Border Visibility="{Binding ShowProjectOverviewInDetails, Converter={StaticResource BoolToVis}}"
                             BorderBrush="#DDD" BorderThickness="1" Padding="8" Margin="0,0,0,8">
                         <StackPanel>

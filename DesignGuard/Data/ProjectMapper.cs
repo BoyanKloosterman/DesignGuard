@@ -29,6 +29,7 @@ internal static class ProjectMapper
             LoggingMonitoringPresent = e.LoggingMonitoringPresent,
             CriticalBusinessFunction = e.CriticalBusinessFunction,
             OpenIssuesSummary = e.OpenIssuesSummary,
+            DismissedSuggestionKeys = JsonBlobs.StringList(e.DismissedSuggestionKeysJson),
             TrustBoundaries = e.TrustBoundaries.OrderBy(t => t.Id).Select(t => new TrustBoundaryModel
             {
                 Id = t.Id,
@@ -95,10 +96,61 @@ internal static class ProjectMapper
             Controls = e.Controls.Select(c => new ControlModel
             {
                 Id = c.Id,
+                StableId = c.StableId,
                 Title = c.Title,
+                Category = c.Category,
+                SourceTags = JsonBlobs.StringList(c.SourceTagsJson),
                 Description = c.Description,
+                ImplementationGuidance = c.ImplementationGuidance,
                 LinkedThreatStableId = c.LinkedThreatStableId,
-                StatusNotes = c.StatusNotes
+                LinkedRequirementStableIds = JsonBlobs.StringList(c.LinkedRequirementStableIdsJson),
+                Status = Enum.IsDefined(typeof(ControlLifecycleStatus), c.Status)
+                    ? (ControlLifecycleStatus)c.Status
+                    : ControlLifecycleStatus.Draft,
+                StatusNotes = c.StatusNotes,
+                LibraryDefinitionId = c.LibraryDefinitionId
+            }).ToList(),
+            EntryPoints = e.EntryPoints.OrderBy(x => x.Id).Select(x => new EntryPointModel
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Description = x.Description,
+                RelatedComponentId = x.RelatedComponentId,
+                Notes = x.Notes,
+                ExposureNotes = x.ExposureNotes
+            }).ToList(),
+            SensitiveDataItems = e.SensitiveDataItems.OrderBy(x => x.Id).Select(x => new SensitiveDataModel
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Category = x.Category,
+                Description = x.Description,
+                RelatedComponentId = x.RelatedComponentId,
+                StorageLocation = x.StorageLocation,
+                Notes = x.Notes
+            }).ToList(),
+            ReviewItems = e.ReviewItems.OrderBy(x => x.Id).Select(x => new ReviewItemModel
+            {
+                Id = x.Id,
+                SubjectKind = Enum.IsDefined(typeof(ReviewSubjectKind), x.SubjectKind)
+                    ? (ReviewSubjectKind)x.SubjectKind
+                    : ReviewSubjectKind.OpenQuestion,
+                SubjectStableId = x.SubjectStableId,
+                SubjectTitle = x.SubjectTitle,
+                Status = Enum.IsDefined(typeof(ReviewWorkflowStatus), x.Status)
+                    ? (ReviewWorkflowStatus)x.Status
+                    : ReviewWorkflowStatus.Draft,
+                Notes = x.Notes,
+                Rationale = x.Rationale,
+                Owner = x.Owner,
+                CreatedAtUtc = x.CreatedAtUtc
+            }).ToList(),
+            Snapshots = e.Snapshots.OrderByDescending(x => x.CreatedAtUtc).Select(x => new SnapshotModel
+            {
+                Id = x.Id,
+                Name = x.Name,
+                CreatedAtUtc = x.CreatedAtUtc,
+                SnapshotJson = x.SnapshotJson
             }).ToList(),
             Threats = e.Threats.Select(ToThreat).ToList(),
             Requirements = e.Requirements.Select(ToRequirement).ToList()

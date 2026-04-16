@@ -24,4 +24,6 @@ public sealed class ThreatModel
     /// <summary>Kenmerken uit ontwerp dat deze dreiging activeerde (traceability).</summary>
     public List<string> TriggerKeys { get; set; } = new();
     public List<int> RelatedDesignNoteIds { get; set; } = new();
+
+    public SourceAttributionModel SourceAttribution { get; set; } = new();
 }

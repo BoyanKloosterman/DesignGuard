@@ -22,4 +22,6 @@ public sealed class RequirementModel
     public List<string> TriggerKeys { get; set; } = new();
     public List<string> LinkedThreatIds { get; set; } = new();
     public List<int> RelatedDesignNoteIds { get; set; } = new();
+
+    public SourceAttributionModel SourceAttribution { get; set; } = new();
 }

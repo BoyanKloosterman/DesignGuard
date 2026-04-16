@@ -1,0 +1,34 @@
+{
+  "packId": "owasp-cheatsheets-inspired-v1",
+  "displayLabel": "OWASP Cheat Sheets (richtinggevend)",
+  "versionLabel": "2026-04-inspired",
+  "sourceName": "OWASP Cheat Sheet Series",
+  "publicationOrReviewDate": "2026-04-16",
+  "lastReviewedUtc": "2026-04-16T00:00:00Z",
+  "disclaimer": "Samenvattingen ter ondersteuning; geen vervanging van de volledige cheat sheets.",
+  "isActive": true,
+  "isArchived": false,
+  "items": [
+    {
+      "id": "cs-input-validation-inspired",
+      "title": "Input validatie en encoding",
+      "category": "Input handling",
+      "plainLanguageExplanation": "Behandel invoer als onveilig; valideer server-side en encode output context-afhankelijk.",
+      "whyItAppliesNote": "Relevant bij gebruikersinvoer, API-payloads en templates.",
+      "sourceTags": ["OWASP-CheatSheet-inspired"],
+      "sourceReference": "OWASP Input Validation Cheat Sheet / XSS Prevention (officiële OWASP-site)",
+      "reviewNote": "",
+      "guidanceNature": "IndustryGuidanceInspired"
+    }
+  ],
+  "mappingRules": [
+    {
+      "matchRequirementRuleNameContains": "InputValidationRequirementRule",
+      "guidanceItemIds": ["cs-input-validation-inspired"]
+    },
+    {
+      "matchThreatRuleNameContains": "FileUploadThreatRule",
+      "guidanceItemIds": ["cs-input-validation-inspired"]
+    }
+  ]
+}

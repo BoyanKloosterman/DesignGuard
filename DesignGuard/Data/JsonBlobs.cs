@@ -30,4 +30,7 @@ internal static class JsonBlobs
 
     public static ExplanationModel Explanation(string? json) =>
         Deserialize<ExplanationModel>(json ?? "{}") ?? new ExplanationModel();
+
+    public static SourceAttributionModel SourceAttribution(string? json) =>
+        Deserialize<SourceAttributionModel>(json ?? "{}") ?? new SourceAttributionModel();
 }

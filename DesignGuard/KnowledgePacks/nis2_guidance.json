@@ -1,0 +1,38 @@
+{
+  "packId": "nis2-inspired-v1",
+  "displayLabel": "NIS2 (risicobeheer, richtinggevend)",
+  "versionLabel": "2026-04-inspired",
+  "sourceName": "EU Directive on measures for a high common level of cybersecurity (NIS2) — algemene kaders",
+  "publicationOrReviewDate": "2026-04-16",
+  "lastReviewedUtc": "2026-04-16T00:00:00Z",
+  "disclaimer": "Geen claim op volledige implementatie van NIS2. Richt zich op algemene risicobeheer- en beveiligingsdenkpunten zoals gangbaar in sector-documentatie.",
+  "isActive": true,
+  "isArchived": false,
+  "items": [
+    {
+      "id": "nis2-risk-governance-inspired",
+      "title": "Risicobeheer en operationele veerkracht (hoog niveau)",
+      "category": "Risk management",
+      "plainLanguageExplanation": "Koppel beveiligingsmaatregelen aan geïdentificeerde risico's, incidentrespons en leveranciersketen — in lijn met gangbare NIS2-interpretaties.",
+      "whyItAppliesNote": "Relevant voor essentiële/belangrijke entiteiten en digitale diensten; nuttig als denkraam voor elk systeem.",
+      "sourceTags": ["NIS2-inspired"],
+      "sourceReference": "NIS2 Directive (consolidated texts via EU official sources)",
+      "reviewNote": "Nationale implementatie verschilt per lidstaat.",
+      "guidanceNature": "RegulationInspired"
+    }
+  ],
+  "mappingRules": [
+    {
+      "matchRequirementRuleNameContains": "ResilienceRequirementRule",
+      "guidanceItemIds": ["nis2-risk-governance-inspired"]
+    },
+    {
+      "matchRequirementRuleNameContains": "LoggingRequirementRule",
+      "guidanceItemIds": ["nis2-risk-governance-inspired"]
+    },
+    {
+      "matchThreatRuleNameContains": "MissingLoggingThreatRule",
+      "guidanceItemIds": ["nis2-risk-governance-inspired"]
+    }
+  ]
+}

@@ -9,16 +9,16 @@ public sealed record DiagramNodeLayout(
     double Y,
     string Tag,
     int? TrustBoundaryId,
-    bool IsEntryPoint);
+    bool IsEntryPoint,
+    DataSensitivity DataSensitivity);
 
 public sealed record DiagramEdgeLayout(
     int FromId,
     int ToId,
     string Label,
-    double FromX,
-    double FromY,
-    double ToX,
-    double ToY);
+    string PathData,
+    double LabelX,
+    double LabelY);
 
 public sealed record TrustBoundaryOverlay(
     int Id,
@@ -32,24 +32,24 @@ public sealed record TrustBoundaryOverlay(
 public sealed record DiagramLayoutResult(
     IReadOnlyList<DiagramNodeLayout> Nodes,
     IReadOnlyList<DiagramEdgeLayout> Edges,
-    IReadOnlyList<TrustBoundaryOverlay> TrustOverlays);
+    IReadOnlyList<TrustBoundaryOverlay> TrustOverlays,
+    double ContentWidth,
+    double ContentHeight);
 
 /// <summary>Laag-indeling; gebruikt opgeslagen X/Y indien aanwezig.</summary>
 public sealed class DiagramLayoutService
 {
-    private const double LayerDx = 220;
-    private const double NodeDy = 100;
-    private const double Margin = 40;
-    private const double NodeW = 168;
-    private const double NodeH = 48;
-    private const double BoundaryPad = 16;
+    private const double LayerDx = 260;
+    private const double NodeDy = 108;
+    private const double Margin = 48;
+    private const double BoundaryPad = 22;
 
     public DiagramLayoutResult Layout(ProjectModel project)
     {
         var comps = project.Components.ToList();
         if (comps.Count == 0)
             return new DiagramLayoutResult(Array.Empty<DiagramNodeLayout>(), Array.Empty<DiagramEdgeLayout>(),
-                Array.Empty<TrustBoundaryOverlay>());
+                Array.Empty<TrustBoundaryOverlay>(), 400, 300);
 
         var idSet = comps.Select(c => c.Id).ToHashSet();
         var layers = AssignLayers(comps, project.DataFlows, idSet);
@@ -82,7 +82,8 @@ public sealed class DiagramLayoutService
         var nodeLayouts = comps.Select(c =>
         {
             var p = positions[c.Id];
-            return new DiagramNodeLayout(c.Id, c.Name, p.X, p.Y, c.Tag, c.TrustBoundaryId, c.IsEntryPoint);
+            return new DiagramNodeLayout(c.Id, c.Name, p.X, p.Y, c.Tag, c.TrustBoundaryId, c.IsEntryPoint,
+                c.StoresOrProcesses);
         }).ToList();
 
         var edges = new List<DiagramEdgeLayout>();
@@ -91,18 +92,40 @@ public sealed class DiagramLayoutService
             if (!positions.TryGetValue(f.FromComponentId, out var from) ||
                 !positions.TryGetValue(f.ToComponentId, out var to))
                 continue;
+            var (path, lx, ly) = DiagramEdgeGeometry.Build(from.X, from.Y, to.X, to.Y, f.Label);
             edges.Add(new DiagramEdgeLayout(
                 f.FromComponentId,
                 f.ToComponentId,
                 f.Label,
-                from.X + NodeW * 0.45,
-                from.Y + NodeH * 0.45,
-                to.X + NodeW * 0.1,
-                to.Y + NodeH * 0.45));
+                path,
+                lx,
+                ly));
         }
 
         var overlays = BuildTrustOverlays(project, nodeLayouts);
-        return new DiagramLayoutResult(nodeLayouts, edges, overlays);
+        var (cw, ch) = ComputeBounds(nodeLayouts, overlays);
+        return new DiagramLayoutResult(nodeLayouts, edges, overlays, cw, ch);
+    }
+
+    private static (double W, double H) ComputeBounds(
+        IReadOnlyList<DiagramNodeLayout> nodes,
+        IReadOnlyList<TrustBoundaryOverlay> overlays)
+    {
+        var maxX = Margin + DiagramEdgeGeometry.NodeW;
+        var maxY = Margin + DiagramEdgeGeometry.NodeH;
+        foreach (var n in nodes)
+        {
+            maxX = Math.Max(maxX, n.X + DiagramEdgeGeometry.NodeW + Margin);
+            maxY = Math.Max(maxY, n.Y + DiagramEdgeGeometry.NodeH + Margin);
+        }
+
+        foreach (var o in overlays)
+        {
+            maxX = Math.Max(maxX, o.X + o.Width + Margin);
+            maxY = Math.Max(maxY, o.Y + o.Height + Margin);
+        }
+
+        return (maxX, maxY);
     }
 
     private static List<TrustBoundaryOverlay> BuildTrustOverlays(
@@ -121,10 +144,10 @@ public sealed class DiagramLayoutService
             var ys = g.Select(n => n.Y).ToList();
             var minX = xs.Min() - BoundaryPad;
             var minY = ys.Min() - BoundaryPad;
-            var maxX = xs.Max() + NodeW + BoundaryPad;
-            var maxY = ys.Max() + NodeH + BoundaryPad;
+            var maxX = xs.Max() + DiagramEdgeGeometry.NodeW + BoundaryPad;
+            var maxY = ys.Max() + DiagramEdgeGeometry.NodeH + BoundaryPad;
             list.Add(new TrustBoundaryOverlay(g.Key, tb.Name, minX, minY, maxX - minX, maxY - minY,
-                string.IsNullOrWhiteSpace(tb.ColorHint) ? "#4472C4" : tb.ColorHint));
+                string.IsNullOrWhiteSpace(tb.ColorHint) ? "#3B5B8C" : tb.ColorHint));
         }
 
         return list;

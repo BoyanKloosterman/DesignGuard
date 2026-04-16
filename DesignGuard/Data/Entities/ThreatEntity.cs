@@ -25,4 +25,6 @@ public sealed class ThreatEntity
     public string TriggerKeysJson { get; set; } = "[]";
     public string ExplanationJson { get; set; } = "{}";
     public string RelatedDesignNoteIdsJson { get; set; } = "[]";
+
+    public string SourceAttributionJson { get; set; } = "{}";
 }

@@ -1,0 +1,53 @@
+{
+  "items": [
+    {
+      "domain": "Lokale opslag",
+      "item": "SQLite-database staat onder gebruikersprofiel (LocalApplicationData), geen gedeelde netwerkschijf als default.",
+      "status": "Manual",
+      "rationale": "Beperkt blootstelling van projectdata op gedeelde machines.",
+      "recommendation": "Documenteer waar data staat; overweeg OS-encryptie (BitLocker) op laptops.",
+      "evidence": "App.xaml.cs — connection string naar LocalApplicationData.",
+      "sourceTag": "Desktop-hardening-inspired"
+    },
+    {
+      "domain": "Serialisatie",
+      "item": "Externe JSON/YAML (knowledge packs) wordt geladen met grootte-limiet en zonder code-execution.",
+      "rationale": "Vermindert risico op resource exhaustion en supply-chain via craftede packs.",
+      "recommendation": "Houd limieten aan; valideer toekomstig schema strikter (JsonSchema).",
+      "evidence": "KnowledgePackService — MaxPackFileBytes; System.Text.Json.",
+      "sourceTag": "OWASP-deserialization-inspired"
+    },
+    {
+      "domain": "Export",
+      "item": "Export-paden worden genormaliseerd en blijven onder door gebruiker gekozen doelen.",
+      "rationale": "Voorkomt path traversal naar systeemlocaties via kwaadaardige invoer.",
+      "recommendation": "Gebruik altijd SaveFileDialog; geen shell execute op exports.",
+      "evidence": "SafeExportPath (indien aanwezig) + handmatige padkeuze.",
+      "sourceTag": "ASVS-file-handling-inspired"
+    },
+    {
+      "domain": "Logging / privacy",
+      "item": "Geen automatische telemetrie of cloud-sync; minimale logging in UI-status.",
+      "rationale": "Data minimalisatie voor een lokaal werkbench-product.",
+      "recommendation": "Voeg optionele diagnostische logs alleen lokaal toe, met duidelijke opt-in.",
+      "evidence": "Architectuur: local-first.",
+      "sourceTag": "Privacy-by-design-inspired"
+    },
+    {
+      "domain": "Foutafhandeling",
+      "item": "Fouten tijdens laden van packs/projecten mogen de app niet laten crashen zonder terugkoppeling.",
+      "rationale": "Bruikbaarheid en veilig gedrag bij corrupte bestanden.",
+      "recommendation": "Breid gebruikersmeldingen uit waar nu stil wordt gevallen.",
+      "evidence": "Diverse try/catch in services.",
+      "sourceTag": "Secure-coding-inspired"
+    },
+    {
+      "domain": "Afhankelijkheden",
+      "item": "Nuget-pakketten periodiek controleren op bekende kwetsbaarheden.",
+      "rationale": "Supply-chain risico.",
+      "recommendation": "dotnet list package --vulnerable in CI; pin versies.",
+      "evidence": "Handmatige review (zie SECURITY_REVIEW.md).",
+      "sourceTag": "SCA-inspired"
+    }
+  ]
+}

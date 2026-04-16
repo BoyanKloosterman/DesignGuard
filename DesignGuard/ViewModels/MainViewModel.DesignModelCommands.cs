@@ -169,10 +169,14 @@ public partial class MainViewModel
             var m = BuildModelFromEditor();
             IsBusy = true;
             BusyMessage = "Control-bibliotheek toepassen…";
-            await Task.Run(() => _controlLibrary.ApplyRecommendations(m));
+            var added = await Task.Run(() => _controlLibrary.ApplyRecommendations(m));
             MergeLibraryControlsIntoRows(m);
             RefreshSuggestions();
-            StatusMessage = "Control-bibliotheek toegepast.";
+            StatusMessage = added < 0
+                ? "Control-bibliotheek: control-library.json ontbreekt of is leeg."
+                : added == 0
+                    ? "Control-bibliotheek: geen nieuwe matches — vul het ontwerp in en vernieuw de analyse (dreigingen/eisen)."
+                    : $"Control-bibliotheek: {added} maatregel(len) toegevoegd.";
         }
         catch (Exception ex)
         {

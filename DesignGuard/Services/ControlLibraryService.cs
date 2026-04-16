@@ -30,10 +30,15 @@ public sealed class ControlLibraryService
         return _cache;
     }
 
-    /// <summary>Voegt ontbrekende library-controls toe (idempotent op LibraryDefinitionId).</summary>
-    public void ApplyRecommendations(ProjectModel project)
+    /// <summary>Voegt ontbrekende library-controls toe (idempotent op LibraryDefinitionId). Retourneert aantal toegevoegd.</summary>
+    public int ApplyRecommendations(ProjectModel project)
     {
-        foreach (var def in GetDefinitions())
+        var defs = GetDefinitions();
+        if (defs.Count == 0)
+            return -1;
+
+        var added = 0;
+        foreach (var def in defs)
         {
             if (string.IsNullOrWhiteSpace(def.Id)) continue;
             if (project.Controls.Any(c =>
@@ -57,7 +62,10 @@ public sealed class ControlLibraryService
                 Status = ControlLifecycleStatus.Proposed,
                 LibraryDefinitionId = def.Id
             });
+            added++;
         }
+
+        return added;
     }
 
     private static string? FindBestThreatStableId(ProjectModel project, ControlLibraryItemDto def)

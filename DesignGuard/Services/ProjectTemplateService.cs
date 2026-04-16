@@ -2,16 +2,44 @@ using DesignGuard.Models;
 
 namespace DesignGuard.Services;
 
+/// <summary>Bindbaar voor WPF (geen ValueTuple — die hebben alleen Item1/2/3 voor binding).</summary>
+public sealed class ProjectTemplateItem
+{
+    public string Key { get; init; } = "";
+    public string Title { get; init; } = "";
+    public string Description { get; init; } = "";
+}
+
 /// <summary>Ingebouwde startsjablonen — richtinggevend, geen volledige threat library.</summary>
 public sealed class ProjectTemplateService
 {
-    public IReadOnlyList<(string Key, string Title, string Description)> ListTemplates() =>
-        new (string, string, string)[]
+    public IReadOnlyList<ProjectTemplateItem> ListTemplates() =>
+        new ProjectTemplateItem[]
         {
-            ("web_admin", "Webapp met adminpaneel", "SPA + API + DB + admin + externe betaling"),
-            ("rest_external", "REST API met externe integraties", "Headless API met externe providers"),
-            ("desktop_sensitive", "Desktopapp met lokale gevoelige data", "Client-only met lokale opslag"),
-            ("iot_cloud", "IoT / product met cloud-backend", "Devices, gateway en cloud")
+            new()
+            {
+                Key = "web_admin",
+                Title = "Webapp met adminpaneel",
+                Description = "SPA + API + DB + admin + externe betaling"
+            },
+            new()
+            {
+                Key = "rest_external",
+                Title = "REST API met externe integraties",
+                Description = "Headless API met externe providers"
+            },
+            new()
+            {
+                Key = "desktop_sensitive",
+                Title = "Desktopapp met lokale gevoelige data",
+                Description = "Client-only met lokale opslag"
+            },
+            new()
+            {
+                Key = "iot_cloud",
+                Title = "IoT / product met cloud-backend",
+                Description = "Devices, gateway en cloud"
+            }
         };
 
     public ProjectModel Create(string key) => key switch

@@ -143,6 +143,7 @@
                                 <DataTemplate>
                                     <Button Content="{Binding Title}" Style="{StaticResource DgButton.Toolbar}"
                                             HorizontalAlignment="Left"
+                                            ToolTip="{Binding Description}"
                                             Command="{Binding DataContext.ApplyTemplateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                             CommandParameter="{Binding Key}" />
                                 </DataTemplate>

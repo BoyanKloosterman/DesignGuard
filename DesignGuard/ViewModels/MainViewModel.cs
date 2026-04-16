@@ -120,7 +120,7 @@ public partial class MainViewModel : ObservableObject
     public IReadOnlyList<string> RequirementStatusOptions { get; }
     public IReadOnlyList<string> PriorityOptions { get; }
     public IReadOnlyList<string> DesignNoteKindOptions { get; }
-    public IReadOnlyList<(string Key, string Title, string Description)> TemplateList => _templates.ListTemplates();
+    public IReadOnlyList<ProjectTemplateItem> TemplateList => _templates.ListTemplates();
 
     public IReadOnlyList<ThreatStatus> AllThreatStatuses { get; } =
         Enum.GetValues(typeof(ThreatStatus)).Cast<ThreatStatus>().ToArray();

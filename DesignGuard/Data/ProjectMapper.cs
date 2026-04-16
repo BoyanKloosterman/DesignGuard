@@ -175,7 +175,8 @@ internal static class ProjectMapper
         AffectedAssets = JsonBlobs.StringList(e.AffectedAssetsJson),
         TriggerKeys = JsonBlobs.StringList(e.TriggerKeysJson),
         Explanation = JsonBlobs.Explanation(e.ExplanationJson),
-        RelatedDesignNoteIds = JsonBlobs.IntList(e.RelatedDesignNoteIdsJson)
+        RelatedDesignNoteIds = JsonBlobs.IntList(e.RelatedDesignNoteIdsJson),
+        SourceAttribution = JsonBlobs.SourceAttribution(e.SourceAttributionJson)
     };
 
     public static RequirementModel ToRequirement(RequirementEntity e) => new()
@@ -196,7 +197,8 @@ internal static class ProjectMapper
         TriggerKeys = JsonBlobs.StringList(e.TriggerKeysJson),
         LinkedThreatIds = JsonBlobs.StringList(e.LinkedThreatIdsJson),
         Explanation = JsonBlobs.Explanation(e.ExplanationJson),
-        RelatedDesignNoteIds = JsonBlobs.IntList(e.RelatedDesignNoteIdsJson)
+        RelatedDesignNoteIds = JsonBlobs.IntList(e.RelatedDesignNoteIdsJson),
+        SourceAttribution = JsonBlobs.SourceAttribution(e.SourceAttributionJson)
     };
 
     public static ThreatEntity ToThreatEntity(ThreatModel m, int projectId) => new()
@@ -218,7 +220,8 @@ internal static class ProjectMapper
         AffectedAssetsJson = JsonBlobs.Serialize(m.AffectedAssets),
         TriggerKeysJson = JsonBlobs.Serialize(m.TriggerKeys),
         ExplanationJson = JsonBlobs.Serialize(m.Explanation),
-        RelatedDesignNoteIdsJson = JsonBlobs.Serialize(m.RelatedDesignNoteIds)
+        RelatedDesignNoteIdsJson = JsonBlobs.Serialize(m.RelatedDesignNoteIds),
+        SourceAttributionJson = JsonBlobs.Serialize(m.SourceAttribution)
     };
 
     public static RequirementEntity ToRequirementEntity(RequirementModel m, int projectId) => new()
@@ -240,6 +243,7 @@ internal static class ProjectMapper
         TriggerKeysJson = JsonBlobs.Serialize(m.TriggerKeys),
         LinkedThreatIdsJson = JsonBlobs.Serialize(m.LinkedThreatIds),
         ExplanationJson = JsonBlobs.Serialize(m.Explanation),
-        RelatedDesignNoteIdsJson = JsonBlobs.Serialize(m.RelatedDesignNoteIds)
+        RelatedDesignNoteIdsJson = JsonBlobs.Serialize(m.RelatedDesignNoteIds),
+        SourceAttributionJson = JsonBlobs.Serialize(m.SourceAttribution)
     };
 }

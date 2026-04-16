@@ -4,8 +4,11 @@ using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DesignGuard.Export;
+using DesignGuard.Knowledge;
 using DesignGuard.Models;
+using DesignGuard.Security;
 using DesignGuard.Services;
+using DesignGuard.Settings;
 using Microsoft.Win32;
 
 namespace DesignGuard.ViewModels;
@@ -28,6 +31,11 @@ public partial class MainViewModel : ObservableObject
     private readonly ProjectTemplateService _templates;
     private readonly ControlLibraryService _controlLibrary;
     private readonly ModelingSuggestionService _suggestionService;
+    private readonly KnowledgePackService _knowledgePacks;
+    private readonly UserSettingsService _userSettings;
+    private readonly PdfReportService _pdfReport;
+    private readonly DiagramRasterizer _diagramRasterizer;
+    private readonly AppSecurityReviewService _appSecurityReview;
     private HashSet<string> _dismissedSuggestionKeys = new(StringComparer.Ordinal);
 
     public MainViewModel(
@@ -40,7 +48,12 @@ public partial class MainViewModel : ObservableObject
         TraceabilityService traceability,
         ProjectTemplateService templates,
         ControlLibraryService controlLibrary,
-        ModelingSuggestionService suggestionService)
+        ModelingSuggestionService suggestionService,
+        KnowledgePackService knowledgePacks,
+        UserSettingsService userSettings,
+        PdfReportService pdfReport,
+        DiagramRasterizer diagramRasterizer,
+        AppSecurityReviewService appSecurityReview)
     {
         _projects = projects;
         _threatService = threatService;
@@ -52,6 +65,11 @@ public partial class MainViewModel : ObservableObject
         _templates = templates;
         _controlLibrary = controlLibrary;
         _suggestionService = suggestionService;
+        _knowledgePacks = knowledgePacks;
+        _userSettings = userSettings;
+        _pdfReport = pdfReport;
+        _diagramRasterizer = diagramRasterizer;
+        _appSecurityReview = appSecurityReview;
         SystemTypeOptions = Enum.GetNames(typeof(SystemType)).ToList();
         DeploymentContextOptions = Enum.GetNames(typeof(DeploymentContext)).ToList();
         ThreatStatusOptions = Enum.GetNames(typeof(ThreatStatus)).ToList();
@@ -62,6 +80,8 @@ public partial class MainViewModel : ObservableObject
         FilteredThreats = new ObservableCollection<ThreatModel>();
         FilteredRequirements = new ObservableCollection<RequirementModel>();
         Suggestions = new ObservableCollection<ModelingSuggestion>();
+        KnowledgePackRows = new ObservableCollection<KnowledgePackToggleRow>();
+        AppSecurityReviewRows = new ObservableCollection<AppSecurityReviewRowViewModel>();
     }
 
     public IReadOnlyList<string> SystemTypeOptions { get; }
@@ -110,10 +130,10 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private ProjectSummaryItem? _selectedProjectSummary;
 
-    /// <summary>0 Dashboard, 1 Ontwerp, 2 Dreigingen, 3 Eisen, 4 Controls, 5 Beslissingen, 6 Review, 7 Traceability, 8 Export</summary>
+    /// <summary>0 Dashboard, 1 Ontwerp, 2 Dreigingen, 3 Eisen, 4 Controls, 5 Beslissingen, 6 Review, 7 Traceability, 8 Export, 9 Instellingen, 10 App security review</summary>
     [ObservableProperty] private int _navSection;
 
-    [ObservableProperty] private string _statusMessage = "DesignGuard v3 — lokaal security-by-design.";
+    [ObservableProperty] private string _statusMessage = "DesignGuard v4 — lokaal security-by-design.";
 
     [ObservableProperty] private int _currentProjectId;
 
@@ -217,6 +237,24 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private string _exportPreview = "";
 
+    [ObservableProperty] private double _diagramZoom = 1.0;
+
+    [ObservableProperty] private double _diagramContentWidth = 920;
+
+    [ObservableProperty] private double _diagramContentHeight = 520;
+
+    [ObservableProperty] private bool _diagramShowGrid = true;
+
+    [ObservableProperty] private bool _diagramOverlayTrustBoundaries = true;
+
+    [ObservableProperty] private bool _diagramOverlaySensitiveData;
+
+    [ObservableProperty] private bool _diagramOverlayThreatLinks = true;
+
+    [ObservableProperty] private ObservableCollection<KnowledgePackToggleRow> _knowledgePackRows = new();
+
+    [ObservableProperty] private ObservableCollection<AppSecurityReviewRowViewModel> _appSecurityReviewRows = new();
+
     public bool ShowProjectOverviewInDetails =>
         SelectedThreat == null && SelectedRequirement == null && SelectedComponent == null;
 
@@ -242,7 +280,22 @@ public partial class MainViewModel : ObservableObject
 
         if (value == 7) RefreshTraceability();
         if (value == 8) RefreshExportPreview();
+        if (value == 9) RefreshKnowledgePackRows();
+        if (value == 10) RefreshAppSecurityReview();
         if (value is 0 or 1 or 4 or 5 or 6) RefreshSuggestions();
+    }
+
+    partial void OnDiagramOverlayTrustBoundariesChanged(bool value) => RefreshDiagram();
+
+    partial void OnDiagramOverlaySensitiveDataChanged(bool value) => RefreshDiagram();
+
+    partial void OnDiagramOverlayThreatLinksChanged(bool value) => RefreshDiagram();
+
+    partial void OnDiagramZoomChanged(double value) => RefreshDiagram();
+
+    partial void OnSelectedThreatChanged(ThreatModel? value)
+    {
+        if (NavSection == 1) RefreshDiagram();
     }
 
     partial void OnThreatFilterTextChanged(string value) => RefreshFilters();
@@ -263,7 +316,8 @@ public partial class MainViewModel : ObservableObject
             await ReloadProjectListAsync();
             var demo = ProjectList.FirstOrDefault(p => p.Name.StartsWith("Demo", StringComparison.Ordinal));
             SelectedProjectSummary = demo ?? ProjectList.FirstOrDefault();
-            StatusMessage = "Database gereed (v3). Demo-project beschikbaar.";
+            RefreshKnowledgePackRows();
+            StatusMessage = "Database gereed (v4). Demo-project beschikbaar.";
         }
         catch (Exception ex)
         {
@@ -1177,35 +1231,59 @@ public partial class MainViewModel : ObservableObject
         {
             var m = BuildModelFromEditor();
             var layout = _diagramLayout.Layout(m);
+            DiagramContentWidth = Math.Max(400, layout.ContentWidth * DiagramZoom);
+            DiagramContentHeight = Math.Max(300, layout.ContentHeight * DiagramZoom);
+            var threat = NavSection == 1 && DiagramOverlayThreatLinks ? SelectedThreat : null;
             DiagramNodes = new ObservableCollection<DiagramNodeViewModel>(layout.Nodes.Select(n =>
-                new DiagramNodeViewModel
+            {
+                var showSen = DiagramOverlaySensitiveData && n.DataSensitivity != DataSensitivity.None;
+                var linked = threat != null &&
+                             threat.AffectedComponents.Exists(a =>
+                                 string.Equals(a, n.Name, StringComparison.OrdinalIgnoreCase));
+                return new DiagramNodeViewModel
                 {
                     ComponentId = n.ComponentId,
                     Name = n.Name,
                     Tag = n.Tag,
-                    X = n.X,
-                    Y = n.Y,
+                    DataSensitivity = n.DataSensitivity.ToString(),
+                    X = n.X * DiagramZoom,
+                    Y = n.Y * DiagramZoom,
                     IsEntryPoint = n.IsEntryPoint,
-                    IsHighlighted = SelectedComponent?.Id == n.ComponentId
-                }));
-            DiagramLines = new ObservableCollection<DiagramLineViewModel>(layout.Edges.Select(e =>
-                new DiagramLineViewModel
+                    IsHighlighted = SelectedComponent?.Id == n.ComponentId,
+                    ShowSensitiveStripe = showSen,
+                    IsLinkedHighlight = linked
+                };
+            }));
+            var lines = layout.Edges.Select(e =>
+            {
+                var from = layout.Nodes.FirstOrDefault(x => x.ComponentId == e.FromId);
+                var to = layout.Nodes.FirstOrDefault(x => x.ComponentId == e.ToId);
+                if (from == null || to == null) return null;
+                var (path, lx, ly) = DiagramEdgeGeometry.Build(
+                    from.X * DiagramZoom,
+                    from.Y * DiagramZoom,
+                    to.X * DiagramZoom,
+                    to.Y * DiagramZoom,
+                    e.Label);
+                return new DiagramLineViewModel
                 {
-                    X1 = e.FromX,
-                    Y1 = e.FromY,
-                    X2 = e.ToX,
-                    Y2 = e.ToY,
+                    PathData = path,
+                    LabelX = lx,
+                    LabelY = ly,
                     Label = e.Label
-                }));
-            DiagramTrustOverlays = new ObservableCollection<TrustBoundaryOverlayViewModel>(layout.TrustOverlays
-                .Select(o => new TrustBoundaryOverlayViewModel
+                };
+            }).Where(x => x != null).Cast<DiagramLineViewModel>().ToList();
+            DiagramLines = new ObservableCollection<DiagramLineViewModel>(lines);
+            DiagramTrustOverlays = new ObservableCollection<TrustBoundaryOverlayViewModel>(
+                layout.TrustOverlays.Select(o => new TrustBoundaryOverlayViewModel
                 {
-                    X = o.X,
-                    Y = o.Y,
-                    Width = o.Width,
-                    Height = o.Height,
+                    X = o.X * DiagramZoom,
+                    Y = o.Y * DiagramZoom,
+                    Width = o.Width * DiagramZoom,
+                    Height = o.Height * DiagramZoom,
                     Name = o.Name,
-                    Color = o.ColorHint
+                    Color = o.ColorHint,
+                    IsVisible = DiagramOverlayTrustBoundaries
                 }));
         }
         catch
@@ -1213,6 +1291,59 @@ public partial class MainViewModel : ObservableObject
             // layout mag editor niet breken
         }
     }
+
+    private void RefreshKnowledgePackRows()
+    {
+        _knowledgePacks.Reload();
+        var discovered = _knowledgePacks.DiscoverPacksIgnoringUserDisabled();
+        KnowledgePackRows.Clear();
+        foreach (var p in discovered.OrderBy(x => x.Dto.DisplayLabel))
+        {
+            var disabled = _userSettings.Current.DisabledPackIds.Contains(p.Dto.PackId);
+            var stale = _knowledgePacks.IsPackStale(p, _userSettings.Current.PackStaleWarningDays);
+            KnowledgePackRows.Add(new KnowledgePackToggleRow(
+                p.Dto.PackId,
+                p.Dto.DisplayLabel,
+                p.Dto.VersionLabel,
+                p.Dto.SourceName,
+                stale,
+                !disabled,
+                OnKnowledgePackRowToggled));
+        }
+    }
+
+    private void OnKnowledgePackRowToggled(string packId, bool enabled)
+    {
+        _userSettings.SetPackDisabled(packId, !enabled);
+        _knowledgePacks.Reload();
+        StatusMessage = enabled ? $"Pack ingeschakeld: {packId}" : $"Pack uitgeschakeld: {packId}";
+    }
+
+    private void RefreshAppSecurityReview()
+    {
+        AppSecurityReviewRows = new ObservableCollection<AppSecurityReviewRowViewModel>(_appSecurityReview.LoadChecklist());
+    }
+
+    [RelayCommand]
+    private void DiagramZoomIn()
+    {
+        DiagramZoom = Math.Min(2.2, Math.Round(DiagramZoom + 0.1, 2));
+    }
+
+    [RelayCommand]
+    private void DiagramZoomOut()
+    {
+        DiagramZoom = Math.Max(0.5, Math.Round(DiagramZoom - 0.1, 2));
+    }
+
+    [RelayCommand]
+    private void DiagramFitToScreen()
+    {
+        DiagramZoom = 1.0;
+    }
+
+    [RelayCommand]
+    private void RefreshDiagramLayout() => RefreshDiagram();
 
     partial void OnSelectedComponentChanged(ComponentRowViewModel? value)
     {
@@ -1309,11 +1440,15 @@ public partial class MainViewModel : ObservableObject
                 Filter = "Markdown (*.md)|*.md|All files (*.*)|*.*",
                 FileName = $"{SanitizeFileName(m.Name)}-designguard.md"
             };
-            if (dlg.ShowDialog() == true)
+            if (dlg.ShowDialog() != true) return;
+            if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
             {
-                File.WriteAllText(dlg.FileName, md);
-                StatusMessage = "Markdown geëxporteerd.";
+                StatusMessage = err ?? "Export geannuleerd.";
+                return;
             }
+
+            File.WriteAllText(path, md);
+            StatusMessage = "Markdown geëxporteerd.";
         }
         catch (Exception ex)
         {
@@ -1333,11 +1468,15 @@ public partial class MainViewModel : ObservableObject
                 Filter = "Text (*.txt)|*.txt|All files (*.*)|*.*",
                 FileName = $"{SanitizeFileName(m.Name)}-designguard.txt"
             };
-            if (dlg.ShowDialog() == true)
+            if (dlg.ShowDialog() != true) return;
+            if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
             {
-                File.WriteAllText(dlg.FileName, txt);
-                StatusMessage = "Tekst geëxporteerd.";
+                StatusMessage = err ?? "Export geannuleerd.";
+                return;
             }
+
+            File.WriteAllText(path, txt);
+            StatusMessage = "Tekst geëxporteerd.";
         }
         catch (Exception ex)
         {
@@ -1357,15 +1496,76 @@ public partial class MainViewModel : ObservableObject
                 Filter = "HTML (*.html)|*.html|All files (*.*)|*.*",
                 FileName = $"{SanitizeFileName(m.Name)}-designguard.html"
             };
-            if (dlg.ShowDialog() == true)
+            if (dlg.ShowDialog() != true) return;
+            if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
             {
-                File.WriteAllText(dlg.FileName, html);
-                StatusMessage = "HTML geëxporteerd.";
+                StatusMessage = err ?? "Export geannuleerd.";
+                return;
             }
+
+            File.WriteAllText(path, html);
+            StatusMessage = "HTML geëxporteerd.";
         }
         catch (Exception ex)
         {
             StatusMessage = $"Export mislukt: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void ExportPrintFriendlyHtml()
+    {
+        try
+        {
+            var m = BuildModelFromEditor();
+            var html = _export.ToPrintFriendlyHtml(m, Threats.ToList(), Requirements.ToList(), DateTime.UtcNow);
+            var dlg = new SaveFileDialog
+            {
+                Filter = "HTML (*.html)|*.html|All files (*.*)|*.*",
+                FileName = $"{SanitizeFileName(m.Name)}-designguard-print.html"
+            };
+            if (dlg.ShowDialog() != true) return;
+            if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
+            {
+                StatusMessage = err ?? "Export geannuleerd.";
+                return;
+            }
+
+            File.WriteAllText(path, html);
+            StatusMessage = "Print-HTML geëxporteerd.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Export mislukt: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void ExportPdf()
+    {
+        try
+        {
+            var m = BuildModelFromEditor();
+            var png = _diagramRasterizer.RenderPng(m);
+            var pdf = _pdfReport.BuildSecurityDesignReport(m, Threats.ToList(), Requirements.ToList(), png);
+            var dlg = new SaveFileDialog
+            {
+                Filter = "PDF (*.pdf)|*.pdf|All files (*.*)|*.*",
+                FileName = $"{SanitizeFileName(m.Name)}-designguard.pdf"
+            };
+            if (dlg.ShowDialog() != true) return;
+            if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
+            {
+                StatusMessage = err ?? "Export geannuleerd.";
+                return;
+            }
+
+            File.WriteAllBytes(path, pdf);
+            StatusMessage = "PDF geëxporteerd.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"PDF-export mislukt: {ex.Message}";
         }
     }
 
@@ -1381,11 +1581,15 @@ public partial class MainViewModel : ObservableObject
                 Filter = "JSON (*.json)|*.json|All files (*.*)|*.*",
                 FileName = $"{SanitizeFileName(m.Name)}-designguard.json"
             };
-            if (dlg.ShowDialog() == true)
+            if (dlg.ShowDialog() != true) return;
+            if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
             {
-                File.WriteAllText(dlg.FileName, json);
-                StatusMessage = "JSON geëxporteerd.";
+                StatusMessage = err ?? "Export geannuleerd.";
+                return;
             }
+
+            File.WriteAllText(path, json);
+            StatusMessage = "JSON geëxporteerd.";
         }
         catch (Exception ex)
         {

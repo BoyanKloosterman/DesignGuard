@@ -1,3 +1,4 @@
+using DesignGuard.Knowledge;
 using DesignGuard.Models;
 using DesignGuard.Rules;
 using DesignGuard.Rules.ThreatRules;
@@ -7,10 +8,12 @@ namespace DesignGuard.Services;
 public sealed class ThreatGenerationService
 {
     private readonly IReadOnlyList<IThreatRule> _rules;
+    private readonly KnowledgePackService _knowledgePacks;
 
-    public ThreatGenerationService(IEnumerable<IThreatRule> rules)
+    public ThreatGenerationService(IEnumerable<IThreatRule> rules, KnowledgePackService knowledgePacks)
     {
         _rules = rules.ToList();
+        _knowledgePacks = knowledgePacks;
     }
 
     public IReadOnlyList<ThreatModel> Generate(ProjectModel project)
@@ -28,6 +31,7 @@ public sealed class ThreatGenerationService
                 seq++;
                 RuleTriggerBootstrap.Apply(ruleName, t, ctx);
                 ApplySeverityHeuristics(ctx, t);
+                _knowledgePacks.EnrichThreat(t);
                 list.Add(t);
             }
         }

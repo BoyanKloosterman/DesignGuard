@@ -284,6 +284,123 @@ public sealed class ExportService
         return sb.ToString();
     }
 
+    /// <summary>Print-vriendelijke HTML met secties en disclaimers (geen compliance-claim).</summary>
+    public string ToPrintFriendlyHtml(
+        ProjectModel project,
+        IReadOnlyList<ThreatModel> threats,
+        IReadOnlyList<RequirementModel> requirements,
+        DateTime exportUtc)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("<!DOCTYPE html><html lang=\"nl\"><head><meta charset=\"utf-8\"/>");
+        sb.AppendLine($"<title>{Esc(project.Name)} — DesignGuard rapport</title>");
+        sb.AppendLine("<style>");
+        sb.AppendLine("@media print { body { font-size:11pt; } .page-break { page-break-before: always; } }");
+        sb.AppendLine("body{font-family:Segoe UI,Arial,sans-serif;max-width:880px;margin:24px auto;line-height:1.5;color:#1e293b;}");
+        sb.AppendLine("h1{font-size:22pt;font-weight:600;color:#0f172a;} h2{font-size:14pt;color:#0f172a;margin-top:1.4em;border-bottom:1px solid #cbd5e1;padding-bottom:4px;}");
+        sb.AppendLine("h3{font-size:12pt;color:#334155;} .disclaimer{background:#f1f5f9;border-left:4px solid #64748b;padding:12px 16px;margin:16px 0;font-size:10pt;}");
+        sb.AppendLine("table{border-collapse:collapse;width:100%;margin:8px 0;} td,th{border:1px solid #e2e8f0;padding:8px;text-align:left;} th{background:#f8fafc;font-weight:600;}");
+        sb.AppendLine(".meta{color:#64748b;font-size:10pt;} .tag{font-size:9pt;color:#475569;}</style></head><body>");
+        sb.AppendLine($"<h1>{Esc(project.Name)}</h1>");
+        sb.AppendLine($"<p class=\"meta\">DesignGuard v4 — export UTC {exportUtc:O} — project: {Esc(project.Name)}</p>");
+        sb.AppendLine("<div class=\"disclaimer\"><strong>Belangrijk.</strong> Dit rapport is bedoeld als ondersteuning bij security-by-design. " +
+                      "Het is <strong>geen</strong> juridisch advies en maakt <strong>geen</strong> claim op conformiteit met OWASP, GDPR/AVG, NIS2, CRA of andere normen. " +
+                      "Knowledge packs en bron-tags zijn richtinggevend; raadpleeg primaire bronnen.</div>");
+
+        sb.AppendLine("<h2>Titelpagina / metadata</h2>");
+        sb.AppendLine("<table><tr><th>Veld</th><th>Waarde</th></tr>");
+        sb.AppendLine($"<tr><td>Project</td><td>{Esc(project.Name)}</td></tr>");
+        sb.AppendLine($"<tr><td>Beschrijving</td><td>{Esc(project.Description)}</td></tr>");
+        sb.AppendLine($"<tr><td>Aangemaakt (UTC)</td><td>{project.CreatedAtUtc:O}</td></tr>");
+        sb.AppendLine($"<tr><td>Bijgewerkt (UTC)</td><td>{project.UpdatedAtUtc:O}</td></tr></table>");
+
+        sb.AppendLine("<h2>Executive summary</h2>");
+        sb.AppendLine("<p>");
+        sb.AppendLine(
+            $"{project.Components.Count} componenten, {project.DataFlows.Count} datastromen, {threats.Count} dreigingen, " +
+            $"{requirements.Count} eisen, {project.Controls.Count} controls, {project.TrustBoundaries.Count} trust boundaries.");
+        sb.AppendLine("</p>");
+
+        sb.AppendLine("<h2>Projectoverzicht en systeemcontext</h2>");
+        sb.AppendLine("<table><tr><th>Kenmerk</th><th>Waarde</th></tr>");
+        sb.AppendLine($"<tr><td>Systeemnaam</td><td>{Esc(project.SystemName)}</td></tr>");
+        sb.AppendLine($"<tr><td>Type / deployment</td><td>{project.SystemType} / {project.DeploymentContext}</td></tr>");
+        sb.AppendLine(
+            $"<tr><td>Flags</td><td>Internet {(project.InternetExposed ? "ja" : "nee")}, persoonsgegevens {(project.PersonalDataProcessed ? "ja" : "nee")}, " +
+            $"auth {(project.HasAuthentication ? "ja" : "nee")}, admin {(project.HasAdmin ? "ja" : "nee")}</td></tr></table>");
+
+        sb.AppendLine("<h2>Trust boundaries</h2><ul>");
+        foreach (var b in project.TrustBoundaries)
+            sb.AppendLine($"<li><strong>{Esc(b.Name)}</strong> — {Esc(b.Description)}</li>");
+        sb.AppendLine("</ul>");
+
+        sb.AppendLine("<h2>Componenten en datastromen</h2>");
+        sb.AppendLine("<h3>Componenten</h3><table><tr><th>Naam</th><th>Tag</th><th>Entry</th><th>Data</th></tr>");
+        foreach (var c in project.Components)
+            sb.AppendLine(
+                $"<tr><td>{Esc(c.Name)}</td><td>{Esc(c.Tag)}</td><td>{(c.IsEntryPoint ? "ja" : "nee")}</td><td>{c.StoresOrProcesses}</td></tr>");
+        sb.AppendLine("</table>");
+        sb.AppendLine("<h3>Datastromen</h3><ul>");
+        var byId = project.Components.ToDictionary(c => c.Id, c => c.Name);
+        foreach (var f in project.DataFlows)
+        {
+            var from = byId.TryGetValue(f.FromComponentId, out var fn) ? fn : $"#{f.FromComponentId}";
+            var to = byId.TryGetValue(f.ToComponentId, out var tn) ? tn : $"#{f.ToComponentId}";
+            sb.AppendLine($"<li>{Esc(from)} → {Esc(to)}: <strong>{Esc(f.Label)}</strong></li>");
+        }
+
+        sb.AppendLine("</ul><div class=\"page-break\"></div>");
+
+        sb.AppendLine("<h2>Assets en gevoelige data</h2><h3>Assets</h3><ul>");
+        foreach (var a in project.Assets)
+            sb.AppendLine($"<li>{Esc(a.Name)} ({a.Classification}, {a.Sensitivity})</li>");
+        sb.AppendLine("</ul>");
+
+        sb.AppendLine("<h2>Threat model</h2>");
+        foreach (var t in threats.OrderBy(x => x.StrideCategory).ThenBy(x => x.Title))
+        {
+            sb.AppendLine($"<h3>{Esc(t.Title)}</h3>");
+            sb.AppendLine($"<p class=\"tag\">{t.StrideCategory} — {t.Severity} — {t.Status} — herkomst {t.Origin}</p>");
+            sb.AppendLine($"<p>{Esc(t.Description)}</p>");
+            if (!string.IsNullOrWhiteSpace(t.SourceAttribution.KnowledgePackId))
+                sb.AppendLine(
+                    $"<p class=\"tag\">Bronspoor: {Esc(t.SourceAttribution.KnowledgePackDisplayLabel)} ({Esc(t.SourceAttribution.KnowledgePackVersionLabel)}) — " +
+                    $"{string.Join(", ", t.SourceAttribution.GuidanceItemIds)} — {t.SourceAttribution.Nature}</p>");
+        }
+
+        sb.AppendLine("<h2>Security-eisen</h2>");
+        foreach (var g in requirements.GroupBy(r => r.Category).OrderBy(g => g.Key))
+        {
+            sb.AppendLine($"<h3>{Esc(g.Key)}</h3>");
+            foreach (var r in g.OrderBy(x => x.Priority).ThenBy(x => x.Title))
+            {
+                sb.AppendLine($"<h4>{Esc(r.Title)}</h4>");
+                sb.AppendLine($"<p>{Esc(r.PlainExplanation)}</p>");
+                sb.AppendLine($"<p class=\"tag\">Prioriteit {r.Priority}, status {r.Status}, tags: {string.Join(", ", r.SourceTags)}</p>");
+                if (!string.IsNullOrWhiteSpace(r.SourceAttribution.KnowledgePackId))
+                    sb.AppendLine(
+                        $"<p class=\"tag\">Bronspoor: {Esc(r.SourceAttribution.KnowledgePackDisplayLabel)} — items {string.Join(", ", r.SourceAttribution.GuidanceItemIds)} — {r.SourceAttribution.Nature}</p>");
+            }
+        }
+
+        sb.AppendLine("<h2>Controls</h2><ul>");
+        foreach (var c in project.Controls)
+            sb.AppendLine($"<li><strong>{Esc(c.Title)}</strong>: {Esc(c.Description)}</li>");
+        sb.AppendLine("</ul>");
+
+        sb.AppendLine("<h2>Beslissingen, aannames, open punten</h2><ul>");
+        foreach (var n in project.DesignNotes.OrderBy(n => n.Kind).ThenBy(n => n.Title))
+            sb.AppendLine($"<li>[{n.Kind}] <strong>{Esc(n.Title)}</strong>: {Esc(n.Description)}</li>");
+        if (!string.IsNullOrWhiteSpace(project.OpenIssuesSummary))
+            sb.AppendLine($"<li><strong>Open issues</strong>: {Esc(project.OpenIssuesSummary)}</li>");
+        sb.AppendLine("</ul>");
+
+        sb.AppendLine("<h2>Disclaimer (herhaling)</h2>");
+        sb.AppendLine("<div class=\"disclaimer\">Geen juridische conformiteit of certificering. Gebruik primaire bronnen voor audits.</div>");
+        sb.AppendLine("</body></html>");
+        return sb.ToString();
+    }
+
     public string ToStructuredJson(
         ProjectModel project,
         IReadOnlyList<ThreatModel> threats,
@@ -291,7 +408,7 @@ public sealed class ExportService
     {
         var doc = new
         {
-            schema = "designguard.export.v2",
+            schema = "designguard.export.v3",
             project = new
             {
                 project.Id,
@@ -338,7 +455,8 @@ public sealed class ExportService
                 t.AffectedAssets,
                 t.TriggerKeys,
                 t.Explanation,
-                t.RelatedDesignNoteIds
+                t.RelatedDesignNoteIds,
+                sourceAttribution = t.SourceAttribution
             }),
             requirements = requirements.Select(r => new
             {
@@ -358,7 +476,8 @@ public sealed class ExportService
                 r.TriggerKeys,
                 r.LinkedThreatIds,
                 r.Explanation,
-                r.RelatedDesignNoteIds
+                r.RelatedDesignNoteIds,
+                sourceAttribution = r.SourceAttribution
             })
         };
         return JsonSerializer.Serialize(doc, JsonOpts);

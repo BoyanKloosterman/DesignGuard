@@ -1,0 +1,49 @@
+{
+  "packId": "gdpr-avg-inspired-v1",
+  "displayLabel": "GDPR / AVG (privacy-by-design, richtinggevend)",
+  "versionLabel": "2026-04-inspired",
+  "sourceName": "EU General Data Protection Regulation (GDPR) — algemene kaders; AVG in NL",
+  "publicationOrReviewDate": "2026-04-16",
+  "lastReviewedUtc": "2026-04-16T00:00:00Z",
+  "disclaimer": "Geen juridisch advies. Begrippen zoals 'data protection by design' en 'security of processing' zijn algemene kaders; concrete interpretatie vraagt om juridische en organisatorische context.",
+  "isActive": true,
+  "isArchived": false,
+  "items": [
+    {
+      "id": "gdpr-dpbd-inspired",
+      "title": "Dataprotectie bij ontwerp en standaard (algemeen kader)",
+      "category": "Privacy by design",
+      "plainLanguageExplanation": "Overweeg welke maatregelen in het ontwerp passen bij risico en rechten van betrokkenen (inspiratie: GDPR-artikelen over technical and organisational measures).",
+      "whyItAppliesNote": "Relevant wanneer persoonsgegevens worden verwerkt.",
+      "sourceTags": ["GDPR-inspired", "AVG-inspired"],
+      "sourceReference": "GDPR Art. 25 (high-level framing) — raadpleeg EUR-Lex voor exacte tekst en wijzigingen",
+      "reviewNote": "Wet- en jurisprudentie evolueren; herzie periodiek.",
+      "guidanceNature": "RegulationInspired"
+    },
+    {
+      "id": "gdpr-security-processing-inspired",
+      "title": "Beveiliging van verwerking (algemeen kader)",
+      "category": "Security of processing",
+      "plainLanguageExplanation": "Implementeer passende technische en organisatorische maatregelen afhankelijk van risico (encryptie, toegang, herstel, testen).",
+      "whyItAppliesNote": "Relevant bij opslag of verwerking van persoonsgegevens.",
+      "sourceTags": ["GDPR-inspired", "AVG-inspired"],
+      "sourceReference": "GDPR Art. 32 (high-level framing) — EUR-Lex",
+      "reviewNote": "",
+      "guidanceNature": "RegulationInspired"
+    }
+  ],
+  "mappingRules": [
+    {
+      "matchRequirementRuleNameContains": "PrivacyMinimizationRequirementRule",
+      "guidanceItemIds": ["gdpr-dpbd-inspired"]
+    },
+    {
+      "matchRequirementRuleNameContains": "DataProtectionRequirementRule",
+      "guidanceItemIds": ["gdpr-security-processing-inspired"]
+    },
+    {
+      "matchThreatRuleNameContains": "PersonalDataThreatRule",
+      "guidanceItemIds": ["gdpr-dpbd-inspired", "gdpr-security-processing-inspired"]
+    }
+  ]
+}

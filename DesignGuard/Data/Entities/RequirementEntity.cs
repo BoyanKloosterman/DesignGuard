@@ -25,4 +25,6 @@ public sealed class RequirementEntity
     public string LinkedThreatIdsJson { get; set; } = "[]";
     public string ExplanationJson { get; set; } = "{}";
     public string RelatedDesignNoteIdsJson { get; set; } = "[]";
+
+    public string SourceAttributionJson { get; set; } = "{}";
 }

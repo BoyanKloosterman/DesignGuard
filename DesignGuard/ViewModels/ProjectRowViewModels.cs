@@ -69,6 +69,8 @@ public partial class DiagramNodeViewModel : ObservableObject
 
     [ObservableProperty] private string _tag = "";
 
+    [ObservableProperty] private string _dataSensitivity = "";
+
     [ObservableProperty] private double _x;
 
     [ObservableProperty] private double _y;
@@ -76,6 +78,10 @@ public partial class DiagramNodeViewModel : ObservableObject
     [ObservableProperty] private bool _isEntryPoint;
 
     [ObservableProperty] private bool _isHighlighted;
+
+    [ObservableProperty] private bool _showSensitiveStripe;
+
+    [ObservableProperty] private bool _isLinkedHighlight;
 }
 
 public partial class TrustBoundaryOverlayViewModel : ObservableObject
@@ -90,18 +96,18 @@ public partial class TrustBoundaryOverlayViewModel : ObservableObject
 
     [ObservableProperty] private string _name = "";
 
-    [ObservableProperty] private string _color = "#4472C4";
+    [ObservableProperty] private string _color = "#3B5B8C";
+
+    [ObservableProperty] private bool _isVisible = true;
 }
 
 public partial class DiagramLineViewModel : ObservableObject
 {
-    [ObservableProperty] private double _x1;
+    [ObservableProperty] private string _pathData = "";
 
-    [ObservableProperty] private double _y1;
+    [ObservableProperty] private double _labelX;
 
-    [ObservableProperty] private double _x2;
-
-    [ObservableProperty] private double _y2;
+    [ObservableProperty] private double _labelY;
 
     [ObservableProperty] private string _label = "";
 }

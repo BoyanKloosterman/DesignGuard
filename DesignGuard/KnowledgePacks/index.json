@@ -1,0 +1,9 @@
+{
+  "packFiles": [
+    "owasp_asvs_guidance.json",
+    "owasp_cheatsheets_guidance.json",
+    "gdpr_avg_guidance.json",
+    "nis2_guidance.json",
+    "cra_guidance.json"
+  ]
+}

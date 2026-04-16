@@ -1,0 +1,49 @@
+{
+  "packId": "owasp-asvs-inspired-v1",
+  "displayLabel": "OWASP ASVS (richtinggevend)",
+  "versionLabel": "4.0.3-inspired",
+  "sourceName": "OWASP Application Security Verification Standard (ASVS)",
+  "publicationOrReviewDate": "2026-04-16",
+  "lastReviewedUtc": "2026-04-16T00:00:00Z",
+  "disclaimer": "Dit pack is geïnspireerd op publieke OWASP-documentatie. Geen claim op volledige of actuele dekking van ASVS; raadpleeg altijd de officiële bron.",
+  "isActive": true,
+  "isArchived": false,
+  "items": [
+    {
+      "id": "asvs-auth-verification-inspired",
+      "title": "Authenticatie: verificatie-eisen (inspiratie ASVS V2)",
+      "category": "Authentication",
+      "plainLanguageExplanation": "Controleer of authenticatie robuust is (sterke factoren, veilige flows) zoals gangbaar in security-verificatielijsten.",
+      "whyItAppliesNote": "Relevant wanneer het ontwerp gebruikersauthenticatie bevat.",
+      "sourceTags": ["OWASP-ASVS-inspired", "V2"],
+      "sourceReference": "OWASP ASVS — Authentication Verification Requirements (zie https://owasp.org/www-project-application-security-verification-standard/)",
+      "reviewNote": "Controleer mapping bij nieuwe ASVS-minor releases.",
+      "guidanceNature": "IndustryGuidanceInspired"
+    },
+    {
+      "id": "asvs-session-inspired",
+      "title": "Sessiebeheer (inspiratie ASVS V3)",
+      "category": "Session management",
+      "plainLanguageExplanation": "Sessies moeten voorspelbaar en beschermd zijn tegen misbruik (fixatie, hijack, timeout).",
+      "whyItAppliesNote": "Relevant bij web-/app-sessies na authenticatie.",
+      "sourceTags": ["OWASP-ASVS-inspired", "V3"],
+      "sourceReference": "OWASP ASVS — Session Management Verification Requirements",
+      "reviewNote": "",
+      "guidanceNature": "IndustryGuidanceInspired"
+    }
+  ],
+  "mappingRules": [
+    {
+      "matchRequirementRuleNameContains": "AuthenticationRequirementRule",
+      "guidanceItemIds": ["asvs-auth-verification-inspired"]
+    },
+    {
+      "matchRequirementRuleNameContains": "SessionManagementRequirementRule",
+      "guidanceItemIds": ["asvs-session-inspired"]
+    },
+    {
+      "matchThreatRuleNameContains": "AuthenticationThreatRule",
+      "guidanceItemIds": ["asvs-auth-verification-inspired"]
+    }
+  ]
+}

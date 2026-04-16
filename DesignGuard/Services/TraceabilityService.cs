@@ -46,6 +46,14 @@ public sealed class TraceabilityService
             lines.Add("Geen trigger-sleutels vastgelegd; zie generatie-reden.");
 
         lines.Add($"Regel-reden: {t.GenerationReason}");
+        if (!string.IsNullOrWhiteSpace(t.SourceAttribution.KnowledgePackId))
+        {
+            lines.Add(
+                $"Bronspoor (pack): {t.SourceAttribution.KnowledgePackDisplayLabel} [{t.SourceAttribution.KnowledgePackVersionLabel}] — " +
+                $"items: {(t.SourceAttribution.GuidanceItemIds.Count > 0 ? string.Join(", ", t.SourceAttribution.GuidanceItemIds) : "—")} — " +
+                $"aard: {t.SourceAttribution.Nature}");
+        }
+
         return new TraceabilityExplanation { Title = t.Title, Lines = lines };
     }
 
@@ -61,6 +69,16 @@ public sealed class TraceabilityService
         }
 
         lines.Add($"Waarom van toepassing: {r.WhyApplies}");
+        if (!string.IsNullOrWhiteSpace(r.SourceAttribution.KnowledgePackId))
+        {
+            lines.Add(
+                $"Bronspoor (pack): {r.SourceAttribution.KnowledgePackDisplayLabel} [{r.SourceAttribution.KnowledgePackVersionLabel}] — " +
+                $"items: {(r.SourceAttribution.GuidanceItemIds.Count > 0 ? string.Join(", ", r.SourceAttribution.GuidanceItemIds) : "—")} — " +
+                $"aard: {r.SourceAttribution.Nature}");
+            if (!string.IsNullOrWhiteSpace(r.SourceAttribution.SourceSummary))
+                lines.Add($"Bron samenvatting: {r.SourceAttribution.SourceSummary}");
+        }
+
         if (r.LinkedThreatIds.Count > 0)
         {
             var titles = project.Threats.Where(t => r.LinkedThreatIds.Contains(t.Id)).Select(t => t.Title)

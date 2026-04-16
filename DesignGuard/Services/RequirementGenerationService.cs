@@ -1,3 +1,4 @@
+using DesignGuard.Knowledge;
 using DesignGuard.Models;
 using DesignGuard.Rules;
 using DesignGuard.Rules.RequirementRules;
@@ -7,10 +8,12 @@ namespace DesignGuard.Services;
 public sealed class RequirementGenerationService
 {
     private readonly IReadOnlyList<IRequirementRule> _rules;
+    private readonly KnowledgePackService _knowledgePacks;
 
-    public RequirementGenerationService(IEnumerable<IRequirementRule> rules)
+    public RequirementGenerationService(IEnumerable<IRequirementRule> rules, KnowledgePackService knowledgePacks)
     {
         _rules = rules.ToList();
+        _knowledgePacks = knowledgePacks;
     }
 
     public IReadOnlyList<RequirementModel> Generate(ProjectModel project)
@@ -27,6 +30,7 @@ public sealed class RequirementGenerationService
                     r.RuleFingerprint = $"{ruleName}:{seq}";
                 seq++;
                 RequirementRuleTriggerBootstrap.Apply(ruleName, r, ctx);
+                _knowledgePacks.EnrichRequirement(r);
                 list.Add(r);
             }
         }

@@ -1,0 +1,38 @@
+{
+  "packId": "eu-cra-inspired-v1",
+  "displayLabel": "EU CRA (product lifecycle, richtinggevend)",
+  "versionLabel": "2026-04-inspired",
+  "sourceName": "EU Cyber Resilience Act (CRA) — algemene lifecycle- en security-by-default denkpunten",
+  "publicationOrReviewDate": "2026-04-16",
+  "lastReviewedUtc": "2026-04-16T00:00:00Z",
+  "disclaimer": "Geen conformiteitsverklaring. CRA-concepten zoals veilige updates en vulnerability handling zijn algemeen; exacte verplichtingen hangen af van productclassificatie en tijdlijn.",
+  "isActive": true,
+  "isArchived": false,
+  "items": [
+    {
+      "id": "cra-secure-development-inspired",
+      "title": "Veilige ontwikkeling en onderhoud (lifecycle)",
+      "category": "Secure lifecycle",
+      "plainLanguageExplanation": "Plan security bij ontwerp, afhankelijkheden, updates en bekende kwetsbaarheden — vergelijkbaar met CRA-gerichte praktijken.",
+      "whyItAppliesNote": "Relevant voor softwareproducten met release-cyclus en externe afhankelijkheden.",
+      "sourceTags": ["CRA-inspired"],
+      "sourceReference": "EU CRA — officiële EU-publicaties en guidance (raadpleeg actuele versie)",
+      "reviewNote": "",
+      "guidanceNature": "RegulationInspired"
+    }
+  ],
+  "mappingRules": [
+    {
+      "matchRequirementRuleNameContains": "SecureDevelopmentRequirementRule",
+      "guidanceItemIds": ["cra-secure-development-inspired"]
+    },
+    {
+      "matchRequirementRuleNameContains": "SecureConfigurationRequirementRule",
+      "guidanceItemIds": ["cra-secure-development-inspired"]
+    },
+    {
+      "matchThreatRuleNameContains": "ExternalApiThreatRule",
+      "guidanceItemIds": ["cra-secure-development-inspired"]
+    }
+  ]
+}

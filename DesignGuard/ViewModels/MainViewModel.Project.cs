@@ -26,7 +26,9 @@ public partial class MainViewModel
             await _projects.EnsureDatabaseAsync();
             await _projects.EnsureDemoProjectAsync();
             await ReloadProjectListAsync();
-            var demo = ProjectList.FirstOrDefault(p => p.Name.StartsWith("Demo", StringComparison.Ordinal));
+            var demo = ProjectList.FirstOrDefault(p =>
+                           p.Name.Contains("uitgebreid", StringComparison.OrdinalIgnoreCase))
+                       ?? ProjectList.FirstOrDefault(p => p.Name.StartsWith("Demo", StringComparison.Ordinal));
             SelectedProjectSummary = demo ?? ProjectList.FirstOrDefault();
             RefreshKnowledgePackRows();
             StatusMessage = "MongoDB gereed. Demo-project beschikbaar indien aangemaakt.";
@@ -555,7 +557,9 @@ public partial class MainViewModel
         {
             await _projects.EnsureDemoProjectAsync();
             await ReloadProjectListAsync();
-            var demo = ProjectList.FirstOrDefault(p => p.Name.StartsWith("Demo", StringComparison.Ordinal));
+            var demo = ProjectList.FirstOrDefault(p =>
+                           p.Name.Contains("uitgebreid", StringComparison.OrdinalIgnoreCase))
+                       ?? ProjectList.FirstOrDefault(p => p.Name.StartsWith("Demo", StringComparison.Ordinal));
             if (demo != null)
                 SelectedProjectSummary = demo;
             StatusMessage = "Demo-project beschikbaar.";

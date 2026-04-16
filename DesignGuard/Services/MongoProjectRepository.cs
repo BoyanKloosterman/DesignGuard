@@ -114,13 +114,12 @@ public sealed class MongoProjectRepository : IProjectRepository
         if (!_config.Current.IsMongoFullyConfigured)
             return 0;
 
-        const string demoName = "Demo — Webshop (voorbeeld)";
+        var demoName = DemoProjectFactory.DemoProjectDisplayName;
         var existingId = await Projects.Find(p => p.Name == demoName).Project(p => p.Id).FirstOrDefaultAsync(ct);
         if (existingId != 0)
             return existingId;
 
         var demo = DemoProjectFactory.CreateDemoProject();
-        demo.Name = demoName;
         return await SaveAsync(demo, ct);
     }
 

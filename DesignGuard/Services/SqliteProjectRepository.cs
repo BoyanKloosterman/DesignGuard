@@ -565,7 +565,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
     public async Task<int> EnsureDemoProjectAsync(CancellationToken ct = default)
     {
         await using var db = await _factory.CreateDbContextAsync(ct);
-        const string demoName = "Demo — Webshop (voorbeeld)";
+        var demoName = DemoProjectFactory.DemoProjectDisplayName;
         var existingId = await db.Projects.AsNoTracking()
             .Where(p => p.Name == demoName)
             .Select(p => p.Id)
@@ -574,7 +574,6 @@ public sealed class SqliteProjectRepository : IProjectRepository
             return existingId;
 
         var demo = DemoProjectFactory.CreateDemoProject();
-        demo.Name = demoName;
         return await InsertAsync(db, demo, ct);
     }
 }

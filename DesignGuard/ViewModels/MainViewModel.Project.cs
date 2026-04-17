@@ -20,6 +20,9 @@ public partial class MainViewModel
                 StatusMessage = _appConfiguration.Current.ConfigurationWarning ??
                                 "MongoDB niet geconfigureerd — zie Instellingen.";
                 RefreshKnowledgePackRows();
+                var earlyPackSync = await TrySyncKnowledgePacksOnStartupAsync();
+                if (earlyPackSync != null)
+                    StatusMessage = $"{StatusMessage} — {earlyPackSync}";
                 return;
             }
 
@@ -31,7 +34,10 @@ public partial class MainViewModel
                        ?? ProjectList.FirstOrDefault(p => p.Name.StartsWith("Demo", StringComparison.Ordinal));
             SelectedProjectSummary = demo ?? ProjectList.FirstOrDefault();
             RefreshKnowledgePackRows();
-            StatusMessage = "MongoDB gereed. Demo-project beschikbaar indien aangemaakt.";
+            var latePackSync = await TrySyncKnowledgePacksOnStartupAsync();
+            StatusMessage = latePackSync != null
+                ? $"MongoDB gereed — {latePackSync}"
+                : "MongoDB gereed. Demo-project beschikbaar indien aangemaakt.";
         }
         catch (Exception ex)
         {
@@ -502,6 +508,17 @@ public partial class MainViewModel
         StatusMessage = "Nieuw project — gebruik de wizard of vul het ontwerp in.";
     }
 
+    /// <summary>Dreigingen/eisen herberekenen op model (zelfde logica als handmatige ververs-knop).</summary>
+    private void RegenerateAnalysisOnModel(ProjectModel m)
+    {
+        var genT = _threatService.Generate(m);
+        var genR = _requirementService.Generate(m);
+        _merge.MergeThreats(m, genT);
+        _merge.MergeRequirements(m, genR);
+        RequirementThreatLinker.Link(m);
+        _controlLibrary.ApplyRecommendations(m);
+    }
+
     [RelayCommand]
     private async Task SaveProjectAsync()
     {
@@ -514,13 +531,14 @@ public partial class MainViewModel
                 return;
             }
 
+            await Task.Run(() => RegenerateAnalysisOnModel(m));
             var id = await _projects.SaveAsync(m);
             CurrentProjectId = id;
             await ReloadProjectListAsync();
             SelectedProjectSummary = ProjectList.FirstOrDefault(p => p.Id == id);
             ApplyModelToEditor(await _projects.GetAsync(id) ?? m);
             RefreshDiagram();
-            StatusMessage = "Opgeslagen.";
+            StatusMessage = "Opgeslagen; dreigingen en eisen bijgewerkt naar het ontwerp.";
         }
         catch (Exception ex)
         {
@@ -612,15 +630,7 @@ public partial class MainViewModel
                 BusyMessage = "Analyse draait op de achtergrond…";
             }
 
-            await Task.Run(() =>
-            {
-                var genT = _threatService.Generate(m);
-                var genR = _requirementService.Generate(m);
-                _merge.MergeThreats(m, genT);
-                _merge.MergeRequirements(m, genR);
-                RequirementThreatLinker.Link(m);
-                _controlLibrary.ApplyRecommendations(m);
-            });
+            await Task.Run(() => RegenerateAnalysisOnModel(m));
 
             Threats = new ObservableCollection<ThreatModel>(m.Threats);
             Requirements = new ObservableCollection<RequirementModel>(m.Requirements);

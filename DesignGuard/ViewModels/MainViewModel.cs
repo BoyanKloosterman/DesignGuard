@@ -33,6 +33,7 @@ public partial class MainViewModel : ObservableObject
     private readonly ControlLibraryService _controlLibrary;
     private readonly ModelingSuggestionService _suggestionService;
     private readonly KnowledgePackService _knowledgePacks;
+    private readonly KnowledgePackRemoteSyncService _packRemoteSync;
     private readonly UserSettingsService _userSettings;
     private readonly PdfReportService _pdfReport;
     private readonly DiagramRasterizer _diagramRasterizer;
@@ -56,6 +57,7 @@ public partial class MainViewModel : ObservableObject
         ControlLibraryService controlLibrary,
         ModelingSuggestionService suggestionService,
         KnowledgePackService knowledgePacks,
+        KnowledgePackRemoteSyncService packRemoteSync,
         UserSettingsService userSettings,
         PdfReportService pdfReport,
         DiagramRasterizer diagramRasterizer,
@@ -75,6 +77,7 @@ public partial class MainViewModel : ObservableObject
         _controlLibrary = controlLibrary;
         _suggestionService = suggestionService;
         _knowledgePacks = knowledgePacks;
+        _packRemoteSync = packRemoteSync;
         _userSettings = userSettings;
         _pdfReport = pdfReport;
         _diagramRasterizer = diagramRasterizer;
@@ -90,6 +93,10 @@ public partial class MainViewModel : ObservableObject
         UiDensity = string.IsNullOrWhiteSpace(_userSettings.Current.UiDensity)
             ? "Comfortable"
             : _userSettings.Current.UiDensity;
+        KnowledgePackManifestUrl = _userSettings.Current.KnowledgePackManifestUrl ?? "";
+        KnowledgePackRemoteSyncEnabled = _userSettings.Current.KnowledgePackRemoteSyncEnabled;
+        KnowledgePackSyncOnStartup = _userSettings.Current.KnowledgePackSyncOnStartup;
+        KnowledgePackSyncTrustedHostExtra = _userSettings.Current.KnowledgePackSyncTrustedHostExtra ?? "";
         ThemeSwitcher.ApplyTheme(UiTheme);
         ApplyUiDensity();
         _suppressPreferencePersist = false;
@@ -318,6 +325,14 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private ObservableCollection<KnowledgePackToggleRow> _knowledgePackRows = new();
 
+    [ObservableProperty] private string _knowledgePackManifestUrl = "";
+
+    [ObservableProperty] private bool _knowledgePackRemoteSyncEnabled;
+
+    [ObservableProperty] private bool _knowledgePackSyncOnStartup;
+
+    [ObservableProperty] private string _knowledgePackSyncTrustedHostExtra = "";
+
     [ObservableProperty] private ObservableCollection<AppSecurityReviewRowViewModel> _appSecurityReviewRows = new();
 
     public bool ShowProjectOverviewInDetails =>
@@ -360,6 +375,24 @@ public partial class MainViewModel : ObservableObject
         _userSettings.Current.Theme = UiTheme;
         _userSettings.Current.DetailLevel = DetailLevel;
         _userSettings.Current.UiDensity = UiDensity;
+        _userSettings.Save();
+    }
+
+    partial void OnKnowledgePackManifestUrlChanged(string value) => PersistKnowledgePackSyncPreferences();
+
+    partial void OnKnowledgePackRemoteSyncEnabledChanged(bool value) => PersistKnowledgePackSyncPreferences();
+
+    partial void OnKnowledgePackSyncOnStartupChanged(bool value) => PersistKnowledgePackSyncPreferences();
+
+    partial void OnKnowledgePackSyncTrustedHostExtraChanged(string value) => PersistKnowledgePackSyncPreferences();
+
+    private void PersistKnowledgePackSyncPreferences()
+    {
+        if (_suppressPreferencePersist) return;
+        _userSettings.Current.KnowledgePackManifestUrl = (KnowledgePackManifestUrl ?? "").Trim();
+        _userSettings.Current.KnowledgePackRemoteSyncEnabled = KnowledgePackRemoteSyncEnabled;
+        _userSettings.Current.KnowledgePackSyncOnStartup = KnowledgePackSyncOnStartup;
+        _userSettings.Current.KnowledgePackSyncTrustedHostExtra = (KnowledgePackSyncTrustedHostExtra ?? "").Trim();
         _userSettings.Save();
     }
 

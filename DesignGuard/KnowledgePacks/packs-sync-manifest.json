@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "generatedUtc": "2026-04-17T12:00:00Z",
+  "assets": [
+    {
+      "relativePath": "index.json",
+      "sha256Hex": "D67BA012849A88FB111B08092B2667685368FB822C8A242FCAEC2F27EBDC7718",
+      "sizeBytes": 185
+    },
+    {
+      "relativePath": "owasp_asvs_guidance.json",
+      "sha256Hex": "BE881F96CD843B5512FBCE72151A7A0EF9303BE8C915F9DF466D596E19FBC376",
+      "sizeBytes": 2331
+    },
+    {
+      "relativePath": "owasp_cheatsheets_guidance.json",
+      "sha256Hex": "354171EBEB66445668042884028B522235A4F058B1E94B2ADCB52FAE361E96F5",
+      "sizeBytes": 1354
+    },
+    {
+      "relativePath": "gdpr_avg_guidance.json",
+      "sha256Hex": "F007FC49D329CE8E859F659CA295C1268ADA6796F4557FE66DDB5E91ACAD2C72",
+      "sizeBytes": 2467
+    },
+    {
+      "relativePath": "nis2_guidance.json",
+      "sha256Hex": "2634DC538D64BA76873E5FFF5FF17763CDAC942311A51E8AED913D8B45A5DA5E",
+      "sizeBytes": 1772
+    },
+    {
+      "relativePath": "cra_guidance.json",
+      "sha256Hex": "112EADE2727A7C78196E6462FF109D5A3624C1088568EE94BA82A453FBA79DE3",
+      "sizeBytes": 1739
+    }
+  ]
+}

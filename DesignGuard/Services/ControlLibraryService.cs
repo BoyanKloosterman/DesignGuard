@@ -126,7 +126,9 @@ public sealed class ControlLibraryService
             project.Components.Any(c =>
                 w.AnyComponentTagContains.Any(n =>
                     c.Tag.Contains(n, StringComparison.OrdinalIgnoreCase) ||
-                    c.Name.Contains(n, StringComparison.OrdinalIgnoreCase))))
+                    c.Name.Contains(n, StringComparison.OrdinalIgnoreCase) ||
+                    c.Description.Contains(n, StringComparison.OrdinalIgnoreCase) ||
+                    c.Notes.Contains(n, StringComparison.OrdinalIgnoreCase))))
             return true;
 
         return false;

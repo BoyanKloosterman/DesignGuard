@@ -6,7 +6,7 @@ public sealed class AuthenticationThreatRule : IThreatRule
 {
     public IEnumerable<ThreatModel> Evaluate(SystemDesignContext ctx)
     {
-        if (!ctx.Project.HasAuthentication) yield break;
+        if (!ctx.EffectiveHasAuthentication) yield break;
 
         yield return new ThreatModel
         {
@@ -63,9 +63,7 @@ public sealed class DatabaseThreatRule : IThreatRule
     {
         if (!ctx.HasDatabase) yield break;
 
-        var names = ctx.Project.Components.Where(c =>
-            c.Tag.Contains("database", StringComparison.OrdinalIgnoreCase) ||
-            c.Name.Contains("database", StringComparison.OrdinalIgnoreCase)).Select(c => c.Name).ToList();
+        var names = ctx.NamesOfDatabaseComponents().ToList();
         if (names.Count == 0) names.Add("Database");
 
         yield return new ThreatModel
@@ -120,9 +118,8 @@ public sealed class ExternalApiThreatRule : IThreatRule
     {
         if (!ctx.HasExternalService) yield break;
 
-        var ext = ctx.Project.Components.Where(c => TagLike(c.Tag, "external"))
-            .Select(c => c.Name).Distinct().ToList();
-        if (ext.Count == 0 && ctx.Project.ExternalApis)
+        var ext = ctx.NamesOfExternalishComponents().ToList();
+        if (ext.Count == 0 && (ctx.Project.ExternalApis || ctx.HasExternalService))
             ext.Add("Externe dienst");
 
         yield return new ThreatModel
@@ -189,7 +186,8 @@ public sealed class AdminThreatRule : IThreatRule
             AffectedComponents = ctx.Project.Components
                 .Where(c => c.Name.Contains("admin", StringComparison.OrdinalIgnoreCase) ||
                             (!string.IsNullOrWhiteSpace(c.Tag) &&
-                             c.Tag.Contains("admin", StringComparison.OrdinalIgnoreCase)))
+                             c.Tag.Contains("admin", StringComparison.OrdinalIgnoreCase)) ||
+                            ctx.ComponentSuggestsAdmin(c))
                 .Select(c => c.Name).DefaultIfEmpty("Admin").Take(3).ToList(),
             GenerationReason = "Admin-functionaliteit aanwezig: EoP en gebroken toegangscontrole zijn relevant.",
             SuggestedMitigations = new List<string>
@@ -212,7 +210,7 @@ public sealed class FileUploadThreatRule : IThreatRule
 {
     public IEnumerable<ThreatModel> Evaluate(SystemDesignContext ctx)
     {
-        if (!ctx.Project.FileUpload) yield break;
+        if (!ctx.EffectiveFileUpload) yield break;
 
         yield return new ThreatModel
         {
@@ -248,7 +246,7 @@ public sealed class PersonalDataThreatRule : IThreatRule
 {
     public IEnumerable<ThreatModel> Evaluate(SystemDesignContext ctx)
     {
-        if (!ctx.Project.PersonalDataProcessed) yield break;
+        if (!ctx.EffectivePersonalData) yield break;
 
         yield return new ThreatModel
         {
@@ -286,7 +284,8 @@ public sealed class TransportAndApiThreatRule : IThreatRule
             StrideCategory = StrideCategory.Tampering,
             Description =
                 "API-verkeer kan worden gemanipuleerd als TLS of message-integriteit ontbreekt of verkeerd is geconfigureerd.",
-            AffectedComponents = ctx.Project.Components.Where(c => TagLike(c.Tag, "api") || TagLike(c.Tag, "backend"))
+            AffectedComponents = ctx.Project.Components.Where(c => TagLike(c.Tag, "api") || TagLike(c.Tag, "backend") ||
+                                                                   ctx.ComponentSuggestsApi(c))
                 .Select(c => c.Name).DefaultIfEmpty("API").Take(3).ToList(),
             GenerationReason = "API-laag gedetecteerd: manipulatie van berichten is een STRIDE Tampering-scenario.",
             SuggestedMitigations = new List<string>
@@ -343,7 +342,7 @@ public sealed class RepudiationAuditThreatRule : IThreatRule
 {
     public IEnumerable<ThreatModel> Evaluate(SystemDesignContext ctx)
     {
-        if (!ctx.Project.HasAuthentication && !ctx.HasAdminSurface) yield break;
+        if (!ctx.EffectiveHasAuthentication && !ctx.HasAdminSurface) yield break;
 
         yield return new ThreatModel
         {

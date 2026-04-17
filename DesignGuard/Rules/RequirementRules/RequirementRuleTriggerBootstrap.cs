@@ -27,8 +27,8 @@ internal static class RequirementRuleTriggerBootstrap
                 if (ctx.HasFrontend) add(RuleTriggerKeys.Frontend);
                 break;
             case nameof(DataProtectionRequirementRule):
-                if (ctx.Project.PersonalDataProcessed) add(RuleTriggerKeys.PersonalData);
-                if (ctx.Project.SensitiveDataStored) add(RuleTriggerKeys.SensitiveStorage);
+                if (ctx.EffectivePersonalData) add(RuleTriggerKeys.PersonalData);
+                if (ctx.EffectiveSensitiveStorage) add(RuleTriggerKeys.SensitiveStorage);
                 break;
             case nameof(LoggingRequirementRule):
                 add(RuleTriggerKeys.HasAuthentication);
@@ -41,7 +41,7 @@ internal static class RequirementRuleTriggerBootstrap
             case nameof(InputValidationRequirementRule):
                 if (ctx.HasApiLayer) add(RuleTriggerKeys.ApiLayer);
                 if (ctx.HasFrontend) add(RuleTriggerKeys.Frontend);
-                if (ctx.Project.FileUpload) add(RuleTriggerKeys.FileUpload);
+                if (ctx.EffectiveFileUpload) add(RuleTriggerKeys.FileUpload);
                 break;
             case nameof(ResilienceRequirementRule):
                 if (ctx.HasApiLayer) add(RuleTriggerKeys.ApiLayer);
@@ -52,7 +52,7 @@ internal static class RequirementRuleTriggerBootstrap
                 if (ctx.Project.InternetExposed) add(RuleTriggerKeys.InternetExposed);
                 break;
             case nameof(PrivacyMinimizationRequirementRule):
-                if (ctx.Project.PersonalDataProcessed) add(RuleTriggerKeys.PersonalData);
+                if (ctx.EffectivePersonalData) add(RuleTriggerKeys.PersonalData);
                 break;
             case nameof(AdministrativeAccessRequirementRule):
                 add(RuleTriggerKeys.AdminSurface);

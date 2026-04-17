@@ -17,4 +17,16 @@ public sealed class UserAppSettings
 
     /// <summary>Comfortable of Compact — marges en sidebar.</summary>
     public string UiDensity { get; set; } = "Comfortable";
+
+    /// <summary>HTTPS-manifest voor knowledge packs; leeg = alleen lokaal.</summary>
+    public string KnowledgePackManifestUrl { get; set; } = "";
+
+    /// <summary>Sync via netwerk toegestaan (expliciete opt-in).</summary>
+    public bool KnowledgePackRemoteSyncEnabled { get; set; }
+
+    /// <summary>Bij app-start manifest ophalen indien RemoteSyncEnabled en URL gezet.</summary>
+    public bool KnowledgePackSyncOnStartup { get; set; }
+
+    /// <summary>Optionele extra hostnaam (zelfde scheme HTTPS) naast manifest-host.</summary>
+    public string KnowledgePackSyncTrustedHostExtra { get; set; } = "";
 }

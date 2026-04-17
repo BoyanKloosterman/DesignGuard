@@ -41,7 +41,8 @@
                         <Button Content="Wizard" Style="{StaticResource DgButton.Toolbar}"
                                 Command="{Binding OpenProjectWizardCommand}" />
                         <Button Content="Opslaan" Style="{StaticResource DgButton.Toolbar}"
-                                Command="{Binding SaveProjectCommand}" />
+                                Command="{Binding SaveProjectCommand}"
+                                ToolTip="Slaat op en werkt dreigingen/eisen automatisch bij op basis van ontwerp (componenten, vlaggen, tekst)." />
                         <Button Content="Verwijderen" Style="{StaticResource DgButton.Toolbar}"
                                 Command="{Binding DeleteProjectCommand}" />
                         <Button Content="Demoproject" Style="{StaticResource DgButton.Toolbar}"
@@ -775,6 +776,19 @@
                         <TextBlock TextWrapping="Wrap" Foreground="Gray" Margin="0,8,0,16"
                                    Text="Knowledge packs: schakel bron-modules in/uit. Uitgeschakelde packs worden niet gebruikt voor nieuwe attributie. Standaarden wijzigen — herzie packs periodiek." />
                         <TextBlock Text="Knowledge packs" FontWeight="SemiBold" />
+                        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#334155" Margin="0,8,0,8"
+                                   Text="Online bijwerken: alleen HTTPS, downloadlimiet, SHA256-controle, TLS met certificaatrevocatie. Alleen de host van de manifest-URL en optioneel één extra hostnaam. Geen machine learning — bijgewerkte JSON wordt direct gebruikt voor attributie." />
+                        <TextBlock Text="Manifest-URL (HTTPS)" FontSize="11" Foreground="#64748B" Margin="0,0,0,2" />
+                        <TextBox Text="{Binding KnowledgePackManifestUrl, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+                        <TextBlock Text="Extra toegestane host (optioneel, bv. enterprise CDN)" FontSize="11" Foreground="#64748B" Margin="0,0,0,2" />
+                        <TextBox Text="{Binding KnowledgePackSyncTrustedHostExtra, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <CheckBox IsChecked="{Binding KnowledgePackRemoteSyncEnabled}" VerticalAlignment="Center" Margin="0,0,16,0"
+                                      Content="Netwerk-sync toestaan" />
+                            <CheckBox IsChecked="{Binding KnowledgePackSyncOnStartup}" VerticalAlignment="Center"
+                                      Content="Bij start synchroniseren" />
+                        </StackPanel>
+                        <Button Content="Knowledge packs nu synchroniseren" Command="{Binding SyncKnowledgePacksRemoteCommand}" HorizontalAlignment="Left" Margin="0,0,0,16" />
                         <ItemsControl ItemsSource="{Binding KnowledgePackRows}" Margin="0,8,0,16">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>

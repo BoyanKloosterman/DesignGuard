@@ -416,7 +416,7 @@
                                     </Border.Style>
                                     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                                         <Grid Width="{Binding DiagramContentWidth}" Height="{Binding DiagramContentHeight}"
-                                              Background="Transparent">
+                                              Background="Transparent" UseLayoutRounding="True" SnapsToDevicePixels="True">
                                             <Grid.LayoutTransform>
                                                 <ScaleTransform ScaleX="{Binding DiagramZoom}" ScaleY="{Binding DiagramZoom}" />
                                             </Grid.LayoutTransform>
@@ -460,8 +460,9 @@
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <Canvas>
-                                                            <Path Data="{Binding PathData}" Stroke="#475569" StrokeThickness="1.65" StrokeLineJoin="Round"
-                                                                  Fill="#475569" />
+                                                            <Path Data="{Binding PathData}" Stroke="#475569" StrokeThickness="1.15"
+                                                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                                  Fill="#475569" SnapsToDevicePixels="True" />
                                                             <TextBlock Canvas.Left="{Binding LabelX}" Canvas.Top="{Binding LabelY}" Text="{Binding Label}"
                                                                        FontSize="9" Foreground="#334155" Background="#E2E8F0" Padding="3,1" />
                                                         </Canvas>

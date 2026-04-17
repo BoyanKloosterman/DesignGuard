@@ -414,7 +414,6 @@ public partial class MainViewModel : ObservableObject
 
     partial void OnDiagramOverlayThreatLinksChanged(bool value) => RefreshDiagram();
 
-    partial void OnDiagramZoomChanged(double value) => RefreshDiagram();
 
     partial void OnSelectedThreatChanged(ThreatModel? value)
     {

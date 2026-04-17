@@ -8,18 +8,20 @@ public static class DiagramEdgeGeometry
     public const double NodeW = 196;
     public const double NodeH = 64;
 
+    /// <param name="lateralOffset">Verticale verschuiving (px) voor meerdere pijlen tussen dezelfde knopen.</param>
     public static (string PathData, double LabelX, double LabelY) Build(
         double fromX,
         double fromY,
         double toX,
         double toY,
-        string? label)
+        string? label,
+        double lateralOffset = 0)
     {
         _ = label;
         var sx = fromX + NodeW;
-        var sy = fromY + NodeH / 2;
+        var sy = fromY + NodeH / 2 + lateralOffset;
         var ex = toX;
-        var ey = toY + NodeH / 2;
+        var ey = toY + NodeH / 2 + lateralOffset;
         var dx = Math.Max(48, Math.Abs(ex - sx) * 0.45);
         var c1x = sx + dx;
         var c1y = sy;

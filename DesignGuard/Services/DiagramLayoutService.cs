@@ -39,7 +39,7 @@ public sealed record DiagramLayoutResult(
 /// <summary>Laag-indeling; gebruikt opgeslagen X/Y indien aanwezig.</summary>
 public sealed class DiagramLayoutService
 {
-    private const double LayerDx = 260;
+    private const double LayerDx = 288;
     private const double NodeDy = 108;
     private const double Margin = 48;
     private const double BoundaryPad = 22;
@@ -86,13 +86,31 @@ public sealed class DiagramLayoutService
                 c.StoresOrProcesses);
         }).ToList();
 
+        var flowsOk = project.DataFlows
+            .Where(flow => positions.ContainsKey(flow.FromComponentId) &&
+                           positions.ContainsKey(flow.ToComponentId))
+            .ToList();
+        var byPair = flowsOk
+            .GroupBy(f => (f.FromComponentId, f.ToComponentId))
+            .ToDictionary(g => g.Key, g => g.OrderBy(x => x.Id).ToList());
+        var idxInPair = new Dictionary<int, int>();
+        foreach (var list in byPair.Values)
+        {
+            for (var i = 0; i < list.Count; i++)
+                idxInPair[list[i].Id] = i;
+        }
+
         var edges = new List<DiagramEdgeLayout>();
         foreach (var f in project.DataFlows)
         {
             if (!positions.TryGetValue(f.FromComponentId, out var from) ||
                 !positions.TryGetValue(f.ToComponentId, out var to))
                 continue;
-            var (path, lx, ly) = DiagramEdgeGeometry.Build(from.X, from.Y, to.X, to.Y, f.Label);
+            var pair = byPair[(f.FromComponentId, f.ToComponentId)];
+            var n = pair.Count;
+            var idx = idxInPair[f.Id];
+            var lateral = n <= 1 ? 0 : (idx - (n - 1) / 2.0) * 11;
+            var (path, lx, ly) = DiagramEdgeGeometry.Build(from.X, from.Y, to.X, to.Y, f.Label, lateral);
             edges.Add(new DiagramEdgeLayout(
                 f.FromComponentId,
                 f.ToComponentId,

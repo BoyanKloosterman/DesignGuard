@@ -22,8 +22,9 @@ public partial class MainViewModel
         {
             var m = BuildModelFromEditor();
             var layout = _diagramLayout.Layout(m);
-            DiagramContentWidth = Math.Max(400, layout.ContentWidth * DiagramZoom);
-            DiagramContentHeight = Math.Max(300, layout.ContentHeight * DiagramZoom);
+            // Geen * DiagramZoom: schaal alleen via LayoutTransform op de grid (anders dubbele zoom).
+            DiagramContentWidth = Math.Max(400, layout.ContentWidth);
+            DiagramContentHeight = Math.Max(300, layout.ContentHeight);
             var threat = NavSection == 1 && DiagramOverlayThreatLinks ? SelectedThreat : null;
             DiagramNodes = new ObservableCollection<DiagramNodeViewModel>(layout.Nodes.Select(n =>
             {
@@ -37,41 +38,29 @@ public partial class MainViewModel
                     Name = n.Name,
                     Tag = n.Tag,
                     DataSensitivity = n.DataSensitivity.ToString(),
-                    X = n.X * DiagramZoom,
-                    Y = n.Y * DiagramZoom,
+                    X = n.X,
+                    Y = n.Y,
                     IsEntryPoint = n.IsEntryPoint,
                     IsHighlighted = SelectedComponent?.Id == n.ComponentId,
                     ShowSensitiveStripe = showSen,
                     IsLinkedHighlight = linked
                 };
             }));
-            var lines = layout.Edges.Select(e =>
-            {
-                var from = layout.Nodes.FirstOrDefault(x => x.ComponentId == e.FromId);
-                var to = layout.Nodes.FirstOrDefault(x => x.ComponentId == e.ToId);
-                if (from == null || to == null) return null;
-                var (path, lx, ly) = DiagramEdgeGeometry.Build(
-                    from.X * DiagramZoom,
-                    from.Y * DiagramZoom,
-                    to.X * DiagramZoom,
-                    to.Y * DiagramZoom,
-                    e.Label);
-                return new DiagramLineViewModel
+            DiagramLines = new ObservableCollection<DiagramLineViewModel>(layout.Edges.Select(e =>
+                new DiagramLineViewModel
                 {
-                    PathData = path,
-                    LabelX = lx,
-                    LabelY = ly,
+                    PathData = e.PathData,
+                    LabelX = e.LabelX,
+                    LabelY = e.LabelY,
                     Label = e.Label
-                };
-            }).Where(x => x != null).Cast<DiagramLineViewModel>().ToList();
-            DiagramLines = new ObservableCollection<DiagramLineViewModel>(lines);
+                }));
             DiagramTrustOverlays = new ObservableCollection<TrustBoundaryOverlayViewModel>(
                 layout.TrustOverlays.Select(o => new TrustBoundaryOverlayViewModel
                 {
-                    X = o.X * DiagramZoom,
-                    Y = o.Y * DiagramZoom,
-                    Width = o.Width * DiagramZoom,
-                    Height = o.Height * DiagramZoom,
+                    X = o.X,
+                    Y = o.Y,
+                    Width = o.Width,
+                    Height = o.Height,
                     Name = o.Name,
                     Color = o.ColorHint,
                     IsVisible = DiagramOverlayTrustBoundaries

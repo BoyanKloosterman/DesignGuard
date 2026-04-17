@@ -16,7 +16,8 @@ public sealed record DiagramEdgeLayout(
     int FromId,
     int ToId,
     string Label,
-    string PathData,
+    string CurvePath,
+    string ArrowPath,
     double LabelX,
     double LabelY);
 
@@ -100,6 +101,30 @@ public sealed class DiagramLayoutService
                 idxInPair[list[i].Id] = i;
         }
 
+        var outgoingByFrom = flowsOk
+            .GroupBy(f => f.FromComponentId)
+            .ToDictionary(g => g.Key, g => g.OrderBy(f => positions[f.ToComponentId].Y).ThenBy(f => f.Id).ToList());
+        var outIdx = new Dictionary<int, int>();
+        foreach (var list in outgoingByFrom.Values)
+        {
+            for (var i = 0; i < list.Count; i++)
+                outIdx[list[i].Id] = i;
+        }
+
+        var outN = outgoingByFrom.ToDictionary(g => g.Key, g => g.Value.Count);
+
+        var incomingByTo = flowsOk
+            .GroupBy(f => f.ToComponentId)
+            .ToDictionary(g => g.Key, g => g.OrderBy(f => positions[f.FromComponentId].Y).ThenBy(f => f.Id).ToList());
+        var inIdx = new Dictionary<int, int>();
+        foreach (var list in incomingByTo.Values)
+        {
+            for (var i = 0; i < list.Count; i++)
+                inIdx[list[i].Id] = i;
+        }
+
+        var inN = incomingByTo.ToDictionary(g => g.Key, g => g.Value.Count);
+
         var edges = new List<DiagramEdgeLayout>();
         foreach (var f in project.DataFlows)
         {
@@ -107,15 +132,31 @@ public sealed class DiagramLayoutService
                 !positions.TryGetValue(f.ToComponentId, out var to))
                 continue;
             var pair = byPair[(f.FromComponentId, f.ToComponentId)];
-            var n = pair.Count;
-            var idx = idxInPair[f.Id];
-            var lateral = n <= 1 ? 0 : (idx - (n - 1) / 2.0) * 11;
-            var (path, lx, ly) = DiagramEdgeGeometry.Build(from.X, from.Y, to.X, to.Y, f.Label, lateral);
+            double lateralStart;
+            double lateralEnd;
+            if (pair.Count > 1)
+            {
+                var idx = idxInPair[f.Id];
+                var d = (idx - (pair.Count - 1) / 2.0) * 11;
+                lateralStart = lateralEnd = d;
+            }
+            else
+            {
+                var nc = outN[f.FromComponentId];
+                var ic = outIdx[f.Id];
+                lateralStart = nc <= 1 ? 0 : (ic - (nc - 1) / 2.0) * 10;
+                var nt = inN[f.ToComponentId];
+                var it = inIdx[f.Id];
+                lateralEnd = nt <= 1 ? 0 : (it - (nt - 1) / 2.0) * 10;
+            }
+
+            var (curve, arrow, lx, ly) = DiagramEdgeGeometry.Build(from.X, from.Y, to.X, to.Y, f.Label, lateralStart, lateralEnd);
             edges.Add(new DiagramEdgeLayout(
                 f.FromComponentId,
                 f.ToComponentId,
                 f.Label,
-                path,
+                curve,
+                arrow,
                 lx,
                 ly));
         }

@@ -49,7 +49,8 @@ public partial class MainViewModel
             DiagramLines = new ObservableCollection<DiagramLineViewModel>(layout.Edges.Select(e =>
                 new DiagramLineViewModel
                 {
-                    PathData = e.PathData,
+                    CurvePath = e.CurvePath,
+                    ArrowPath = e.ArrowPath,
                     LabelX = e.LabelX,
                     LabelY = e.LabelY,
                     Label = e.Label

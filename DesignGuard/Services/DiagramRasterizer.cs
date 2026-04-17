@@ -54,18 +54,28 @@ public sealed class DiagramRasterizer
 
         foreach (var e in result.Edges)
         {
-            var stroke = new SolidColorBrush(Color.FromRgb(90, 101, 120));
-            var path = new WpfPath
+            var lineBrush = new SolidColorBrush(Color.FromRgb(100, 116, 139));
+            var headBrush = new SolidColorBrush(Color.FromRgb(71, 85, 105));
+            var tf = new ScaleTransform(scale, scale);
+            canvas.Children.Add(new WpfPath
             {
-                Data = Geometry.Parse(e.PathData),
-                Stroke = stroke,
-                StrokeThickness = 1.65,
-                Fill = stroke,
+                Data = Geometry.Parse(e.CurvePath),
+                Stroke = lineBrush,
+                StrokeThickness = 1,
+                Fill = Brushes.Transparent,
                 StrokeLineJoin = PenLineJoin.Round,
-                RenderTransform = new ScaleTransform(scale, scale),
-                RenderTransformOrigin = new Point(0, 0)
-            };
-            canvas.Children.Add(path);
+                StrokeStartLineCap = PenLineCap.Round,
+                StrokeEndLineCap = PenLineCap.Round,
+                RenderTransform = tf
+            });
+            canvas.Children.Add(new WpfPath
+            {
+                Data = Geometry.Parse(e.ArrowPath),
+                Fill = headBrush,
+                Stroke = new SolidColorBrush(Color.FromRgb(51, 65, 85)),
+                StrokeThickness = 0.35,
+                RenderTransform = tf
+            });
         }
 
         foreach (var n in result.Nodes)

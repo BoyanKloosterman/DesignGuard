@@ -460,11 +460,18 @@
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <Canvas>
-                                                            <Path Data="{Binding PathData}" Stroke="#475569" StrokeThickness="1.15"
+                                                            <!-- Alleen stroke op curve: geen lint-vulling -->
+                                                            <Path Data="{Binding CurvePath}" Stroke="#64748B" StrokeThickness="1"
                                                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                                                  Fill="#475569" SnapsToDevicePixels="True" />
-                                                            <TextBlock Canvas.Left="{Binding LabelX}" Canvas.Top="{Binding LabelY}" Text="{Binding Label}"
-                                                                       FontSize="9" Foreground="#334155" Background="#E2E8F0" Padding="3,1" />
+                                                                  Fill="Transparent" SnapsToDevicePixels="True" Opacity="0.92" />
+                                                            <Path Data="{Binding ArrowPath}" Fill="#475569" Stroke="#334155" StrokeThickness="0.35"
+                                                                  StrokeLineJoin="Miter" SnapsToDevicePixels="True" />
+                                                            <Border Canvas.Left="{Binding LabelX}" Canvas.Top="{Binding LabelY}"
+                                                                    Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1"
+                                                                    CornerRadius="3" Padding="4,2">
+                                                                <TextBlock Text="{Binding Label}" FontSize="9" Foreground="#1E293B"
+                                                                           TextWrapping="Wrap" MaxWidth="200" />
+                                                            </Border>
                                                         </Canvas>
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>

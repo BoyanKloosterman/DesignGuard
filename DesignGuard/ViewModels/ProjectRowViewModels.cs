@@ -103,7 +103,9 @@ public partial class TrustBoundaryOverlayViewModel : ObservableObject
 
 public partial class DiagramLineViewModel : ObservableObject
 {
-    [ObservableProperty] private string _pathData = "";
+    [ObservableProperty] private string _curvePath = "";
+
+    [ObservableProperty] private string _arrowPath = "";
 
     [ObservableProperty] private double _labelX;
 

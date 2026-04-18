@@ -699,46 +699,64 @@
                             <Button Content="Handmatige control" Command="{Binding AddControlCommand}" Margin="0,0,8,8" />
                             <Button Content="Pas bibliotheek toe" Command="{Binding ApplyControlLibraryCommand}" Margin="0,0,8,8" />
                         </WrapPanel>
-                                <DataGrid ItemsSource="{Binding Controls}" AutoGenerateColumns="False" CanUserAddRows="False" MinHeight="200" HeadersVisibility="Column">
+                        <TextBlock Margin="0,0,0,6" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" TextWrapping="Wrap"
+                                   Text="Tip: scroll horizontaal als de tabel breder is dan het venster — kolommen hebben vaste minimumbreedte zodat koppen leesbaar blijven." />
+                        <!-- Geen star-widths: anders worden alle kolommen geperst. Vaste breedtes + horizontaal scrollen. -->
+                        <DataGrid ItemsSource="{Binding Controls}" AutoGenerateColumns="False" CanUserAddRows="False"
+                                  MinHeight="260" HeadersVisibility="Column"
+                                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                  GridLinesVisibility="Horizontal" RowHeight="28">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Titel" Binding="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
-                                <DataGridTextColumn Header="Categorie" Binding="{Binding Category, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                                <DataGridTemplateColumn Header="Bron-tags" Width="160">
+                                <DataGridTextColumn Header="Titel" Binding="{Binding Title, UpdateSourceTrigger=PropertyChanged}"
+                                                    Width="280" MinWidth="200" />
+                                <DataGridTextColumn Header="Categorie" Binding="{Binding Category, UpdateSourceTrigger=PropertyChanged}"
+                                                    Width="160" MinWidth="120" />
+                                <DataGridTemplateColumn Header="Bron-tags" Width="200" MinWidth="160">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <ComboBox IsEditable="True" StaysOpenOnEdit="False"
+                                            <ComboBox MinWidth="150" IsEditable="True" StaysOpenOnEdit="False"
                                                       ItemsSource="{Binding DataContext.ControlSourceTagSuggestions, RelativeSource={RelativeSource AncestorType=Window}}"
                                                       Text="{Binding SourceTags, UpdateSourceTrigger=PropertyChanged}" />
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTemplateColumn Header="Component" Width="150" MinWidth="120">
+                                <DataGridTemplateColumn Header="Component" Width="180" MinWidth="140">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            <ComboBox MinWidth="130"
+                                                      ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType=Window}}"
                                                       SelectedItem="{Binding LinkedComponent, UpdateSourceTrigger=PropertyChanged}"
                                                       DisplayMemberPath="Name" />
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTextColumn Header="Meer ID's" Binding="{Binding ExtraLinkedComponentIds, UpdateSourceTrigger=PropertyChanged}" Width="90" />
-                                <DataGridTemplateColumn Header="Status" Width="120">
+                                <DataGridTextColumn Header="Meer ID's" Binding="{Binding ExtraLinkedComponentIds, UpdateSourceTrigger=PropertyChanged}"
+                                                    Width="110" MinWidth="90" />
+                                <DataGridTemplateColumn Header="Status" Width="140" MinWidth="120">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <ComboBox ItemsSource="{Binding DataContext.ControlLifecycleStatusOptions, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            <ComboBox MinWidth="110"
+                                                      ItemsSource="{Binding DataContext.ControlLifecycleStatusOptions, RelativeSource={RelativeSource AncestorType=Window}}"
                                                       SelectedItem="{Binding Status, UpdateSourceTrigger=PropertyChanged}" />
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTextColumn Header="Dreiging (stable id)" Binding="{Binding LinkedThreatStableId, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                                <DataGridTextColumn Header="Eisen (ids, komma)" Binding="{Binding LinkedRequirementStableIds, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                                <DataGridTextColumn Header="Library id" Binding="{Binding LibraryDefinitionId, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" Width="120" />
-                                <DataGridTextColumn Header="Uitleg" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
-                                <DataGridTextColumn Header="Implementatie" Binding="{Binding ImplementationGuidance, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
-                                <DataGridTemplateColumn Width="70">
+                                <DataGridTextColumn Header="Dreiging (stable id)" Binding="{Binding LinkedThreatStableId, UpdateSourceTrigger=PropertyChanged}"
+                                                    Width="220" MinWidth="160" />
+                                <DataGridTextColumn Header="Eisen (ids, komma)" Binding="{Binding LinkedRequirementStableIds, UpdateSourceTrigger=PropertyChanged}"
+                                                    Width="200" MinWidth="140" />
+                                <DataGridTextColumn Header="Library id" Binding="{Binding LibraryDefinitionId, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"
+                                                    Width="140" MinWidth="100" />
+                                <DataGridTextColumn Header="Uitleg" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                                                    Width="320" MinWidth="220" />
+                                <DataGridTextColumn Header="Implementatie" Binding="{Binding ImplementationGuidance, UpdateSourceTrigger=PropertyChanged}"
+                                                    Width="320" MinWidth="220" />
+                                <DataGridTemplateColumn Header="Actie" Width="104" MinWidth="104">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Button Content="Verwijder" Command="{Binding DataContext.RemoveControlCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" />
+                                            <Button Content="Verwijder" Padding="6,2"
+                                                    Command="{Binding DataContext.RemoveControlCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}" />
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>

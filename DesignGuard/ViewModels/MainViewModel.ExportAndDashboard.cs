@@ -52,6 +52,7 @@ public partial class MainViewModel
         MitigatedThreatCount = m;
         OpenRequirementCount = orc;
         ImplementedRequirementCount = ir;
+        RefreshC4ThreatLinkCounts();
         try
         {
             var model = BuildModelFromEditor();

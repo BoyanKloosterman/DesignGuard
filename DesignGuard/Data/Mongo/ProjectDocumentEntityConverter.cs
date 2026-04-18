@@ -66,6 +66,7 @@ internal static class ProjectDocumentEntityConverter
             GovernanceTechnicalOwner = d.GovernanceTechnicalOwner,
             GovernanceComplianceStakeholder = d.GovernanceComplianceStakeholder,
             GovernanceReviewCadence = d.GovernanceReviewCadence,
+            C4ElementsJson = d.C4ElementsJson,
             DismissedSuggestionKeysJson = d.DismissedSuggestionKeysJson,
             TrustBoundaries = boundaries,
             Components = components,

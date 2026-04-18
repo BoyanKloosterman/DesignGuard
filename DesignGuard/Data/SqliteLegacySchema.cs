@@ -18,6 +18,7 @@ public static class SqliteLegacySchema
             await AddColumnIfMissingAsync(conn, "Projects", "GovernanceTechnicalOwner", "TEXT NOT NULL DEFAULT ''", ct);
             await AddColumnIfMissingAsync(conn, "Projects", "GovernanceComplianceStakeholder", "TEXT NOT NULL DEFAULT ''", ct);
             await AddColumnIfMissingAsync(conn, "Projects", "GovernanceReviewCadence", "TEXT NOT NULL DEFAULT ''", ct);
+            await AddColumnIfMissingAsync(conn, "Projects", "C4ElementsJson", "TEXT NOT NULL DEFAULT '[]'", ct);
         }
         finally
         {

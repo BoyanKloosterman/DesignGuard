@@ -25,13 +25,14 @@ public partial class MainViewModel
             // Geen * DiagramZoom: schaal alleen via LayoutTransform op de grid (anders dubbele zoom).
             DiagramContentWidth = Math.Max(400, layout.ContentWidth);
             DiagramContentHeight = Math.Max(300, layout.ContentHeight);
-            var threat = NavSection == 1 && DiagramOverlayThreatLinks ? SelectedThreat : null;
+            var threatForLink = NavSection == 1 && DiagramOverlayThreatLinks ? SelectedThreat : null;
+
             DiagramNodes = new ObservableCollection<DiagramNodeViewModel>(layout.Nodes.Select(n =>
             {
                 var showSen = DiagramOverlaySensitiveData &&
                               DesignOntwerpWaarden.IsDataSensitivityVisuallyElevated(n.StoresOrProcessesLabel);
-                var linked = threat != null &&
-                             threat.AffectedComponents.Exists(a =>
+                var linked = threatForLink != null &&
+                             threatForLink.AffectedComponents.Exists(a =>
                                  string.Equals(a, n.Name, StringComparison.OrdinalIgnoreCase));
                 return new DiagramNodeViewModel
                 {

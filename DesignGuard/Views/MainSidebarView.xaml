@@ -31,6 +31,7 @@
                     <ListBoxItem Content="Dashboard" />
                     <ListBoxItem Content="Ontwerp" />
                     <ListBoxItem Content="Dreigingen" />
+                    <ListBoxItem Content="Threatmodel" />
                     <ListBoxItem Content="Eisen" />
                     <ListBoxItem Content="Controls" />
                     <ListBoxItem Content="Beslissingen" />

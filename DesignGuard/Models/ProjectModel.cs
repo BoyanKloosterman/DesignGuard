@@ -59,4 +59,7 @@ public sealed class ProjectModel
 
     /// <summary>Afgewezen suggesties (rule keys), lokaal opgeslagen.</summary>
     public List<string> DismissedSuggestionKeys { get; set; } = new();
+
+    /// <summary>C4-elementen voor threatmodel-tab (los van architectuurdiagram).</summary>
+    public List<C4ElementModel> C4Elements { get; set; } = new();
 }

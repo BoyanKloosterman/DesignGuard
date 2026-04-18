@@ -164,6 +164,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
         e.GovernanceTechnicalOwner = m.GovernanceTechnicalOwner;
         e.GovernanceComplianceStakeholder = m.GovernanceComplianceStakeholder;
         e.GovernanceReviewCadence = m.GovernanceReviewCadence;
+        e.C4ElementsJson = JsonBlobs.Serialize(m.C4Elements);
         e.DismissedSuggestionKeysJson = JsonBlobs.Serialize(m.DismissedSuggestionKeys);
     }
 
@@ -468,6 +469,7 @@ public sealed class SqliteProjectRepository : IProjectRepository
             GovernanceTechnicalOwner = model.GovernanceTechnicalOwner,
             GovernanceComplianceStakeholder = model.GovernanceComplianceStakeholder,
             GovernanceReviewCadence = model.GovernanceReviewCadence,
+            C4ElementsJson = JsonBlobs.Serialize(model.C4Elements),
             DismissedSuggestionKeysJson = JsonBlobs.Serialize(model.DismissedSuggestionKeys)
         };
 
@@ -552,6 +554,8 @@ public sealed class SqliteProjectRepository : IProjectRepository
         target.ReviewItems.AddRange(fresh.ReviewItems);
         target.Snapshots.Clear();
         target.Snapshots.AddRange(fresh.Snapshots);
+        target.C4Elements.Clear();
+        target.C4Elements.AddRange(fresh.C4Elements);
         target.DismissedSuggestionKeys.Clear();
         target.DismissedSuggestionKeys.AddRange(fresh.DismissedSuggestionKeys);
         target.Threats.Clear();

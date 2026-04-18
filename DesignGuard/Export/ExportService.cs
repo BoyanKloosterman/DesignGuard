@@ -120,6 +120,28 @@ public sealed class ExportService
                 sb.AppendLine($"- **[{n.Kind}] {n.Title}:** {n.Description} {n.Notes}");
         }
 
+        if (project.C4Elements.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("## C4 threatmodel-scope");
+            sb.AppendLine(
+                "Abstractielagen (C1–C4) voor dit dossier. Koppeling naar dreigingen: dezelfde naam in ‘getroffen componenten’ van een open dreiging als bij het C4-element.");
+            foreach (var el in project.C4Elements.OrderBy(x => (int)x.Level).ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+            {
+                var openHits = threats.Count(t =>
+                    t.Status == ThreatStatus.Open &&
+                    !string.IsNullOrWhiteSpace(el.Name) &&
+                    t.AffectedComponents.Exists(a =>
+                        string.Equals(a.Trim(), el.Name.Trim(), StringComparison.OrdinalIgnoreCase)));
+                var parent = el.ParentId is { } pid ? $" (parent id {pid})" : "";
+                sb.AppendLine(
+                    $"- **{C4LevelFormatting.ShortLabel(el.Level)}** — **{el.Name}**{parent}: {el.Description} " +
+                    $"{(string.IsNullOrWhiteSpace(el.Technology) ? "" : $"— _{el.Technology}_ ")}— open dreigingen met naam-match: **{openHits}**");
+            }
+
+            sb.AppendLine();
+        }
+
         sb.AppendLine();
         sb.AppendLine("## Threat model (STRIDE, regelgebaseerd + handmatig)");
         foreach (var t in threats.OrderBy(x => x.StrideCategory).ThenBy(x => x.Title))
@@ -475,6 +497,7 @@ public sealed class ExportService
                 project.GovernanceTechnicalOwner,
                 project.GovernanceComplianceStakeholder,
                 project.GovernanceReviewCadence,
+                c4Elements = project.C4Elements,
                 TrustBoundaries = project.TrustBoundaries,
                 Components = project.Components,
                 DataFlows = project.DataFlows,

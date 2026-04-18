@@ -171,6 +171,8 @@ public sealed class MongoProjectRepository : IProjectRepository
         target.ReviewItems.AddRange(fresh.ReviewItems);
         target.Snapshots.Clear();
         target.Snapshots.AddRange(fresh.Snapshots);
+        target.C4Elements.Clear();
+        target.C4Elements.AddRange(fresh.C4Elements);
         target.DismissedSuggestionKeys.Clear();
         target.DismissedSuggestionKeys.AddRange(fresh.DismissedSuggestionKeys);
         target.Threats.Clear();

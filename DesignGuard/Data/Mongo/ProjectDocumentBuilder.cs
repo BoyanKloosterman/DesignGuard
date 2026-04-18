@@ -33,6 +33,7 @@ internal static class ProjectDocumentBuilder
             GovernanceTechnicalOwner = m.GovernanceTechnicalOwner,
             GovernanceComplianceStakeholder = m.GovernanceComplianceStakeholder,
             GovernanceReviewCadence = m.GovernanceReviewCadence,
+            C4ElementsJson = JsonBlobs.Serialize(m.C4Elements),
             DismissedSuggestionKeysJson = JsonBlobs.Serialize(m.DismissedSuggestionKeys)
         };
 

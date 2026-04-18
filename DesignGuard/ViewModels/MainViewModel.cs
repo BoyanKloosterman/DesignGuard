@@ -311,6 +311,18 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private ObservableCollection<SnapshotRowViewModel> _snapshots = new();
 
+    [ObservableProperty] private ObservableCollection<C4ElementRowViewModel> _c4Elements = new();
+
+    [ObservableProperty] private ObservableCollection<C4ElementRowViewModel> _c4VisualContext = new();
+
+    [ObservableProperty] private ObservableCollection<C4ElementRowViewModel> _c4VisualContainers = new();
+
+    [ObservableProperty] private ObservableCollection<C4ElementRowViewModel> _c4VisualComponents = new();
+
+    [ObservableProperty] private ObservableCollection<C4ElementRowViewModel> _c4VisualCode = new();
+
+    [ObservableProperty] private C4ElementRowViewModel? _selectedC4Element;
+
     [ObservableProperty] private ObservableCollection<ModelingSuggestion> _suggestions = new();
 
     [ObservableProperty] private ObservableCollection<DiagramNodeViewModel> _diagramNodes = new();
@@ -476,21 +488,22 @@ public partial class MainViewModel : ObservableObject
     partial void OnNavSectionChanged(int value)
     {
         if (value == 1) RefreshDiagram();
-        if (value is 2 or 3)
+        if (value == 3) RefreshC4ThreatLinkCounts();
+        if (value is 2 or 4)
         {
             RefreshFilters();
             UpdateDashboard();
         }
 
-        if (value == 7) RefreshTraceability();
-        if (value == 8) RefreshExportPreview();
-        if (value == 9)
+        if (value == 8) RefreshTraceability();
+        if (value == 9) RefreshExportPreview();
+        if (value == 10)
         {
             RefreshKnowledgePackRows();
             RefreshMongoDiagnostics();
         }
-        if (value == 10) RefreshAppSecurityReview();
-        if (value is 0 or 1 or 4 or 5 or 6) RefreshSuggestions();
+        if (value == 11) RefreshAppSecurityReview();
+        if (value is 0 or 1 or 3 or 4 or 5 or 6) RefreshSuggestions();
     }
 
     partial void OnDiagramOverlayTrustBoundariesChanged(bool value) => RefreshDiagram();

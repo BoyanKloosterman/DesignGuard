@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="500" d:DesignWidth="800">
-    <DockPanel Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=3}">
+    <DockPanel Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=4}">
         <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
             <TextBlock Text="Security-eisen" Style="{StaticResource DgText.Title}" />
             <TextBlock Margin="0,6,0,0" Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"

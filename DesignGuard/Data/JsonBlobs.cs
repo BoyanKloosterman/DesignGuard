@@ -33,4 +33,7 @@ internal static class JsonBlobs
 
     public static SourceAttributionModel SourceAttribution(string? json) =>
         Deserialize<SourceAttributionModel>(json ?? "{}") ?? new SourceAttributionModel();
+
+    public static List<C4ElementModel> C4ElementList(string? json) =>
+        Deserialize<List<C4ElementModel>>(json ?? "[]") ?? new List<C4ElementModel>();
 }

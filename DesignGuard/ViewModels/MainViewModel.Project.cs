@@ -107,6 +107,8 @@ public partial class MainViewModel
         SensitiveDataRows.Clear();
         ReviewItems.Clear();
         Snapshots.Clear();
+        C4Elements.Clear();
+        SelectedC4Element = null;
         Suggestions.Clear();
         _dismissedSuggestionKeys.Clear();
         Threats.Clear();
@@ -320,6 +322,20 @@ public partial class MainViewModel
             });
         }
 
+        C4Elements.Clear();
+        foreach (var el in p.C4Elements.OrderBy(x => (int)x.Level).ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+        {
+            C4Elements.Add(new C4ElementRowViewModel
+            {
+                Id = el.Id,
+                Level = el.Level,
+                Name = el.Name,
+                Description = el.Description,
+                Technology = el.Technology,
+                ParentId = el.ParentId
+            });
+        }
+
         Threats = new ObservableCollection<ThreatModel>(p.Threats);
         Requirements = new ObservableCollection<RequirementModel>(p.Requirements);
         RefreshFilters();
@@ -474,6 +490,16 @@ public partial class MainViewModel
             SnapshotJson = s.SnapshotJson
         }).ToList();
 
+        var c4List = C4Elements.Select(e => new C4ElementModel
+        {
+            Id = e.Id,
+            Level = e.Level,
+            Name = e.Name.Trim(),
+            Description = e.Description.Trim(),
+            Technology = e.Technology.Trim(),
+            ParentId = e.ParentId
+        }).ToList();
+
         return new ProjectModel
         {
             Id = CurrentProjectId,
@@ -507,6 +533,7 @@ public partial class MainViewModel
             SensitiveDataItems = sensList,
             ReviewItems = revList,
             Snapshots = snapList,
+            C4Elements = c4List,
             Threats = Threats.ToList(),
             Requirements = Requirements.ToList(),
             DismissedSuggestionKeys = _dismissedSuggestionKeys.ToList()

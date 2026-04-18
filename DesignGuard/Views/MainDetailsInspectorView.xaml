@@ -6,12 +6,12 @@
              mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="328">
     <UserControl.Resources>
-        <!-- Rij-volgorde: NavSection 2 = dreiging eerst; 3 = eis eerst; overig = dreiging eerst (zoals 2). -->
+        <!-- Rij-volgorde: tab Eisen (NavSection 4) = eis boven dreiging; anders dreiging eerst. -->
         <Style x:Key="DetailThreatCardOrdered" TargetType="Border" BasedOn="{StaticResource DgCard}">
             <Setter Property="Margin" Value="0,0,0,8" />
             <Setter Property="Grid.Row" Value="0" />
             <Style.Triggers>
-                <DataTrigger Binding="{Binding NavSection}" Value="3">
+                <DataTrigger Binding="{Binding NavSection}" Value="4">
                     <Setter Property="Grid.Row" Value="1" />
                 </DataTrigger>
             </Style.Triggers>
@@ -20,7 +20,7 @@
             <Setter Property="Margin" Value="0,0,0,8" />
             <Setter Property="Grid.Row" Value="1" />
             <Style.Triggers>
-                <DataTrigger Binding="{Binding NavSection}" Value="3">
+                <DataTrigger Binding="{Binding NavSection}" Value="4">
                     <Setter Property="Grid.Row" Value="0" />
                 </DataTrigger>
             </Style.Triggers>

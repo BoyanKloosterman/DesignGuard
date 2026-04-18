@@ -37,6 +37,8 @@ public sealed class ProjectDocument
     public string GovernanceComplianceStakeholder { get; set; } = "";
     public string GovernanceReviewCadence { get; set; } = "";
 
+    public string C4ElementsJson { get; set; } = "[]";
+
     public List<TrustBoundaryDoc> TrustBoundaries { get; set; } = new();
     public List<ComponentDoc> Components { get; set; } = new();
     public List<DataFlowDoc> DataFlows { get; set; } = new();

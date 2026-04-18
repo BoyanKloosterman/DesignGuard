@@ -4,6 +4,7 @@ using System.IO;
 using CommunityToolkit.Mvvm.Input;
 using DesignGuard.Models;
 using DesignGuard.Security;
+using DesignGuard.Services;
 using Microsoft.Win32;
 
 namespace DesignGuard.ViewModels;
@@ -38,53 +39,19 @@ public partial class MainViewModel
 
     private void RefreshFilters()
     {
-        IEnumerable<ThreatModel> tq = Threats;
-        if (!string.IsNullOrWhiteSpace(ThreatFilterText))
-        {
-            var f = ThreatFilterText.Trim();
-            tq = tq.Where(t =>
-                t.Title.Contains(f, StringComparison.OrdinalIgnoreCase) ||
-                t.Description.Contains(f, StringComparison.OrdinalIgnoreCase) ||
-                t.StrideCategory.ToString().Contains(f, StringComparison.OrdinalIgnoreCase));
-        }
-
-        tq = ThreatSort switch
-        {
-            "Status" => tq.OrderBy(t => t.Status).ThenBy(t => t.Title),
-            "Category" => tq.OrderBy(t => t.StrideCategory).ThenBy(t => t.Title),
-            _ => tq.OrderByDescending(t => t.Severity).ThenBy(t => t.Title)
-        };
-
-        FilteredThreats = new ObservableCollection<ThreatModel>(tq);
-
-        IEnumerable<RequirementModel> rq = Requirements;
-        if (!string.IsNullOrWhiteSpace(RequirementFilterText))
-        {
-            var f = RequirementFilterText.Trim();
-            rq = rq.Where(r =>
-                r.Title.Contains(f, StringComparison.OrdinalIgnoreCase) ||
-                r.Category.Contains(f, StringComparison.OrdinalIgnoreCase) ||
-                r.PlainExplanation.Contains(f, StringComparison.OrdinalIgnoreCase));
-        }
-
-        rq = RequirementSort switch
-        {
-            "Status" => rq.OrderBy(r => r.Status).ThenBy(r => r.Title),
-            "Category" => rq.OrderBy(r => r.Category).ThenBy(r => r.Title),
-            _ => rq.OrderByDescending(r => r.Priority).ThenBy(r => r.Title)
-        };
-
-        FilteredRequirements = new ObservableCollection<RequirementModel>(rq);
+        FilteredThreats = new ObservableCollection<ThreatModel>(
+            EditorListFilter.FilterAndSortThreats(Threats, ThreatFilterText, ThreatSort));
+        FilteredRequirements = new ObservableCollection<RequirementModel>(
+            EditorListFilter.FilterAndSortRequirements(Requirements, RequirementFilterText, RequirementSort));
     }
 
     private void UpdateDashboard()
     {
-        OpenThreatCount = Threats.Count(t => t.Status == ThreatStatus.Open);
-        MitigatedThreatCount =
-            Threats.Count(t => t.Status is ThreatStatus.Mitigated or ThreatStatus.Accepted);
-        OpenRequirementCount = Requirements.Count(r =>
-            r.Status is RequirementStatus.Proposed or RequirementStatus.Accepted);
-        ImplementedRequirementCount = Requirements.Count(r => r.Status == RequirementStatus.Implemented);
+        var (o, m, orc, ir) = DashboardMetrics.Compute(Threats, Requirements);
+        OpenThreatCount = o;
+        MitigatedThreatCount = m;
+        OpenRequirementCount = orc;
+        ImplementedRequirementCount = ir;
     }
 
     [RelayCommand]

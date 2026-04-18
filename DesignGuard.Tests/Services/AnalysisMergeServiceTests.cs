@@ -1,0 +1,86 @@
+using DesignGuard.Models;
+using DesignGuard.Services;
+using Xunit;
+
+namespace DesignGuard.Tests.Services;
+
+public sealed class AnalysisMergeServiceTests
+{
+    private readonly AnalysisMergeService _sut = new();
+
+    [Fact]
+    public void MergeThreats_behoudt_custom_en_UserModified_generated()
+    {
+        var project = new ProjectModel();
+        var custom = new ThreatModel
+        {
+            Origin = ThreatOrigin.Custom,
+            Title = "Handmatig",
+            RuleFingerprint = "c1"
+        };
+        var userLocked = new ThreatModel
+        {
+            Origin = ThreatOrigin.Generated,
+            UserModified = true,
+            RuleFingerprint = "rule-x",
+            Title = "Oud maar vastgezet"
+        };
+        project.Threats.Add(custom);
+        project.Threats.Add(userLocked);
+
+        var generated = new List<ThreatModel>
+        {
+            new()
+            {
+                Origin = ThreatOrigin.Generated,
+                RuleFingerprint = "rule-x",
+                Title = "Nieuwe versie"
+            },
+            new()
+            {
+                Origin = ThreatOrigin.Generated,
+                RuleFingerprint = "rule-y",
+                Title = "Vers"
+            }
+        };
+
+        _sut.MergeThreats(project, generated);
+
+        Assert.Equal(3, project.Threats.Count);
+        Assert.Contains(project.Threats, t => t.Title == "Handmatig");
+        Assert.Contains(project.Threats, t => t.RuleFingerprint == "rule-x" && t.Title == "Oud maar vastgezet");
+        Assert.Contains(project.Threats, t => t.RuleFingerprint == "rule-y");
+        Assert.DoesNotContain(project.Threats, t => t.Title == "Nieuwe versie");
+    }
+
+    [Fact]
+    public void MergeRequirements_overneemt_Status_van_oude_generated_rij()
+    {
+        var project = new ProjectModel();
+        var old = new RequirementModel
+        {
+            Origin = RequirementOrigin.Generated,
+            UserModified = false,
+            RuleFingerprint = "r1",
+            Status = RequirementStatus.Implemented,
+            Title = "Eis"
+        };
+        project.Requirements.Add(old);
+
+        var generated = new List<RequirementModel>
+        {
+            new()
+            {
+                Origin = RequirementOrigin.Generated,
+                RuleFingerprint = "r1",
+                Status = RequirementStatus.Proposed,
+                Title = "Eis"
+            }
+        };
+
+        _sut.MergeRequirements(project, generated);
+
+        Assert.Single(project.Requirements);
+        Assert.Equal(RequirementStatus.Implemented, project.Requirements[0].Status);
+    }
+}

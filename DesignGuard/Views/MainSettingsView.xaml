@@ -1,0 +1,87 @@
+<UserControl x:Class="DesignGuard.Views.MainSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="800">
+    <ScrollViewer Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=9}"
+                  VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <TextBlock Text="Instellingen" FontSize="22" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" Foreground="Gray" Margin="0,8,0,16"
+                       Text="Knowledge packs: schakel bron-modules in/uit. Uitgeschakelde packs worden niet gebruikt voor nieuwe attributie. Standaarden wijzigen — herzie packs periodiek." />
+            <TextBlock Text="Knowledge packs" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,8,0,8"
+                       Text="Online bijwerken: alleen HTTPS, downloadlimiet, SHA256-controle, TLS met certificaatrevocatie. Alleen de host van de manifest-URL en optioneel één extra hostnaam. Geen machine learning — bijgewerkte JSON wordt direct gebruikt voor attributie." />
+            <TextBlock Text="Manifest-URL (HTTPS)" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" Margin="0,0,0,2" />
+            <TextBox Text="{Binding KnowledgePackManifestUrl, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+            <TextBlock Text="Extra toegestane host (optioneel, bv. enterprise CDN)" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" Margin="0,0,0,2" />
+            <TextBox Text="{Binding KnowledgePackSyncTrustedHostExtra, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <CheckBox IsChecked="{Binding KnowledgePackRemoteSyncEnabled}" VerticalAlignment="Center" Margin="0,0,16,0"
+                          Content="Netwerk-sync toestaan" />
+                <CheckBox IsChecked="{Binding KnowledgePackSyncOnStartup}" VerticalAlignment="Center"
+                          Content="Bij start synchroniseren" />
+            </StackPanel>
+            <Button Content="Knowledge packs nu synchroniseren" Command="{Binding SyncKnowledgePacksRemoteCommand}" HorizontalAlignment="Left" Margin="0,0,0,16" />
+            <ItemsControl ItemsSource="{Binding KnowledgePackRows}" Margin="0,8,0,16">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="{DynamicResource DgBrush.Border}" BorderThickness="1" Padding="10" Margin="0,0,0,8" Background="{DynamicResource DgBrush.InputBackground}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}" VerticalAlignment="Top" Margin="0,2,8,0" />
+                                    <StackPanel>
+                                        <TextBlock FontWeight="SemiBold" TextWrapping="Wrap">
+                                            <Run Text="{Binding DisplayLabel, Mode=OneWay}" />
+                                            <Run Text=" (" /><Run Text="{Binding PackId, Mode=OneWay}" /><Run Text=")" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                </StackPanel>
+                                <TextBlock Margin="20,4,0,0" FontSize="10" Foreground="Gray" TextWrapping="Wrap">
+                                    <Run Text="Versie: " /><Run Text="{Binding VersionLabel, Mode=OneWay}" />
+                                </TextBlock>
+                                <TextBlock Margin="20,2,0,0" FontSize="10" Foreground="{DynamicResource DgBrush.TextSecondary}" TextWrapping="Wrap" Text="{Binding SourceName, Mode=OneWay}" />
+                                <TextBlock Margin="20,4,0,0" FontSize="10" Foreground="DarkOrange" TextWrapping="Wrap"
+                                           Visibility="{Binding IsStale, Converter={StaticResource BoolToVis}}">
+                                    Pack is ouder dan de ingestelde waarschuwingsperiode — controleer bron en update pack.
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Text="Database / MongoDB" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="Gray" Margin="0,4,0,12"
+                       Text="Projectdata staat in MongoDB. Configureer omgevingsvariabelen (of .env in Development) — zie CONFIGURATION.md en DEPLOYMENT.md." />
+            <TextBlock FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}">
+                <Run Text="Omgeving: " /><Run Text="{Binding MongoDiagEnvironment, Mode=OneWay}" />
+            </TextBlock>
+            <TextBlock Text="Omgevingsvariabelen" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,4,0,0" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Text="{Binding MongoDiagEnvVars}" />
+            <TextBlock FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,4,0,0">
+                <Run Text="Database-naam: " /><Run Text="{Binding MongoDiagDatabase, Mode=OneWay}" />
+            </TextBlock>
+            <TextBlock FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,4,0,0">
+                <Run Text="ApplicationName: " /><Run Text="{Binding MongoDiagAppName, Mode=OneWay}" />
+            </TextBlock>
+            <TextBlock Text="Optionele opties" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,4,0,0" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Text="{Binding MongoDiagOptions}" />
+            <TextBlock Text="Connection (gemaskeerd)" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,4,0,0" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" FontSize="11" FontFamily="Consolas" Foreground="{DynamicResource DgBrush.TextSecondary}"
+                       Text="{Binding MongoDiagMaskedConnection}" />
+            <TextBlock Text="{Binding MongoDiagWarning}" TextWrapping="Wrap" Margin="0,8,0,0" FontSize="11"
+                       Foreground="{DynamicResource DgBrush.Warning}"
+                       Visibility="{Binding MongoDiagHasConfigWarning, Converter={StaticResource BoolToVis}}" />
+            <TextBlock Text="{Binding MongoDiagPing}" TextWrapping="Wrap" Margin="0,8,0,0" FontSize="11"
+                       Foreground="{DynamicResource DgBrush.Success}" />
+            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                <Button Content="Verbinding testen (ping)" Command="{Binding TestMongoConnectionCommand}" Margin="0,0,8,0" />
+                <Button Content="Importeer SQLite → MongoDB" Command="{Binding ImportSqliteToMongoCommand}" />
+            </StackPanel>
+            <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="Gray" Margin="0,8,0,0"
+                       Text="Lokale voorkeuren en export-map blijven in user-settings.json onder %LocalAppData%\DesignGuard\." />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

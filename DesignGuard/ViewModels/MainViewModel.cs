@@ -189,6 +189,10 @@ public partial class MainViewModel : ObservableObject
 
     public IReadOnlyList<string> UiDensityOptions { get; } = new[] { "Comfortable", "Compact" };
 
+    public IReadOnlyList<string> ThreatSortOptions { get; } = new[] { "Severity", "Status", "Category" };
+
+    public IReadOnlyList<string> RequirementSortOptions { get; } = new[] { "Priority", "Status", "Category" };
+
     public IReadOnlyList<string> PresetAssetClassifications { get; } =
         Enum.GetNames(typeof(AssetClassification));
 

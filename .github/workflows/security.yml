@@ -1,0 +1,66 @@
+# SCA: NuGet vulnerability audit + dotnet list --vulnerable
+# SAST: Microsoft CodeQL voor C#
+name: Security (SCA & SAST)
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sca:
+    name: SCA (NuGet)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore (audit-waarschuwingen = fout)
+        run: dotnet build DesignGuard.sln -t:Restore -warnaserror:NU1901,NU1902,NU1903,NU1904
+
+      - name: Lijst kwetsbare packages
+        run: dotnet list DesignGuard.sln package --vulnerable --include-transitive --format console
+
+      - name: Build & test
+        run: |
+          dotnet build DesignGuard.sln --no-restore -c Release
+          dotnet test DesignGuard.sln --no-build -c Release
+
+  codeql:
+    name: SAST (CodeQL)
+    runs-on: windows-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+          queries: security-and-quality
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:csharp"

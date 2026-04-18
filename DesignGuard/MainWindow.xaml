@@ -6,7 +6,7 @@
         mc:Ignorable="d"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         Title="DesignGuard v6 — Security-by-design werkbench"
-        Height="820" Width="1320"
+        Height="960" Width="1480"
         Background="{DynamicResource DgBrush.Window}"
         Foreground="{DynamicResource DgBrush.TextPrimary}"
         Loaded="Window_Loaded">
@@ -470,7 +470,7 @@
                                                                             </GeometryGroup>
                                                                         </GeometryDrawing.Geometry>
                                                                         <GeometryDrawing.Pen>
-                                                                            <Pen Brush="#E2E8F0" Thickness="0.6" />
+                                                                            <Pen Brush="{DynamicResource DgBrush.Border}" Thickness="0.6" />
                                                                         </GeometryDrawing.Pen>
                                                                     </GeometryDrawing>
                                                                 </DrawingBrush.Drawing>
@@ -528,15 +528,15 @@
                                                     <DataTemplate>
                                                         <Canvas>
                                                             <!-- Alleen stroke op curve: geen lint-vulling -->
-                                                            <Path Data="{Binding CurvePath}" Stroke="#64748B" StrokeThickness="1"
+                                                            <Path Data="{Binding CurvePath}" Stroke="{DynamicResource DgBrush.DiagramEdge}" StrokeThickness="1"
                                                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                                                   Fill="Transparent" SnapsToDevicePixels="True" Opacity="0.92" />
-                                                            <Path Data="{Binding ArrowPath}" Fill="#475569" Stroke="#334155" StrokeThickness="0.35"
+                                                            <Path Data="{Binding ArrowPath}" Fill="{DynamicResource DgBrush.DiagramArrowFill}" Stroke="{DynamicResource DgBrush.DiagramArrowStroke}" StrokeThickness="0.35"
                                                                   StrokeLineJoin="Miter" SnapsToDevicePixels="True" />
                                                             <Border Canvas.Left="{Binding LabelX}" Canvas.Top="{Binding LabelY}"
-                                                                    Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1"
+                                                                    Background="{DynamicResource DgBrush.DiagramLabelBg}" BorderBrush="{DynamicResource DgBrush.Border}" BorderThickness="1"
                                                                     CornerRadius="3" Padding="4,2">
-                                                                <TextBlock Text="{Binding Label}" FontSize="9" Foreground="#1E293B"
+                                                                <TextBlock Text="{Binding Label}" FontSize="9" Foreground="{DynamicResource DgBrush.TextPrimary}"
                                                                            TextWrapping="Wrap" MaxWidth="200" />
                                                             </Border>
                                                         </Canvas>
@@ -558,10 +558,10 @@
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <Border Width="196" Height="64" CornerRadius="8" BorderThickness="1.5" Padding="8,6,8,6"
-                                                                Background="White" SnapsToDevicePixels="True" MouseLeftButtonDown="DiagramNode_MouseDown">
+                                                                Background="{DynamicResource DgBrush.DiagramNodeFill}" SnapsToDevicePixels="True" MouseLeftButtonDown="DiagramNode_MouseDown">
                                                             <Border.Style>
                                                                 <Style TargetType="Border">
-                                                                    <Setter Property="BorderBrush" Value="#2D3748" />
+                                                                    <Setter Property="BorderBrush" Value="{DynamicResource DgBrush.DiagramNodeBorder}" />
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
                                                                             <Setter Property="BorderBrush" Value="#C53030" />
@@ -597,9 +597,9 @@
                                                                     </Border.Style>
                                                                 </Border>
                                                                 <StackPanel Grid.Column="1">
-                                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" FontSize="12" Foreground="#1A202C" />
-                                                                    <TextBlock Text="{Binding Tag}" Foreground="#718096" FontSize="10" />
-                                                                    <TextBlock Text="{Binding DataSensitivity}" FontSize="9" Foreground="#4A5568" Visibility="{Binding ShowSensitiveStripe, Converter={StaticResource BoolToVis}}" />
+                                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource DgBrush.TextPrimary}" />
+                                                                    <TextBlock Text="{Binding Tag}" Foreground="{DynamicResource DgBrush.TextMuted}" FontSize="10" />
+                                                                    <TextBlock Text="{Binding DataSensitivity}" FontSize="9" Foreground="{DynamicResource DgBrush.TextSecondary}" Visibility="{Binding ShowSensitiveStripe, Converter={StaticResource BoolToVis}}" />
                                                                 </StackPanel>
                                                             </Grid>
                                                         </Border>
@@ -920,11 +920,11 @@
                         <TextBlock TextWrapping="Wrap" Foreground="Gray" Margin="0,8,0,16"
                                    Text="Knowledge packs: schakel bron-modules in/uit. Uitgeschakelde packs worden niet gebruikt voor nieuwe attributie. Standaarden wijzigen — herzie packs periodiek." />
                         <TextBlock Text="Knowledge packs" FontWeight="SemiBold" />
-                        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#334155" Margin="0,8,0,8"
+                        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,8,0,8"
                                    Text="Online bijwerken: alleen HTTPS, downloadlimiet, SHA256-controle, TLS met certificaatrevocatie. Alleen de host van de manifest-URL en optioneel één extra hostnaam. Geen machine learning — bijgewerkte JSON wordt direct gebruikt voor attributie." />
-                        <TextBlock Text="Manifest-URL (HTTPS)" FontSize="11" Foreground="#64748B" Margin="0,0,0,2" />
+                        <TextBlock Text="Manifest-URL (HTTPS)" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" Margin="0,0,0,2" />
                         <TextBox Text="{Binding KnowledgePackManifestUrl, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
-                        <TextBlock Text="Extra toegestane host (optioneel, bv. enterprise CDN)" FontSize="11" Foreground="#64748B" Margin="0,0,0,2" />
+                        <TextBlock Text="Extra toegestane host (optioneel, bv. enterprise CDN)" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" Margin="0,0,0,2" />
                         <TextBox Text="{Binding KnowledgePackSyncTrustedHostExtra, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                             <CheckBox IsChecked="{Binding KnowledgePackRemoteSyncEnabled}" VerticalAlignment="Center" Margin="0,0,16,0"
@@ -936,7 +936,7 @@
                         <ItemsControl ItemsSource="{Binding KnowledgePackRows}" Margin="0,8,0,16">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border BorderBrush="#E2E8F0" BorderThickness="1" Padding="10" Margin="0,0,0,8" Background="White">
+                                    <Border BorderBrush="{DynamicResource DgBrush.Border}" BorderThickness="1" Padding="10" Margin="0,0,0,8" Background="{DynamicResource DgBrush.InputBackground}">
                                         <StackPanel>
                                             <StackPanel Orientation="Horizontal">
                                                 <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}" VerticalAlignment="Top" Margin="0,2,8,0" />
@@ -950,7 +950,7 @@
                                             <TextBlock Margin="20,4,0,0" FontSize="10" Foreground="Gray" TextWrapping="Wrap">
                                                 <Run Text="Versie: " /><Run Text="{Binding VersionLabel, Mode=OneWay}" />
                                             </TextBlock>
-                                            <TextBlock Margin="20,2,0,0" FontSize="10" Foreground="#475569" TextWrapping="Wrap" Text="{Binding SourceName, Mode=OneWay}" />
+                                            <TextBlock Margin="20,2,0,0" FontSize="10" Foreground="{DynamicResource DgBrush.TextSecondary}" TextWrapping="Wrap" Text="{Binding SourceName, Mode=OneWay}" />
                                             <TextBlock Margin="20,4,0,0" FontSize="10" Foreground="DarkOrange" TextWrapping="Wrap"
                                                        Visibility="{Binding IsStale, Converter={StaticResource BoolToVis}}">
                                                 Pack is ouder dan de ingestelde waarschuwingsperiode — controleer bron en update pack.
@@ -963,27 +963,27 @@
                         <TextBlock Text="Database / MongoDB" FontWeight="SemiBold" />
                         <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="Gray" Margin="0,4,0,12"
                                    Text="Projectdata staat in MongoDB. Configureer omgevingsvariabelen (of .env in Development) — zie CONFIGURATION.md en DEPLOYMENT.md." />
-                        <TextBlock FontSize="11" Foreground="#334155">
+                        <TextBlock FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}">
                             <Run Text="Omgeving: " /><Run Text="{Binding MongoDiagEnvironment, Mode=OneWay}" />
                         </TextBlock>
-                        <TextBlock Text="Omgevingsvariabelen" FontSize="11" Foreground="#334155" Margin="0,4,0,0" FontWeight="SemiBold" />
-                        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#334155" Text="{Binding MongoDiagEnvVars}" />
-                        <TextBlock FontSize="11" Foreground="#334155" Margin="0,4,0,0">
+                        <TextBlock Text="Omgevingsvariabelen" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,4,0,0" FontWeight="SemiBold" />
+                        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Text="{Binding MongoDiagEnvVars}" />
+                        <TextBlock FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,4,0,0">
                             <Run Text="Database-naam: " /><Run Text="{Binding MongoDiagDatabase, Mode=OneWay}" />
                         </TextBlock>
-                        <TextBlock FontSize="11" Foreground="#334155" Margin="0,4,0,0">
+                        <TextBlock FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,4,0,0">
                             <Run Text="ApplicationName: " /><Run Text="{Binding MongoDiagAppName, Mode=OneWay}" />
                         </TextBlock>
-                        <TextBlock Text="Optionele opties" FontSize="11" Foreground="#334155" Margin="0,4,0,0" FontWeight="SemiBold" />
-                        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#334155" Text="{Binding MongoDiagOptions}" />
-                        <TextBlock Text="Connection (gemaskeerd)" FontSize="11" Foreground="#334155" Margin="0,4,0,0" FontWeight="SemiBold" />
-                        <TextBlock TextWrapping="Wrap" FontSize="11" FontFamily="Consolas" Foreground="#334155"
+                        <TextBlock Text="Optionele opties" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,4,0,0" FontWeight="SemiBold" />
+                        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Text="{Binding MongoDiagOptions}" />
+                        <TextBlock Text="Connection (gemaskeerd)" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,4,0,0" FontWeight="SemiBold" />
+                        <TextBlock TextWrapping="Wrap" FontSize="11" FontFamily="Consolas" Foreground="{DynamicResource DgBrush.TextSecondary}"
                                    Text="{Binding MongoDiagMaskedConnection}" />
                         <TextBlock Text="{Binding MongoDiagWarning}" TextWrapping="Wrap" Margin="0,8,0,0" FontSize="11"
-                                   Foreground="DarkOrange"
+                                   Foreground="{DynamicResource DgBrush.Warning}"
                                    Visibility="{Binding MongoDiagHasConfigWarning, Converter={StaticResource BoolToVis}}" />
                         <TextBlock Text="{Binding MongoDiagPing}" TextWrapping="Wrap" Margin="0,8,0,0" FontSize="11"
-                                   Foreground="#0F766E" />
+                                   Foreground="{DynamicResource DgBrush.Success}" />
                         <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
                             <Button Content="Verbinding testen (ping)" Command="{Binding TestMongoConnectionCommand}" Margin="0,0,8,0" />
                             <Button Content="Importeer SQLite → MongoDB" Command="{Binding ImportSqliteToMongoCommand}" />
@@ -1002,16 +1002,16 @@
                         <ItemsControl ItemsSource="{Binding AppSecurityReviewRows}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border BorderBrush="#E2E8F0" BorderThickness="1" Padding="10" Margin="0,0,0,10" Background="#FAFAFA">
+                                    <Border BorderBrush="{DynamicResource DgBrush.Border}" BorderThickness="1" Padding="10" Margin="0,0,0,10" Background="{DynamicResource DgBrush.DataGridRowAlt}">
                                         <StackPanel>
-                                            <TextBlock Text="{Binding Domain}" FontWeight="SemiBold" FontSize="11" Foreground="#4A5568" />
+                                            <TextBlock Text="{Binding Domain}" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" />
                                             <TextBlock Text="{Binding Item}" TextWrapping="Wrap" Margin="0,4,0,0" />
                                             <TextBlock Margin="0,6,0,0" FontSize="10" Foreground="Gray" TextWrapping="Wrap">
                                                 <Run Text="Status: " /><Run Text="{Binding Status, Mode=OneWay}" />
                                             </TextBlock>
                                             <TextBlock Margin="0,2,0,0" FontSize="10" TextWrapping="Wrap"><Run Text="Rationale: " /><Run Text="{Binding Rationale, Mode=OneWay}" /></TextBlock>
                                             <TextBlock Margin="0,2,0,0" FontSize="10" TextWrapping="Wrap"><Run Text="Aanbeveling: " /><Run Text="{Binding Recommendation, Mode=OneWay}" /></TextBlock>
-                                            <TextBlock Margin="0,2,0,0" FontSize="10" Foreground="#2B6CB0" TextWrapping="Wrap"><Run Text="Bron-tag: " /><Run Text="{Binding SourceTag, Mode=OneWay}" /></TextBlock>
+                                            <TextBlock Margin="0,2,0,0" FontSize="10" Foreground="{DynamicResource DgBrush.Link}" TextWrapping="Wrap"><Run Text="Bron-tag: " /><Run Text="{Binding SourceTag, Mode=OneWay}" /></TextBlock>
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>
@@ -1035,8 +1035,8 @@
                                     <StackPanel>
                                         <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
                                         <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" FontSize="11" Margin="0,4,0,0" />
-                                        <TextBlock Text="{Binding Because}" Foreground="Gray" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0" />
-                                        <Button Content="Negeren" HorizontalAlignment="Left" Margin="0,6,0,0" FontSize="11"
+                                        <TextBlock Text="{Binding Because}" Foreground="{DynamicResource DgBrush.TextMuted}" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                        <Button Content="Negeren" Style="{StaticResource DgButton.Toolbar}" HorizontalAlignment="Left" Margin="0,6,0,0" FontSize="11"
                                                 Command="{Binding DataContext.DismissSuggestionCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                 CommandParameter="{Binding}" />
                                     </StackPanel>

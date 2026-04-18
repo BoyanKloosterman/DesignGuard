@@ -1,6 +1,7 @@
 // Export, traceability, filters en dashboard-tellingen.
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Windows;
 using CommunityToolkit.Mvvm.Input;
 using DesignGuard.Models;
 using DesignGuard.Security;
@@ -84,7 +85,7 @@ public partial class MainViewModel
                 Filter = "Markdown (*.md)|*.md|All files (*.*)|*.*",
                 FileName = $"{SanitizeFileName(m.Name)}-designguard.md"
             };
-            if (dlg.ShowDialog() != true) return;
+            if (!ShowModalSaveDialog(dlg)) return;
             if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
             {
                 StatusMessage = err ?? "Export geannuleerd.";
@@ -92,7 +93,7 @@ public partial class MainViewModel
             }
 
             File.WriteAllText(path, md);
-            StatusMessage = "Markdown geëxporteerd.";
+            StatusMessage = $"Markdown geëxporteerd: {path}";
         }
         catch (Exception ex)
         {
@@ -112,7 +113,7 @@ public partial class MainViewModel
                 Filter = "Text (*.txt)|*.txt|All files (*.*)|*.*",
                 FileName = $"{SanitizeFileName(m.Name)}-designguard.txt"
             };
-            if (dlg.ShowDialog() != true) return;
+            if (!ShowModalSaveDialog(dlg)) return;
             if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
             {
                 StatusMessage = err ?? "Export geannuleerd.";
@@ -120,7 +121,7 @@ public partial class MainViewModel
             }
 
             File.WriteAllText(path, txt);
-            StatusMessage = "Tekst geëxporteerd.";
+            StatusMessage = $"Tekst geëxporteerd: {path}";
         }
         catch (Exception ex)
         {
@@ -140,7 +141,7 @@ public partial class MainViewModel
                 Filter = "HTML (*.html)|*.html|All files (*.*)|*.*",
                 FileName = $"{SanitizeFileName(m.Name)}-designguard.html"
             };
-            if (dlg.ShowDialog() != true) return;
+            if (!ShowModalSaveDialog(dlg)) return;
             if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
             {
                 StatusMessage = err ?? "Export geannuleerd.";
@@ -148,7 +149,7 @@ public partial class MainViewModel
             }
 
             File.WriteAllText(path, html);
-            StatusMessage = "HTML geëxporteerd.";
+            StatusMessage = $"HTML geëxporteerd: {path}";
         }
         catch (Exception ex)
         {
@@ -168,7 +169,7 @@ public partial class MainViewModel
                 Filter = "HTML (*.html)|*.html|All files (*.*)|*.*",
                 FileName = $"{SanitizeFileName(m.Name)}-designguard-print.html"
             };
-            if (dlg.ShowDialog() != true) return;
+            if (!ShowModalSaveDialog(dlg)) return;
             if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
             {
                 StatusMessage = err ?? "Export geannuleerd.";
@@ -176,7 +177,7 @@ public partial class MainViewModel
             }
 
             File.WriteAllText(path, html);
-            StatusMessage = "Print-HTML geëxporteerd.";
+            StatusMessage = $"Print-HTML geëxporteerd: {path}";
         }
         catch (Exception ex)
         {
@@ -197,24 +198,29 @@ public partial class MainViewModel
                 Filter = "PDF (*.pdf)|*.pdf|All files (*.*)|*.*",
                 FileName = $"{SanitizeFileName(m.Name)}-designguard.pdf"
             };
-            if (dlg.ShowDialog() != true) return;
+            if (!ShowModalSaveDialog(dlg)) return;
             if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
             {
                 StatusMessage = err ?? "Export geannuleerd.";
                 return;
             }
 
+            var disp = Application.Current?.Dispatcher;
+            if (disp == null)
+            {
+                StatusMessage = "PDF-export mislukt: geen UI-context.";
+                return;
+            }
+
             IsBusy = true;
             BusyMessage = "PDF opbouwen (diagram + rapport)…";
-            var (_, pdf) = await Task.Run(() =>
-            {
-                var pngB = _diagramRasterizer.RenderPng(m);
-                var pdfB = _pdfReport.BuildSecurityDesignReport(m, threats, reqs, pngB);
-                return (pngB, pdfB);
-            }).ConfigureAwait(true);
+            // WPF-diagramraster alleen op de UI-thread (RenderTargetBitmap / visuele elementen).
+            var pngB = await disp.InvokeAsync(() => _diagramRasterizer.RenderPng(m));
+            var pdf = await Task.Run(() => _pdfReport.BuildSecurityDesignReport(m, threats, reqs, pngB))
+                .ConfigureAwait(true);
 
-            await File.WriteAllBytesAsync(path, pdf);
-            StatusMessage = "PDF geëxporteerd.";
+            await File.WriteAllBytesAsync(path, pdf).ConfigureAwait(true);
+            StatusMessage = $"PDF geëxporteerd: {path}";
         }
         catch (Exception ex)
         {
@@ -239,7 +245,7 @@ public partial class MainViewModel
                 Filter = "JSON (*.json)|*.json|All files (*.*)|*.*",
                 FileName = $"{SanitizeFileName(m.Name)}-designguard.json"
             };
-            if (dlg.ShowDialog() != true) return;
+            if (!ShowModalSaveDialog(dlg)) return;
             if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
             {
                 StatusMessage = err ?? "Export geannuleerd.";
@@ -247,7 +253,7 @@ public partial class MainViewModel
             }
 
             File.WriteAllText(path, json);
-            StatusMessage = "JSON geëxporteerd.";
+            StatusMessage = $"JSON geëxporteerd: {path}";
         }
         catch (Exception ex)
         {
@@ -261,4 +267,8 @@ public partial class MainViewModel
             name = name.Replace(c, '_');
         return string.IsNullOrWhiteSpace(name) ? "project" : name.Trim();
     }
+
+    /// <summary>Modaal aan hoofdvenster koppelen (betrouwbaarder pad/OK op Windows).</summary>
+    private static bool ShowModalSaveDialog(SaveFileDialog dlg) =>
+        dlg.ShowDialog(Application.Current?.MainWindow) == true;
 }

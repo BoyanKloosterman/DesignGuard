@@ -60,7 +60,8 @@ public sealed class ControlLibraryService
                 LinkedThreatStableId = linkedThreat ?? "",
                 LinkedRequirementStableIds = linkedReq,
                 Status = ControlLifecycleStatus.Proposed,
-                LibraryDefinitionId = def.Id
+                LibraryDefinitionId = def.Id,
+                LinkedComponentIds = new List<int>()
             });
             added++;
         }

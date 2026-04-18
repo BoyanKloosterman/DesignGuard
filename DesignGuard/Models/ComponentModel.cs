@@ -12,8 +12,11 @@ public sealed class ComponentModel
     /// <summary>Fallback koppeling vóór eerste save (wanneer Id nog 0 is).</summary>
     public string? TrustBoundaryName { get; set; }
     public bool IsEntryPoint { get; set; }
-    public AssetClassification AssetClassification { get; set; } = AssetClassification.Unspecified;
-    public DataSensitivity StoresOrProcesses { get; set; } = DataSensitivity.None;
+    /// <summary>Enum-naam of vrije label (komt overeen met DB-kolom).</summary>
+    public string AssetClassification { get; set; } = "Unspecified";
+
+    /// <summary>Enum-naam of vrije label (komt overeen met DB-kolom).</summary>
+    public string StoresOrProcesses { get; set; } = "None";
     public string Notes { get; set; } = "";
     public double? VisualX { get; set; }
     public double? VisualY { get; set; }

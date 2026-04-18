@@ -144,6 +144,11 @@ public partial class AssetRowViewModel : ObservableObject
     [ObservableProperty] private string _notes = "";
 
     [ObservableProperty] private int _relatedComponentId;
+
+    [ObservableProperty] private ComponentRowViewModel? _relatedComponent;
+
+    partial void OnRelatedComponentChanged(ComponentRowViewModel? value) =>
+        RelatedComponentId = value?.Id ?? 0;
 }
 
 public partial class DesignNoteRowViewModel : ObservableObject
@@ -186,6 +191,10 @@ public partial class ControlRowViewModel : ObservableObject
     [ObservableProperty] private string _statusNotes = "";
 
     [ObservableProperty] private string _libraryDefinitionId = "";
+
+    [ObservableProperty] private ComponentRowViewModel? _linkedComponent;
+
+    [ObservableProperty] private string _extraLinkedComponentIds = "";
 }
 
 public partial class EntryPointRowViewModel : ObservableObject
@@ -197,6 +206,11 @@ public partial class EntryPointRowViewModel : ObservableObject
     [ObservableProperty] private string _description = "";
 
     [ObservableProperty] private int _relatedComponentId;
+
+    [ObservableProperty] private ComponentRowViewModel? _relatedComponent;
+
+    partial void OnRelatedComponentChanged(ComponentRowViewModel? value) =>
+        RelatedComponentId = value?.Id ?? 0;
 
     [ObservableProperty] private string _notes = "";
 
@@ -214,6 +228,11 @@ public partial class SensitiveDataRowViewModel : ObservableObject
     [ObservableProperty] private string _description = "";
 
     [ObservableProperty] private int _relatedComponentId;
+
+    [ObservableProperty] private ComponentRowViewModel? _relatedComponent;
+
+    partial void OnRelatedComponentChanged(ComponentRowViewModel? value) =>
+        RelatedComponentId = value?.Id ?? 0;
 
     [ObservableProperty] private string _storageLocation = "";
 

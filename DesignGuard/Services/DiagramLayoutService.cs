@@ -10,7 +10,7 @@ public sealed record DiagramNodeLayout(
     string Tag,
     int? TrustBoundaryId,
     bool IsEntryPoint,
-    DataSensitivity DataSensitivity);
+    string StoresOrProcessesLabel);
 
 public sealed record DiagramEdgeLayout(
     int FromId,

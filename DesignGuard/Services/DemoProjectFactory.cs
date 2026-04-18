@@ -147,7 +147,7 @@ public static class DemoProjectFactory
             TrustBoundaryId = 3,
             TrustBoundaryName = "Backend-kern",
             IsEntryPoint = false,
-            StoresOrProcesses = DataSensitivity.Personal,
+            StoresOrProcesses = nameof(DataSensitivity.Personal),
             Notes = "Back-ups versleuteld; least-privilege user (afgerond)."
         });
         p.Components.Add(new ComponentModel
@@ -159,7 +159,7 @@ public static class DemoProjectFactory
             TrustBoundaryId = 3,
             TrustBoundaryName = "Backend-kern",
             IsEntryPoint = false,
-            StoresOrProcesses = DataSensitivity.Sensitive,
+            StoresOrProcesses = nameof(DataSensitivity.Sensitive),
             Notes = "Geen TLS tussen app en Redis in dev — prod wel; assumptie vastgelegd."
         });
         p.Components.Add(new ComponentModel
@@ -171,7 +171,7 @@ public static class DemoProjectFactory
             TrustBoundaryId = 3,
             TrustBoundaryName = "Backend-kern",
             IsEntryPoint = false,
-            StoresOrProcesses = DataSensitivity.Sensitive,
+            StoresOrProcesses = nameof(DataSensitivity.Sensitive),
             Notes = "Signed URLs; virusscan op uploads — deels geïmplementeerd."
         });
         p.Components.Add(new ComponentModel
@@ -220,8 +220,8 @@ public static class DemoProjectFactory
             Id = 1,
             Name = "Order- en klantdossier",
             Description = "Orders, NAW, orderhistorie.",
-            Classification = AssetClassification.Confidential,
-            Sensitivity = DataSensitivity.Personal,
+            Classification = nameof(AssetClassification.Confidential),
+            Sensitivity = nameof(DataSensitivity.Personal),
             RelatedComponentId = 6,
             Notes = "Hoofdbron voor AVG-verzoeken."
         });
@@ -230,8 +230,8 @@ public static class DemoProjectFactory
             Id = 2,
             Name = "Factuur-PDF",
             Description = "Financiële documenten in blob.",
-            Classification = AssetClassification.Restricted,
-            Sensitivity = DataSensitivity.Sensitive,
+            Classification = nameof(AssetClassification.Restricted),
+            Sensitivity = nameof(DataSensitivity.Sensitive),
             RelatedComponentId = 8,
             Notes = "Retention 7 jaar — fiscaliteit."
         });
@@ -240,8 +240,8 @@ public static class DemoProjectFactory
             Id = 3,
             Name = "Productmedia",
             Description = "Publieke afbeeldingen + soms leveranciers-PDF.",
-            Classification = AssetClassification.Internal,
-            Sensitivity = DataSensitivity.Low,
+            Classification = nameof(AssetClassification.Internal),
+            Sensitivity = nameof(DataSensitivity.Low),
             RelatedComponentId = 8,
             Notes = "Niet alle uploads zijn publiek."
         });

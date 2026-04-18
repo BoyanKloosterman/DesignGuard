@@ -64,8 +64,12 @@ internal static class ProjectDocumentBuilder
             {
                 TrustBoundaryId = tbId,
                 IsEntryPoint = c.IsEntryPoint,
-                AssetClassification = c.AssetClassification.ToString(),
-                DataSensitivity = c.StoresOrProcesses.ToString(),
+                AssetClassification = string.IsNullOrWhiteSpace(c.AssetClassification)
+                    ? nameof(AssetClassification.Unspecified)
+                    : c.AssetClassification,
+                DataSensitivity = string.IsNullOrWhiteSpace(c.StoresOrProcesses)
+                    ? nameof(DataSensitivity.None)
+                    : c.StoresOrProcesses,
                 Notes = c.Notes,
                 VisualX = c.VisualX,
                 VisualY = c.VisualY,
@@ -114,8 +118,12 @@ internal static class ProjectDocumentBuilder
             {
                 Name = a.Name,
                 Description = a.Description,
-                Classification = a.Classification.ToString(),
-                Sensitivity = a.Sensitivity.ToString(),
+                Classification = string.IsNullOrWhiteSpace(a.Classification)
+                    ? nameof(AssetClassification.Unspecified)
+                    : a.Classification,
+                Sensitivity = string.IsNullOrWhiteSpace(a.Sensitivity)
+                    ? nameof(DataSensitivity.None)
+                    : a.Sensitivity,
                 Notes = a.Notes,
                 RelatedComponentId = related
             });
@@ -138,6 +146,11 @@ internal static class ProjectDocumentBuilder
 
         foreach (var c in m.Controls)
         {
+            var linkedIds = (c.LinkedComponentIds ?? new List<int>())
+                .Select(oldId => RemapComponentId(m, oldId, nameToCompId))
+                .Where(id => id != 0)
+                .Distinct()
+                .ToList();
             doc.Controls.Add(new ControlDoc
             {
                 StableId = string.IsNullOrWhiteSpace(c.StableId) ? Guid.NewGuid().ToString("N") : c.StableId,
@@ -150,7 +163,8 @@ internal static class ProjectDocumentBuilder
                 LinkedRequirementStableIdsJson = JsonBlobs.Serialize(c.LinkedRequirementStableIds),
                 Status = (int)c.Status,
                 StatusNotes = c.StatusNotes,
-                LibraryDefinitionId = c.LibraryDefinitionId
+                LibraryDefinitionId = c.LibraryDefinitionId,
+                LinkedComponentIdsJson = JsonBlobs.Serialize(linkedIds)
             });
         }
 

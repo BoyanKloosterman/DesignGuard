@@ -65,7 +65,7 @@ public sealed class ExportService
                 $"- **{c.Name}** (`{c.Tag}`){(c.IsEntryPoint ? " *[entry]*" : "")} {(string.IsNullOrWhiteSpace(tb) ? "" : $"— boundary: {tb}")}");
             if (!string.IsNullOrWhiteSpace(c.Description))
                 sb.AppendLine($"  - {c.Description}");
-            if (c.StoresOrProcesses != DataSensitivity.None)
+            if (DesignOntwerpWaarden.ShowsDataSensitivityInExport(c.StoresOrProcesses))
                 sb.AppendLine($"  - Datagevoeligheid (ontwerp): {c.StoresOrProcesses}");
         }
 

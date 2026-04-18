@@ -118,6 +118,8 @@ public partial class MainViewModel : ObservableObject
         Suggestions = new ObservableCollection<ModelingSuggestion>();
         KnowledgePackRows = new ObservableCollection<KnowledgePackToggleRow>();
         AppSecurityReviewRows = new ObservableCollection<AppSecurityReviewRowViewModel>();
+        Components.CollectionChanged += (_, _) => RefreshComponentTagSuggestions();
+        Controls.CollectionChanged += (_, _) => RefreshControlSourceTagSuggestions();
     }
 
     public IReadOnlyList<string> SystemTypeOptions { get; }
@@ -167,6 +169,16 @@ public partial class MainViewModel : ObservableObject
     public IReadOnlyList<string> DetailLevelOptions { get; } = new[] { "Beginner", "Advanced" };
 
     public IReadOnlyList<string> UiDensityOptions { get; } = new[] { "Comfortable", "Compact" };
+
+    public IReadOnlyList<string> PresetAssetClassifications { get; } =
+        Enum.GetNames(typeof(AssetClassification));
+
+    public IReadOnlyList<string> PresetDataSensitivityLabels { get; } =
+        Enum.GetNames(typeof(DataSensitivity));
+
+    public ObservableCollection<string> ComponentTagSuggestions { get; } = new();
+
+    public ObservableCollection<string> ControlSourceTagSuggestions { get; } = new();
 
     [ObservableProperty] private ObservableCollection<ProjectSummaryItem> _projectList = new();
 
@@ -468,4 +480,30 @@ public partial class MainViewModel : ObservableObject
     partial void OnThreatSortChanged(string value) => RefreshFilters();
 
     partial void OnRequirementSortChanged(string value) => RefreshFilters();
+
+    private void RefreshComponentTagSuggestions()
+    {
+        ComponentTagSuggestions.Clear();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var t in DesignDropdownPresets.ComponentTags)
+            if (seen.Add(t)) ComponentTagSuggestions.Add(t);
+        foreach (var c in Components)
+        {
+            var tag = c.Tag?.Trim();
+            if (!string.IsNullOrEmpty(tag) && seen.Add(tag)) ComponentTagSuggestions.Add(tag);
+        }
+    }
+
+    private void RefreshControlSourceTagSuggestions()
+    {
+        ControlSourceTagSuggestions.Clear();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var t in DesignDropdownPresets.ControlSourceTags)
+            if (seen.Add(t)) ControlSourceTagSuggestions.Add(t);
+        foreach (var row in Controls)
+        {
+            foreach (var token in SplitCommaList(row.SourceTags))
+                if (seen.Add(token)) ControlSourceTagSuggestions.Add(token);
+        }
+    }
 }

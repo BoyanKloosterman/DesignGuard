@@ -243,10 +243,35 @@
                                           CanUserAddRows="False" HeadersVisibility="Column" Height="200">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                                        <DataGridTextColumn Header="Tag" Binding="{Binding Tag, UpdateSourceTrigger=PropertyChanged}" Width="70" />
+                                        <DataGridTemplateColumn Header="Tag" Width="118">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox IsEditable="True" StaysOpenOnEdit="False"
+                                                              ItemsSource="{Binding DataContext.ComponentTagSuggestions, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              Text="{Binding Tag, UpdateSourceTrigger=PropertyChanged}" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTemplateColumn Header="Classificatie" Width="118">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox IsEditable="True" StaysOpenOnEdit="False"
+                                                              ItemsSource="{Binding DataContext.PresetAssetClassifications, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              Text="{Binding AssetClassification, UpdateSourceTrigger=PropertyChanged}" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
                                         <DataGridCheckBoxColumn Header="Entry" Binding="{Binding IsEntryPoint}" Width="50" />
                                         <DataGridTextColumn Header="Boundary (naam)" Binding="{Binding TrustBoundaryName, UpdateSourceTrigger=PropertyChanged}" Width="110" />
-                                        <DataGridTextColumn Header="Data" Binding="{Binding DataSensitivity, UpdateSourceTrigger=PropertyChanged}" Width="80" />
+                                        <DataGridTemplateColumn Header="Data" Width="118">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox IsEditable="True" StaysOpenOnEdit="False"
+                                                              ItemsSource="{Binding DataContext.PresetDataSensitivityLabels, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              Text="{Binding DataSensitivity, UpdateSourceTrigger=PropertyChanged}" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
                                         <DataGridTextColumn Header="Notities" Binding="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                                         <DataGridTemplateColumn Width="70">
                                             <DataGridTemplateColumn.CellTemplate>
@@ -319,11 +344,36 @@
                         <GroupBox Header="Assets" Margin="0,8,0,0">
                             <StackPanel Margin="8">
                                 <Button Content="Asset toevoegen" Command="{Binding AddAssetCommand}" HorizontalAlignment="Left" Margin="0,0,0,8" />
-                                <DataGrid ItemsSource="{Binding Assets}" AutoGenerateColumns="False" CanUserAddRows="False" Height="100">
+                                <DataGrid ItemsSource="{Binding Assets}" AutoGenerateColumns="False" CanUserAddRows="False" Height="120">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                                        <DataGridTextColumn Header="Classificatie" Binding="{Binding Classification, UpdateSourceTrigger=PropertyChanged}" Width="100" />
-                                        <DataGridTextColumn Header="Gevoeligheid" Binding="{Binding Sensitivity, UpdateSourceTrigger=PropertyChanged}" Width="100" />
+                                        <DataGridTemplateColumn Header="Classificatie" Width="118">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox IsEditable="True" StaysOpenOnEdit="False"
+                                                              ItemsSource="{Binding DataContext.PresetAssetClassifications, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              Text="{Binding Classification, UpdateSourceTrigger=PropertyChanged}" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTemplateColumn Header="Gevoeligheid" Width="118">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox IsEditable="True" StaysOpenOnEdit="False"
+                                                              ItemsSource="{Binding DataContext.PresetDataSensitivityLabels, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              Text="{Binding Sensitivity, UpdateSourceTrigger=PropertyChanged}" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTemplateColumn Header="Component" Width="140" MinWidth="100">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              SelectedItem="{Binding RelatedComponent, UpdateSourceTrigger=PropertyChanged}"
+                                                              DisplayMemberPath="Name" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
                                         <DataGridTemplateColumn Width="70">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
@@ -341,7 +391,15 @@
                                 <DataGrid ItemsSource="{Binding EntryPoints}" AutoGenerateColumns="False" CanUserAddRows="False" Height="100">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                                        <DataGridTextColumn Header="Component-Id" Binding="{Binding RelatedComponentId, UpdateSourceTrigger=PropertyChanged}" Width="90" />
+                                        <DataGridTemplateColumn Header="Component" Width="160" MinWidth="120">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              SelectedItem="{Binding RelatedComponent, UpdateSourceTrigger=PropertyChanged}"
+                                                              DisplayMemberPath="Name" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
                                         <DataGridTextColumn Header="Notities" Binding="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                                         <DataGridTemplateColumn Width="70">
                                             <DataGridTemplateColumn.CellTemplate>
@@ -362,7 +420,15 @@
                                         <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                                         <DataGridTextColumn Header="Categorie" Binding="{Binding Category, UpdateSourceTrigger=PropertyChanged}" Width="90" />
                                         <DataGridTextColumn Header="Opslag" Binding="{Binding StorageLocation, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                                        <DataGridTextColumn Header="Comp-Id" Binding="{Binding RelatedComponentId, UpdateSourceTrigger=PropertyChanged}" Width="70" />
+                                        <DataGridTemplateColumn Header="Component" Width="140" MinWidth="100">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              SelectedItem="{Binding RelatedComponent, UpdateSourceTrigger=PropertyChanged}"
+                                                              DisplayMemberPath="Name" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
                                         <DataGridTemplateColumn Width="70">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
@@ -633,11 +699,29 @@
                             <Button Content="Handmatige control" Command="{Binding AddControlCommand}" Margin="0,0,8,8" />
                             <Button Content="Pas bibliotheek toe" Command="{Binding ApplyControlLibraryCommand}" Margin="0,0,8,8" />
                         </WrapPanel>
-                        <DataGrid ItemsSource="{Binding Controls}" AutoGenerateColumns="False" CanUserAddRows="False" MinHeight="200" HeadersVisibility="Column">
+                                <DataGrid ItemsSource="{Binding Controls}" AutoGenerateColumns="False" CanUserAddRows="False" MinHeight="200" HeadersVisibility="Column">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Titel" Binding="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
                                 <DataGridTextColumn Header="Categorie" Binding="{Binding Category, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                                <DataGridTextColumn Header="Tags" Binding="{Binding SourceTags, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                                <DataGridTemplateColumn Header="Bron-tags" Width="160">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox IsEditable="True" StaysOpenOnEdit="False"
+                                                      ItemsSource="{Binding DataContext.ControlSourceTagSuggestions, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                      Text="{Binding SourceTags, UpdateSourceTrigger=PropertyChanged}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Component" Width="150" MinWidth="120">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                      SelectedItem="{Binding LinkedComponent, UpdateSourceTrigger=PropertyChanged}"
+                                                      DisplayMemberPath="Name" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Meer ID's" Binding="{Binding ExtraLinkedComponentIds, UpdateSourceTrigger=PropertyChanged}" Width="90" />
                                 <DataGridTemplateColumn Header="Status" Width="120">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>

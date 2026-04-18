@@ -164,8 +164,8 @@ public partial class MainViewModel
                 TrustBoundaryId = c.TrustBoundaryId,
                 TrustBoundaryName = c.TrustBoundaryName,
                 IsEntryPoint = c.IsEntryPoint,
-                AssetClassification = c.AssetClassification.ToString(),
-                DataSensitivity = c.StoresOrProcesses.ToString(),
+                AssetClassification = c.AssetClassification,
+                DataSensitivity = c.StoresOrProcesses,
                 Notes = c.Notes,
                 VisualX = c.VisualX,
                 VisualY = c.VisualY
@@ -206,10 +206,10 @@ public partial class MainViewModel
                 Id = a.Id,
                 Name = a.Name,
                 Description = a.Description,
-                Classification = a.Classification.ToString(),
-                Sensitivity = a.Sensitivity.ToString(),
+                Classification = a.Classification,
+                Sensitivity = a.Sensitivity,
                 Notes = a.Notes,
-                RelatedComponentId = a.RelatedComponentId
+                RelatedComponent = Components.FirstOrDefault(c => c.Id == a.RelatedComponentId)
             });
         }
 
@@ -229,6 +229,7 @@ public partial class MainViewModel
         Controls.Clear();
         foreach (var c in p.Controls)
         {
+            var linkIds = c.LinkedComponentIds ?? new List<int>();
             Controls.Add(new ControlRowViewModel
             {
                 Id = c.Id,
@@ -242,7 +243,11 @@ public partial class MainViewModel
                 LinkedRequirementStableIds = string.Join(", ", c.LinkedRequirementStableIds),
                 Status = c.Status.ToString(),
                 StatusNotes = c.StatusNotes,
-                LibraryDefinitionId = c.LibraryDefinitionId
+                LibraryDefinitionId = c.LibraryDefinitionId,
+                LinkedComponent = linkIds.Count > 0
+                    ? Components.FirstOrDefault(x => x.Id == linkIds[0])
+                    : null,
+                ExtraLinkedComponentIds = linkIds.Count > 1 ? string.Join(", ", linkIds.Skip(1)) : ""
             });
         }
 
@@ -254,7 +259,7 @@ public partial class MainViewModel
                 Id = ep.Id,
                 Name = ep.Name,
                 Description = ep.Description,
-                RelatedComponentId = ep.RelatedComponentId,
+                RelatedComponent = Components.FirstOrDefault(c => c.Id == ep.RelatedComponentId),
                 Notes = ep.Notes,
                 ExposureNotes = ep.ExposureNotes
             });
@@ -269,7 +274,7 @@ public partial class MainViewModel
                 Name = s.Name,
                 Category = s.Category,
                 Description = s.Description,
-                RelatedComponentId = s.RelatedComponentId,
+                RelatedComponent = Components.FirstOrDefault(c => c.Id == s.RelatedComponentId),
                 StorageLocation = s.StorageLocation,
                 Notes = s.Notes
             });
@@ -309,6 +314,8 @@ public partial class MainViewModel
         RefreshFilters();
         UpdateDashboard();
         RefreshSuggestions();
+        RefreshComponentTagSuggestions();
+        RefreshControlSourceTagSuggestions();
     }
 
     private ProjectModel BuildModelFromEditor()
@@ -336,12 +343,12 @@ public partial class MainViewModel
             TrustBoundaryId = c.TrustBoundaryId,
             TrustBoundaryName = c.TrustBoundaryName,
             IsEntryPoint = c.IsEntryPoint,
-            AssetClassification = Enum.TryParse<AssetClassification>(c.AssetClassification, out var ac)
-                ? ac
-                : AssetClassification.Unspecified,
-            StoresOrProcesses = Enum.TryParse<DataSensitivity>(c.DataSensitivity, out var ds)
-                ? ds
-                : DataSensitivity.None,
+            AssetClassification = string.IsNullOrWhiteSpace(c.AssetClassification)
+                ? nameof(AssetClassification.Unspecified)
+                : c.AssetClassification.Trim(),
+            StoresOrProcesses = string.IsNullOrWhiteSpace(c.DataSensitivity)
+                ? nameof(DataSensitivity.None)
+                : c.DataSensitivity.Trim(),
             Notes = c.Notes,
             VisualX = c.VisualX,
             VisualY = c.VisualY
@@ -372,14 +379,14 @@ public partial class MainViewModel
             Id = a.Id,
             Name = a.Name,
             Description = a.Description,
-            Classification = Enum.TryParse<AssetClassification>(a.Classification, out var cl)
-                ? cl
-                : AssetClassification.Unspecified,
-            Sensitivity = Enum.TryParse<DataSensitivity>(a.Sensitivity, out var se)
-                ? se
-                : DataSensitivity.None,
+            Classification = string.IsNullOrWhiteSpace(a.Classification)
+                ? nameof(AssetClassification.Unspecified)
+                : a.Classification.Trim(),
+            Sensitivity = string.IsNullOrWhiteSpace(a.Sensitivity)
+                ? nameof(DataSensitivity.None)
+                : a.Sensitivity.Trim(),
             Notes = a.Notes,
-            RelatedComponentId = a.RelatedComponentId
+            RelatedComponentId = a.RelatedComponent?.Id ?? a.RelatedComponentId
         }).ToList();
 
         var notes = DesignNotes.Select(n => new DesignNoteModel
@@ -406,7 +413,8 @@ public partial class MainViewModel
                 ? cst
                 : ControlLifecycleStatus.Draft,
             StatusNotes = c.StatusNotes,
-            LibraryDefinitionId = c.LibraryDefinitionId
+            LibraryDefinitionId = c.LibraryDefinitionId,
+            LinkedComponentIds = ComposeLinkedComponentIds(c.LinkedComponent, c.ExtraLinkedComponentIds)
         }).ToList();
 
         var entryList = EntryPoints.Select(e => new EntryPointModel
@@ -414,7 +422,7 @@ public partial class MainViewModel
             Id = e.Id,
             Name = e.Name,
             Description = e.Description,
-            RelatedComponentId = e.RelatedComponentId,
+            RelatedComponentId = e.RelatedComponent?.Id ?? e.RelatedComponentId,
             Notes = e.Notes,
             ExposureNotes = e.ExposureNotes
         }).ToList();
@@ -425,7 +433,7 @@ public partial class MainViewModel
             Name = s.Name,
             Category = s.Category,
             Description = s.Description,
-            RelatedComponentId = s.RelatedComponentId,
+            RelatedComponentId = s.RelatedComponent?.Id ?? s.RelatedComponentId,
             StorageLocation = s.StorageLocation,
             Notes = s.Notes
         }).ToList();
@@ -495,6 +503,22 @@ public partial class MainViewModel
         if (string.IsNullOrWhiteSpace(raw)) return new List<string>();
         return raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Where(s => s.Length > 0).ToList();
+    }
+
+    private static List<int> ComposeLinkedComponentIds(ComponentRowViewModel? primary, string? extraCsv)
+    {
+        var ids = new List<int>();
+        if (primary is { Id: > 0 })
+            ids.Add(primary.Id);
+        if (string.IsNullOrWhiteSpace(extraCsv)) return ids;
+        foreach (var part in extraCsv.Split(new[] { ',', ';' },
+                     StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (!int.TryParse(part, out var id) || id <= 0) continue;
+            if (!ids.Contains(id)) ids.Add(id);
+        }
+
+        return ids;
     }
 
     [RelayCommand]

@@ -28,7 +28,8 @@ public partial class MainViewModel
             var threat = NavSection == 1 && DiagramOverlayThreatLinks ? SelectedThreat : null;
             DiagramNodes = new ObservableCollection<DiagramNodeViewModel>(layout.Nodes.Select(n =>
             {
-                var showSen = DiagramOverlaySensitiveData && n.DataSensitivity != DataSensitivity.None;
+                var showSen = DiagramOverlaySensitiveData &&
+                              DesignOntwerpWaarden.IsDataSensitivityVisuallyElevated(n.StoresOrProcessesLabel);
                 var linked = threat != null &&
                              threat.AffectedComponents.Exists(a =>
                                  string.Equals(a, n.Name, StringComparison.OrdinalIgnoreCase));
@@ -37,7 +38,7 @@ public partial class MainViewModel
                     ComponentId = n.ComponentId,
                     Name = n.Name,
                     Tag = n.Tag,
-                    DataSensitivity = n.DataSensitivity.ToString(),
+                    DataSensitivity = n.StoresOrProcessesLabel,
                     X = n.X,
                     Y = n.Y,
                     IsEntryPoint = n.IsEntryPoint,

@@ -5,6 +5,27 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="328">
+    <UserControl.Resources>
+        <!-- Rij-volgorde: NavSection 2 = dreiging eerst; 3 = eis eerst; overig = dreiging eerst (zoals 2). -->
+        <Style x:Key="DetailThreatCardOrdered" TargetType="Border" BasedOn="{StaticResource DgCard}">
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Grid.Row" Value="0" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding NavSection}" Value="3">
+                    <Setter Property="Grid.Row" Value="1" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="DetailRequirementCardOrdered" TargetType="Border" BasedOn="{StaticResource DgCard}">
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Grid.Row" Value="1" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding NavSection}" Value="3">
+                    <Setter Property="Grid.Row" Value="0" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
     <ScrollViewer Margin="{DynamicResource DgThickness.PageMargin}" Padding="4,0,0,0">
         <StackPanel>
             <TextBlock Text="Details" Style="{StaticResource DgText.Title}" Margin="0,0,0,4" />
@@ -20,7 +41,12 @@
                                Style="{StaticResource DgText.Muted}" FontSize="11" Margin="0,8,0,0" />
                 </StackPanel>
             </Border>
-            <Border Visibility="{Binding SelectedThreat, Converter={StaticResource NotNullToVisibility}}" Style="{StaticResource DgCard}" Margin="0,0,0,8">
+            <Grid Margin="0,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+            <Border Visibility="{Binding SelectedThreat, Converter={StaticResource NotNullToVisibility}}" Style="{StaticResource DetailThreatCardOrdered}">
                 <StackPanel DataContext="{Binding SelectedThreat}">
                     <TextBlock Text="Dreiging" FontWeight="SemiBold" />
                     <TextBlock Text="Titel" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
@@ -104,7 +130,7 @@
                             CommandParameter="{Binding}" />
                 </StackPanel>
             </Border>
-            <Border Visibility="{Binding SelectedRequirement, Converter={StaticResource NotNullToVisibility}}" Style="{StaticResource DgCard}" Margin="0,0,0,8">
+            <Border Visibility="{Binding SelectedRequirement, Converter={StaticResource NotNullToVisibility}}" Style="{StaticResource DetailRequirementCardOrdered}">
                 <StackPanel DataContext="{Binding SelectedRequirement}">
                     <TextBlock Text="Eis" FontWeight="SemiBold" />
                     <TextBlock Text="Titel" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
@@ -172,6 +198,7 @@
                             CommandParameter="{Binding}" />
                 </StackPanel>
             </Border>
+            </Grid>
             <Border Visibility="{Binding SelectedComponent, Converter={StaticResource NotNullToVisibility}}" Style="{StaticResource DgCard}">
                 <StackPanel DataContext="{Binding SelectedComponent}">
                     <TextBlock Text="Component" FontWeight="SemiBold" />

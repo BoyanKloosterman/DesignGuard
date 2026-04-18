@@ -246,9 +246,67 @@
         </Style.Triggers>
     </Style>
 
+    <!-- Eigen template: vink gebruikt TextPrimary (licht in dark mode, donker in light mode). -->
     <Style TargetType="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource DgBrush.TextPrimary}" />
         <Setter Property="Background" Value="Transparent" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
+                        <Border x:Name="CheckBoxBorder" Width="18" Height="18"
+                                Background="{DynamicResource DgBrush.InputBackground}"
+                                BorderBrush="{DynamicResource DgBrush.BorderStrong}"
+                                BorderThickness="1.5" CornerRadius="3" VerticalAlignment="Center"
+                                Padding="2">
+                            <Grid>
+                                <Viewbox x:Name="CheckMarkHost" Stretch="Uniform" HorizontalAlignment="Center"
+                                         VerticalAlignment="Center" Visibility="Collapsed">
+                                    <!-- Geometrie in 16x16, symmetrisch rond (8,8) voor nette centrering -->
+                                    <Canvas Width="16" Height="16">
+                                        <Path Data="M 3.2 8.1 L 6.9 11.8 L 12.8 4.2"
+                                              Stroke="{DynamicResource DgBrush.TextPrimary}"
+                                              StrokeThickness="2"
+                                              StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                              StrokeLineJoin="Round"
+                                              Fill="Transparent" SnapsToDevicePixels="True" />
+                                    </Canvas>
+                                </Viewbox>
+                                <Rectangle x:Name="IndeterminateMark" Width="10" Height="2.5" RadiusX="1" RadiusY="1"
+                                           Fill="{DynamicResource DgBrush.TextPrimary}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Visibility="Collapsed" />
+                            </Grid>
+                        </Border>
+                        <ContentPresenter x:Name="ContentPresenter" Margin="8,0,0,0"
+                                          VerticalAlignment="Center"
+                                          RecognizesAccessKey="True" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="CheckMarkHost" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="IndeterminateMark" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="False">
+                            <Setter TargetName="CheckMarkHost" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="IndeterminateMark" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="{x:Null}">
+                            <Setter TargetName="CheckMarkHost" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="IndeterminateMark" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="CheckBoxBorder" Property="BorderBrush" Value="{DynamicResource DgBrush.Accent}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <Style TargetType="ListBox">

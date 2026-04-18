@@ -14,6 +14,16 @@ public sealed class ControlLibraryService
 
     private IReadOnlyList<ControlLibraryItemDto>? _cache;
 
+    /// <summary>Ids en titels voor UI-koppeling (control-grid).</summary>
+    public IEnumerable<(string Id, string Title)> EnumerateLibraryDefinitions()
+    {
+        foreach (var d in GetDefinitions())
+        {
+            if (string.IsNullOrWhiteSpace(d.Id)) continue;
+            yield return (d.Id, d.Title);
+        }
+    }
+
     private IReadOnlyList<ControlLibraryItemDto> GetDefinitions()
     {
         if (_cache != null) return _cache;

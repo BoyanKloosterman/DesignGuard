@@ -251,6 +251,9 @@ public partial class MainViewModel
             });
         }
 
+        foreach (var row in Controls)
+            row.RebuildLinkedRequirementChips(p.Requirements);
+
         EntryPoints.Clear();
         foreach (var ep in p.EntryPoints)
         {

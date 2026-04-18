@@ -130,7 +130,7 @@ public partial class MainViewModel
                     string.Equals(r.LibraryDefinitionId, c.LibraryDefinitionId, StringComparison.OrdinalIgnoreCase)))
                 continue;
             var linkIds = c.LinkedComponentIds ?? new List<int>();
-            Controls.Add(new ControlRowViewModel
+            var newRow = new ControlRowViewModel
             {
                 Id = c.Id,
                 StableId = c.StableId,
@@ -148,7 +148,9 @@ public partial class MainViewModel
                     ? Components.FirstOrDefault(x => x.Id == linkIds[0])
                     : null,
                 ExtraLinkedComponentIds = linkIds.Count > 1 ? string.Join(", ", linkIds.Skip(1)) : ""
-            });
+            };
+            Controls.Add(newRow);
+            newRow.RebuildLinkedRequirementChips(Requirements);
         }
     }
 

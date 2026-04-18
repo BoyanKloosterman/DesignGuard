@@ -1,4 +1,6 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using DesignGuard.Models;
 
 namespace DesignGuard.ViewModels;
@@ -195,6 +197,55 @@ public partial class ControlRowViewModel : ObservableObject
     [ObservableProperty] private ComponentRowViewModel? _linkedComponent;
 
     [ObservableProperty] private string _extraLinkedComponentIds = "";
+
+    private bool _suppressChipSync;
+
+    public ObservableCollection<ControlLinkedRequirementItem> LinkedRequirementChips { get; } = new();
+
+    public ControlRowViewModel()
+    {
+        LinkedRequirementChips.CollectionChanged += (_, _) =>
+        {
+            if (_suppressChipSync) return;
+            var joined = string.Join(", ", LinkedRequirementChips.Select(c => c.Id));
+            if (joined != LinkedRequirementStableIds)
+                LinkedRequirementStableIds = joined;
+        };
+    }
+
+    public void RebuildLinkedRequirementChips(IEnumerable<RequirementModel> reqs)
+    {
+        _suppressChipSync = true;
+        LinkedRequirementChips.Clear();
+        foreach (var id in SplitCommaIds(LinkedRequirementStableIds))
+        {
+            if (string.IsNullOrWhiteSpace(id)) continue;
+            var r = reqs.FirstOrDefault(x => x.Id == id);
+            LinkedRequirementChips.Add(new ControlLinkedRequirementItem(r?.Title ?? id, id));
+        }
+
+        _suppressChipSync = false;
+    }
+
+    public void AddLinkedRequirement(RequirementModel r)
+    {
+        if (LinkedRequirementChips.Any(c => c.Id == r.Id)) return;
+        LinkedRequirementChips.Add(new ControlLinkedRequirementItem(r.Title, r.Id));
+    }
+
+    private static List<string> SplitCommaIds(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return new List<string>();
+        return raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(s => s.Length > 0).ToList();
+    }
+
+    [RelayCommand]
+    private void RemoveLinkedRequirementChip(ControlLinkedRequirementItem? item)
+    {
+        if (item == null) return;
+        LinkedRequirementChips.Remove(item);
+    }
 }
 
 public partial class EntryPointRowViewModel : ObservableObject

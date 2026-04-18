@@ -1,5 +1,6 @@
 // Kern: DI, state properties, navigatie-hooks (partial MainViewModel).
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Text.Json;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -44,6 +45,7 @@ public partial class MainViewModel : ObservableObject
     private HashSet<string> _dismissedSuggestionKeys = new(StringComparer.Ordinal);
     private readonly DispatcherTimer _filterDebounceTimer;
     private bool _suppressPreferencePersist;
+    private ObservableCollection<ThreatModel>? _threatsWatchedForPicker;
 
     public MainViewModel(
         IProjectRepository projects,
@@ -120,6 +122,23 @@ public partial class MainViewModel : ObservableObject
         AppSecurityReviewRows = new ObservableCollection<AppSecurityReviewRowViewModel>();
         Components.CollectionChanged += (_, _) => RefreshComponentTagSuggestions();
         Controls.CollectionChanged += (_, _) => RefreshControlSourceTagSuggestions();
+        ControlLibraryPickList.Add(new LibraryPickItem("", "Geen bibliotheek-item"));
+        foreach (var lib in _controlLibrary.EnumerateLibraryDefinitions())
+            ControlLibraryPickList.Add(new LibraryPickItem(lib.Id, lib.Title));
+        _threatsWatchedForPicker = Threats;
+        Threats.CollectionChanged += OnThreatsCollectionChangedForControlPickers;
+        RefreshControlThreatPickList();
+    }
+
+    private void OnThreatsCollectionChangedForControlPickers(object? _, NotifyCollectionChangedEventArgs __) =>
+        RefreshControlThreatPickList();
+
+    private void RefreshControlThreatPickList()
+    {
+        ControlThreatPickList.Clear();
+        ControlThreatPickList.Add(new ThreatPickItem("", "Geen gekoppelde dreiging"));
+        foreach (var t in Threats.OrderBy(x => x.Title))
+            ControlThreatPickList.Add(new ThreatPickItem(t.Id, t.Title));
     }
 
     public IReadOnlyList<string> SystemTypeOptions { get; }
@@ -179,6 +198,10 @@ public partial class MainViewModel : ObservableObject
     public ObservableCollection<string> ComponentTagSuggestions { get; } = new();
 
     public ObservableCollection<string> ControlSourceTagSuggestions { get; } = new();
+
+    public ObservableCollection<ThreatPickItem> ControlThreatPickList { get; } = new();
+
+    public ObservableCollection<LibraryPickItem> ControlLibraryPickList { get; } = new();
 
     [ObservableProperty] private ObservableCollection<ProjectSummaryItem> _projectList = new();
 
@@ -505,5 +528,14 @@ public partial class MainViewModel : ObservableObject
             foreach (var token in SplitCommaList(row.SourceTags))
                 if (seen.Add(token)) ControlSourceTagSuggestions.Add(token);
         }
+    }
+
+    partial void OnThreatsChanged(ObservableCollection<ThreatModel> value)
+    {
+        if (_threatsWatchedForPicker != null)
+            _threatsWatchedForPicker.CollectionChanged -= OnThreatsCollectionChangedForControlPickers;
+        _threatsWatchedForPicker = value;
+        value.CollectionChanged += OnThreatsCollectionChangedForControlPickers;
+        RefreshControlThreatPickList();
     }
 }

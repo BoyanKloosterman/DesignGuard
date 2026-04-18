@@ -61,6 +61,17 @@ internal static class RequirementRuleTriggerBootstrap
             case nameof(TrustBoundaryRequirementRule):
                 if (ctx.HasTrustBoundaryCrossing) add(RuleTriggerKeys.TrustBoundaryCrossing);
                 break;
+            case nameof(SecretsManagementRequirementRule):
+                if (ctx.HasDatabase) add(RuleTriggerKeys.DatabasePresent);
+                if (ctx.HasExternalService) add(RuleTriggerKeys.ExternalIntegration);
+                if (ctx.EffectiveSensitiveStorage) add(RuleTriggerKeys.SensitiveStorage);
+                if (ctx.Project.InternetExposed) add(RuleTriggerKeys.InternetExposed);
+                break;
+            case nameof(BackupRestoreRequirementRule):
+                if (ctx.Project.CriticalBusinessFunction) add(RuleTriggerKeys.CriticalBusiness);
+                if (ctx.EffectivePersonalData) add(RuleTriggerKeys.PersonalData);
+                if (ctx.EffectiveSensitiveStorage) add(RuleTriggerKeys.SensitiveStorage);
+                break;
         }
     }
 }

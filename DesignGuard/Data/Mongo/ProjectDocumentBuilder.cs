@@ -29,6 +29,10 @@ internal static class ProjectDocumentBuilder
             LoggingMonitoringPresent = m.LoggingMonitoringPresent,
             CriticalBusinessFunction = m.CriticalBusinessFunction,
             OpenIssuesSummary = m.OpenIssuesSummary,
+            GovernanceSecurityOwner = m.GovernanceSecurityOwner,
+            GovernanceTechnicalOwner = m.GovernanceTechnicalOwner,
+            GovernanceComplianceStakeholder = m.GovernanceComplianceStakeholder,
+            GovernanceReviewCadence = m.GovernanceReviewCadence,
             DismissedSuggestionKeysJson = JsonBlobs.Serialize(m.DismissedSuggestionKeys)
         };
 

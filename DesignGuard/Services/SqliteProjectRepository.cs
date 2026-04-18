@@ -160,6 +160,10 @@ public sealed class SqliteProjectRepository : IProjectRepository
         e.LoggingMonitoringPresent = m.LoggingMonitoringPresent;
         e.CriticalBusinessFunction = m.CriticalBusinessFunction;
         e.OpenIssuesSummary = m.OpenIssuesSummary;
+        e.GovernanceSecurityOwner = m.GovernanceSecurityOwner;
+        e.GovernanceTechnicalOwner = m.GovernanceTechnicalOwner;
+        e.GovernanceComplianceStakeholder = m.GovernanceComplianceStakeholder;
+        e.GovernanceReviewCadence = m.GovernanceReviewCadence;
         e.DismissedSuggestionKeysJson = JsonBlobs.Serialize(m.DismissedSuggestionKeys);
     }
 
@@ -460,6 +464,10 @@ public sealed class SqliteProjectRepository : IProjectRepository
             LoggingMonitoringPresent = model.LoggingMonitoringPresent,
             CriticalBusinessFunction = model.CriticalBusinessFunction,
             OpenIssuesSummary = model.OpenIssuesSummary,
+            GovernanceSecurityOwner = model.GovernanceSecurityOwner,
+            GovernanceTechnicalOwner = model.GovernanceTechnicalOwner,
+            GovernanceComplianceStakeholder = model.GovernanceComplianceStakeholder,
+            GovernanceReviewCadence = model.GovernanceReviewCadence,
             DismissedSuggestionKeysJson = JsonBlobs.Serialize(model.DismissedSuggestionKeys)
         };
 

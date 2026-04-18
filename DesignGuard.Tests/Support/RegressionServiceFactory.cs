@@ -32,7 +32,9 @@ internal static class RegressionServiceFactory
             new DenialOfServiceThreatRule(),
             new MissingLoggingThreatRule(),
             new RepudiationAuditThreatRule(),
-            new BusinessCriticalThreatRule()
+            new BusinessCriticalThreatRule(),
+            new OperationalSecretsThreatRule(),
+            new SupplyChainPipelineThreatRule()
         }, kp);
 
     public static RequirementGenerationService CreateRequirementGeneration(KnowledgePackService kp) =>
@@ -49,6 +51,8 @@ internal static class RegressionServiceFactory
             new SecureConfigurationRequirementRule(),
             new InputValidationRequirementRule(),
             new TrustBoundaryRequirementRule(),
-            new ResilienceRequirementRule()
+            new ResilienceRequirementRule(),
+            new SecretsManagementRequirementRule(),
+            new BackupRestoreRequirementRule()
         }, kp);
 }

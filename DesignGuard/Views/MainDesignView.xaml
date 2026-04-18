@@ -27,6 +27,31 @@
                              Text="{Binding EditorProjectDescription, UpdateSourceTrigger=PropertyChanged}" />
                 </Grid>
             </GroupBox>
+            <GroupBox Header="Governance en organisatie" Margin="0,8,0,0">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Security-eigenaar" VerticalAlignment="Center" />
+                    <TextBox Grid.Column="1" Text="{Binding EditorGovernanceSecurityOwner, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Grid.Row="1" Text="Technische eigenaar" Margin="0,8,0,0" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="1" Grid.Column="1" Margin="0,8,0,0"
+                             Text="{Binding EditorGovernanceTechnicalOwner, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Grid.Row="2" Text="Compliance / privacy" Margin="0,8,0,0" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="2" Grid.Column="1" Margin="0,8,0,0"
+                             Text="{Binding EditorGovernanceComplianceStakeholder, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Grid.Row="3" Text="Reviewritme" Margin="0,8,0,0" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="3" Grid.Column="1" Margin="0,8,0,0"
+                             Text="{Binding EditorGovernanceReviewCadence, UpdateSourceTrigger=PropertyChanged}" />
+                </Grid>
+            </GroupBox>
             <GroupBox Header="Systeemcontext" Margin="0,8,0,0">
                 <Grid Margin="8">
                     <Grid.RowDefinitions>

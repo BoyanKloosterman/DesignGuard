@@ -58,6 +58,14 @@
                     </StackPanel>
                 </Border>
             </UniformGrid>
+            <Border Style="{StaticResource DgCard}" Margin="0,0,0,16"
+                    Visibility="{Binding HasOpenProject, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="Ontwerpvalidatie (basis)" Style="{StaticResource DgText.Muted}" FontSize="11" />
+                    <TextBlock Margin="0,8,0,0" Text="{Binding ValidationSummaryText}" TextWrapping="Wrap"
+                               FontSize="12" Foreground="{DynamicResource DgBrush.TextPrimary}" />
+                </StackPanel>
+            </Border>
             <TextBlock Text="Start met een sjabloon" Style="{StaticResource DgText.SectionLabel}" Margin="0,4,0,0" />
             <TextBlock Style="{StaticResource DgText.Muted}" FontSize="11" Margin="0,0,0,8"
                        Text="Sjablonen vullen het ontwerp voorbeeldgewijs; daarna kun je alles aanpassen." />

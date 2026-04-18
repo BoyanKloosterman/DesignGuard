@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using DesignGuard.Models;
+using DesignGuard.Services;
 
 namespace DesignGuard.Export;
 
@@ -46,6 +47,23 @@ public sealed class ExportService
         sb.AppendLine($"- **Logging/monitoring (volgens wizard):** {(project.LoggingMonitoringPresent ? "ja" : "nee")}");
         sb.AppendLine($"- **Bedrijfskritisch:** {(project.CriticalBusinessFunction ? "ja" : "nee")}");
         sb.AppendLine();
+
+        if (!string.IsNullOrWhiteSpace(project.GovernanceSecurityOwner) ||
+            !string.IsNullOrWhiteSpace(project.GovernanceTechnicalOwner) ||
+            !string.IsNullOrWhiteSpace(project.GovernanceComplianceStakeholder) ||
+            !string.IsNullOrWhiteSpace(project.GovernanceReviewCadence))
+        {
+            sb.AppendLine("## Governance en organisatie");
+            if (!string.IsNullOrWhiteSpace(project.GovernanceSecurityOwner))
+                sb.AppendLine($"- **Security-eigenaar:** {project.GovernanceSecurityOwner}");
+            if (!string.IsNullOrWhiteSpace(project.GovernanceTechnicalOwner))
+                sb.AppendLine($"- **Technische eigenaar:** {project.GovernanceTechnicalOwner}");
+            if (!string.IsNullOrWhiteSpace(project.GovernanceComplianceStakeholder))
+                sb.AppendLine($"- **Compliance / privacy:** {project.GovernanceComplianceStakeholder}");
+            if (!string.IsNullOrWhiteSpace(project.GovernanceReviewCadence))
+                sb.AppendLine($"- **Reviewritme:** {project.GovernanceReviewCadence}");
+            sb.AppendLine();
+        }
 
         if (project.TrustBoundaries.Count > 0)
         {
@@ -176,6 +194,8 @@ public sealed class ExportService
             sb.AppendLine(project.OpenIssuesSummary);
             sb.AppendLine();
         }
+
+        sb.Append(NormativeCoverageService.BuildMarkdownAppendix(project, requirements));
 
         sb.AppendLine("## Samenvatting");
         sb.AppendLine(
@@ -314,6 +334,23 @@ public sealed class ExportService
         sb.AppendLine($"<tr><td>Aangemaakt (UTC)</td><td>{project.CreatedAtUtc:O}</td></tr>");
         sb.AppendLine($"<tr><td>Bijgewerkt (UTC)</td><td>{project.UpdatedAtUtc:O}</td></tr></table>");
 
+        if (!string.IsNullOrWhiteSpace(project.GovernanceSecurityOwner) ||
+            !string.IsNullOrWhiteSpace(project.GovernanceTechnicalOwner) ||
+            !string.IsNullOrWhiteSpace(project.GovernanceComplianceStakeholder) ||
+            !string.IsNullOrWhiteSpace(project.GovernanceReviewCadence))
+        {
+            sb.AppendLine("<h2>Governance</h2><ul>");
+            if (!string.IsNullOrWhiteSpace(project.GovernanceSecurityOwner))
+                sb.AppendLine($"<li>Security-eigenaar: {Esc(project.GovernanceSecurityOwner)}</li>");
+            if (!string.IsNullOrWhiteSpace(project.GovernanceTechnicalOwner))
+                sb.AppendLine($"<li>Technisch: {Esc(project.GovernanceTechnicalOwner)}</li>");
+            if (!string.IsNullOrWhiteSpace(project.GovernanceComplianceStakeholder))
+                sb.AppendLine($"<li>Compliance/privacy: {Esc(project.GovernanceComplianceStakeholder)}</li>");
+            if (!string.IsNullOrWhiteSpace(project.GovernanceReviewCadence))
+                sb.AppendLine($"<li>Review: {Esc(project.GovernanceReviewCadence)}</li>");
+            sb.AppendLine("</ul>");
+        }
+
         sb.AppendLine("<h2>Executive summary</h2>");
         sb.AppendLine("<p>");
         sb.AppendLine(
@@ -395,6 +432,11 @@ public sealed class ExportService
             sb.AppendLine($"<li><strong>Open issues</strong>: {Esc(project.OpenIssuesSummary)}</li>");
         sb.AppendLine("</ul>");
 
+        sb.AppendLine("<h2>Normatieve dekking (indicatief)</h2>");
+        sb.AppendLine("<div class=\"disclaimer\">" + Esc(
+                          "Samenvatting van bron-tags op eisen — geen volledige ASVS/NIST/AVG/CRA-dekking. Zie ook markdown-export voor tabel.") +
+                      "</div>");
+
         sb.AppendLine("<h2>Disclaimer (herhaling)</h2>");
         sb.AppendLine("<div class=\"disclaimer\">Geen juridische conformiteit of certificering. Gebruik primaire bronnen voor audits.</div>");
         sb.AppendLine("</body></html>");
@@ -429,6 +471,10 @@ public sealed class ExportService
                 project.LoggingMonitoringPresent,
                 project.CriticalBusinessFunction,
                 project.OpenIssuesSummary,
+                project.GovernanceSecurityOwner,
+                project.GovernanceTechnicalOwner,
+                project.GovernanceComplianceStakeholder,
+                project.GovernanceReviewCadence,
                 TrustBoundaries = project.TrustBoundaries,
                 Components = project.Components,
                 DataFlows = project.DataFlows,

@@ -29,6 +29,10 @@ internal static class ProjectMapper
             LoggingMonitoringPresent = e.LoggingMonitoringPresent,
             CriticalBusinessFunction = e.CriticalBusinessFunction,
             OpenIssuesSummary = e.OpenIssuesSummary,
+            GovernanceSecurityOwner = e.GovernanceSecurityOwner,
+            GovernanceTechnicalOwner = e.GovernanceTechnicalOwner,
+            GovernanceComplianceStakeholder = e.GovernanceComplianceStakeholder,
+            GovernanceReviewCadence = e.GovernanceReviewCadence,
             DismissedSuggestionKeys = JsonBlobs.StringList(e.DismissedSuggestionKeysJson),
             TrustBoundaries = e.TrustBoundaries.OrderBy(t => t.Id).Select(t => new TrustBoundaryModel
             {

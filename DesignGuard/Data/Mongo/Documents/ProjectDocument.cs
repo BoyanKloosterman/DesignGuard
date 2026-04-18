@@ -32,6 +32,11 @@ public sealed class ProjectDocument
     public string OpenIssuesSummary { get; set; } = "";
     public string DismissedSuggestionKeysJson { get; set; } = "[]";
 
+    public string GovernanceSecurityOwner { get; set; } = "";
+    public string GovernanceTechnicalOwner { get; set; } = "";
+    public string GovernanceComplianceStakeholder { get; set; } = "";
+    public string GovernanceReviewCadence { get; set; } = "";
+
     public List<TrustBoundaryDoc> TrustBoundaries { get; set; } = new();
     public List<ComponentDoc> Components { get; set; } = new();
     public List<DataFlowDoc> DataFlows { get; set; } = new();

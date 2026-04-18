@@ -92,6 +92,10 @@ public partial class MainViewModel
         FlagLoggingMonitoring = true;
         FlagCriticalBusiness = false;
         OpenIssuesSummary = "";
+        EditorGovernanceSecurityOwner = "";
+        EditorGovernanceTechnicalOwner = "";
+        EditorGovernanceComplianceStakeholder = "";
+        EditorGovernanceReviewCadence = "";
         TrustBoundaries.Clear();
         Components.Clear();
         DataFlows.Clear();
@@ -137,6 +141,10 @@ public partial class MainViewModel
         FlagLoggingMonitoring = p.LoggingMonitoringPresent;
         FlagCriticalBusiness = p.CriticalBusinessFunction;
         OpenIssuesSummary = p.OpenIssuesSummary;
+        EditorGovernanceSecurityOwner = p.GovernanceSecurityOwner;
+        EditorGovernanceTechnicalOwner = p.GovernanceTechnicalOwner;
+        EditorGovernanceComplianceStakeholder = p.GovernanceComplianceStakeholder;
+        EditorGovernanceReviewCadence = p.GovernanceReviewCadence;
         _dismissedSuggestionKeys = new HashSet<string>(p.DismissedSuggestionKeys, StringComparer.Ordinal);
 
         TrustBoundaries.Clear();
@@ -484,6 +492,10 @@ public partial class MainViewModel
             LoggingMonitoringPresent = FlagLoggingMonitoring,
             CriticalBusinessFunction = FlagCriticalBusiness,
             OpenIssuesSummary = OpenIssuesSummary,
+            GovernanceSecurityOwner = EditorGovernanceSecurityOwner,
+            GovernanceTechnicalOwner = EditorGovernanceTechnicalOwner,
+            GovernanceComplianceStakeholder = EditorGovernanceComplianceStakeholder,
+            GovernanceReviewCadence = EditorGovernanceReviewCadence,
             TrustBoundaries = tbList,
             Components = compList,
             DataFlows = flows,

@@ -42,4 +42,20 @@ public sealed class ExportServiceTests
         using var doc = System.Text.Json.JsonDocument.Parse(json);
         Assert.Equal("JsonProj", doc.RootElement.GetProperty("project").GetProperty("name").GetString());
     }
+
+    [Fact]
+    public void ToMarkdown_bevat_normatieve_appendix_bij_eisen_met_tags()
+    {
+        var p = new ProjectModel { Name = "N" };
+        var req = new RequirementModel
+        {
+            Title = "T",
+            Category = "C",
+            SourceTags = new List<string> { "OWASP" }
+        };
+
+        var md = _sut.ToMarkdown(p, [], new[] { req });
+        Assert.Contains("Normatieve dekking", md);
+        Assert.Contains("OWASP", md);
+    }
 }

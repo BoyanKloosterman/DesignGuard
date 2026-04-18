@@ -14,6 +14,10 @@ public static class SqliteLegacySchema
             await AddColumnIfMissingAsync(conn, "Requirements", "SourceAttributionJson", "TEXT NOT NULL DEFAULT '{}'", ct);
             await AddColumnIfMissingAsync(conn, "Threats", "SourceAttributionJson", "TEXT NOT NULL DEFAULT '{}'", ct);
             await AddColumnIfMissingAsync(conn, "Controls", "LinkedComponentIdsJson", "TEXT NOT NULL DEFAULT '[]'", ct);
+            await AddColumnIfMissingAsync(conn, "Projects", "GovernanceSecurityOwner", "TEXT NOT NULL DEFAULT ''", ct);
+            await AddColumnIfMissingAsync(conn, "Projects", "GovernanceTechnicalOwner", "TEXT NOT NULL DEFAULT ''", ct);
+            await AddColumnIfMissingAsync(conn, "Projects", "GovernanceComplianceStakeholder", "TEXT NOT NULL DEFAULT ''", ct);
+            await AddColumnIfMissingAsync(conn, "Projects", "GovernanceReviewCadence", "TEXT NOT NULL DEFAULT ''", ct);
         }
         finally
         {

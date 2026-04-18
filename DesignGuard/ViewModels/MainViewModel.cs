@@ -42,6 +42,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IAppConfigurationService _appConfiguration;
     private readonly IMongoDiagnosticsService _mongoDiagnostics;
     private readonly SqliteToMongoImportService _sqliteImport;
+    private readonly DesignValidationService _designValidation;
     private HashSet<string> _dismissedSuggestionKeys = new(StringComparer.Ordinal);
     private readonly DispatcherTimer _filterDebounceTimer;
     private bool _suppressPreferencePersist;
@@ -66,7 +67,8 @@ public partial class MainViewModel : ObservableObject
         AppSecurityReviewService appSecurityReview,
         IAppConfigurationService appConfiguration,
         IMongoDiagnosticsService mongoDiagnostics,
-        SqliteToMongoImportService sqliteImport)
+        SqliteToMongoImportService sqliteImport,
+        DesignValidationService designValidation)
     {
         _projects = projects;
         _threatService = threatService;
@@ -87,6 +89,7 @@ public partial class MainViewModel : ObservableObject
         _appConfiguration = appConfiguration;
         _mongoDiagnostics = mongoDiagnostics;
         _sqliteImport = sqliteImport;
+        _designValidation = designValidation;
         _suppressPreferencePersist = true;
         UiTheme = string.IsNullOrWhiteSpace(_userSettings.Current.Theme) ? "Light" : _userSettings.Current.Theme;
         DetailLevel = string.IsNullOrWhiteSpace(_userSettings.Current.DetailLevel)
@@ -278,6 +281,14 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private string _openIssuesSummary = "";
 
+    [ObservableProperty] private string _editorGovernanceSecurityOwner = "";
+
+    [ObservableProperty] private string _editorGovernanceTechnicalOwner = "";
+
+    [ObservableProperty] private string _editorGovernanceComplianceStakeholder = "";
+
+    [ObservableProperty] private string _editorGovernanceReviewCadence = "";
+
     [ObservableProperty] private ObservableCollection<TrustBoundaryRowViewModel> _trustBoundaries = new();
 
     [ObservableProperty] private ObservableCollection<ComponentRowViewModel> _components = new();
@@ -333,6 +344,8 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private int _openRequirementCount;
 
     [ObservableProperty] private int _implementedRequirementCount;
+
+    [ObservableProperty] private string _validationSummaryText = "";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowProjectOverviewInDetails))]

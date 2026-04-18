@@ -52,7 +52,24 @@ public partial class MainViewModel
         MitigatedThreatCount = m;
         OpenRequirementCount = orc;
         ImplementedRequirementCount = ir;
+        try
+        {
+            var model = BuildModelFromEditor();
+            ValidationSummaryText = FormatValidation(_designValidation.Validate(model));
+        }
+        catch (Exception ex)
+        {
+            ValidationSummaryText = $"Validatie kon niet worden uitgevoerd: {ex.Message}";
+        }
     }
+
+    private static string FormatValidation(IReadOnlyList<DesignValidationFinding> findings) =>
+        string.Join(Environment.NewLine, findings.Select(f => f.Severity switch
+        {
+            DesignValidationSeverity.Error => $"[Fout] {f.Code}: {f.Message}",
+            DesignValidationSeverity.Warning => $"[Waarschuwing] {f.Code}: {f.Message}",
+            _ => $"[Info] {f.Code}: {f.Message}"
+        }));
 
     [RelayCommand]
     private void ExportMarkdown()

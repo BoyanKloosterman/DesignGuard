@@ -26,6 +26,13 @@ public sealed class ProjectEntity
     public string OpenIssuesSummary { get; set; } = "";
     public string DismissedSuggestionKeysJson { get; set; } = "[]";
 
+    public string GovernanceSecurityOwner { get; set; } = "";
+    public string GovernanceTechnicalOwner { get; set; } = "";
+    public string GovernanceComplianceStakeholder { get; set; } = "";
+    public string GovernanceReviewCadence { get; set; } = "";
+
+    public string C4ElementsJson { get; set; } = "[]";
+
     public List<TrustBoundaryEntity> TrustBoundaries { get; set; } = new();
     public List<ComponentEntity> Components { get; set; } = new();
     public List<DataFlowEntity> DataFlows { get; set; } = new();

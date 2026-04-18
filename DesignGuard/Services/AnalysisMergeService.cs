@@ -32,6 +32,9 @@ public sealed class AnalysisMergeService
             {
                 g.Status = old.Status;
                 g.Notes = old.Notes;
+                g.StatusChangedAtUtc = old.StatusChangedAtUtc;
+                g.StatusChangedBy = old.StatusChangedBy;
+                g.StatusChangeNote = old.StatusChangeNote;
                 if (string.IsNullOrWhiteSpace(g.SourceAttribution.KnowledgePackId) &&
                     !string.IsNullOrWhiteSpace(old.SourceAttribution.KnowledgePackId))
                     g.SourceAttribution = old.SourceAttribution;
@@ -74,6 +77,9 @@ public sealed class AnalysisMergeService
             {
                 g.Status = old.Status;
                 g.Notes = old.Notes;
+                g.StatusChangedAtUtc = old.StatusChangedAtUtc;
+                g.StatusChangedBy = old.StatusChangedBy;
+                g.StatusChangeNote = old.StatusChangeNote;
                 if (string.IsNullOrWhiteSpace(g.SourceAttribution.KnowledgePackId) &&
                     !string.IsNullOrWhiteSpace(old.SourceAttribution.KnowledgePackId))
                     g.SourceAttribution = old.SourceAttribution;

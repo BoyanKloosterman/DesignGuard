@@ -16,6 +16,13 @@ public sealed class RequirementEntity
     public string SourceTagsJson { get; set; } = "[]";
     public int Priority { get; set; }
     public int Status { get; set; }
+
+    /// <summary>ISO-8601 UTC of leeg.</summary>
+    public string? StatusChangedAtUtc { get; set; }
+
+    public string StatusChangedBy { get; set; } = "";
+    public string StatusChangeNote { get; set; } = "";
+
     public string Notes { get; set; } = "";
 
     public string PlainExplanation { get; set; } = "";

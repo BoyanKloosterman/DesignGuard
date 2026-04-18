@@ -66,6 +66,16 @@ internal static class RuleTriggerBootstrap
             case nameof(BusinessCriticalThreatRule):
                 add(RuleTriggerKeys.CriticalBusiness);
                 break;
+            case nameof(OperationalSecretsThreatRule):
+                if (ctx.HasDatabase) add(RuleTriggerKeys.DatabasePresent);
+                if (ctx.HasExternalService) add(RuleTriggerKeys.ExternalIntegration);
+                if (ctx.EffectiveSensitiveStorage) add(RuleTriggerKeys.SensitiveStorage);
+                if (ctx.Project.InternetExposed) add(RuleTriggerKeys.InternetExposed);
+                break;
+            case nameof(SupplyChainPipelineThreatRule):
+                if (ctx.Project.CriticalBusinessFunction) add(RuleTriggerKeys.CriticalBusiness);
+                if (ctx.HasExternalService) add(RuleTriggerKeys.ExternalIntegration);
+                break;
         }
     }
 }

@@ -36,7 +36,6 @@ public partial class App : Application
         services.AddSingleton<MongoConnectionFactory>();
         services.AddSingleton<IMongoDiagnosticsService, MongoDiagnosticsService>();
         services.AddSingleton<IProjectRepository, MongoProjectRepository>();
-        services.AddSingleton<SqliteToMongoImportService>();
 
         services.AddSingleton(_ => new UserSettingsService(dir));
         services.AddSingleton(sp =>
@@ -51,11 +50,13 @@ public partial class App : Application
         services.AddSingleton<DiagramLayoutService>();
         services.AddSingleton<ExportService>();
         services.AddSingleton<DiagramRasterizer>();
+        services.AddSingleton<C4ModelRasterizer>();
         services.AddSingleton<PdfReportService>();
         services.AddSingleton<AppSecurityReviewService>();
         services.AddSingleton<AnalysisMergeService>();
         services.AddSingleton<TraceabilityService>();
         services.AddSingleton<ProjectTemplateService>();
+        services.AddSingleton<DesignValidationService>();
         services.AddSingleton(sp => new ThreatGenerationService(new IThreatRule[]
         {
             new InternetExposureThreatRule(),
@@ -70,7 +71,9 @@ public partial class App : Application
             new DenialOfServiceThreatRule(),
             new MissingLoggingThreatRule(),
             new RepudiationAuditThreatRule(),
-            new BusinessCriticalThreatRule()
+            new BusinessCriticalThreatRule(),
+            new OperationalSecretsThreatRule(),
+            new SupplyChainPipelineThreatRule()
         }, sp.GetRequiredService<KnowledgePackService>()));
         services.AddSingleton(sp => new RequirementGenerationService(new IRequirementRule[]
         {
@@ -85,7 +88,9 @@ public partial class App : Application
             new SecureConfigurationRequirementRule(),
             new InputValidationRequirementRule(),
             new TrustBoundaryRequirementRule(),
-            new ResilienceRequirementRule()
+            new ResilienceRequirementRule(),
+            new SecretsManagementRequirementRule(),
+            new BackupRestoreRequirementRule()
         }, sp.GetRequiredService<KnowledgePackService>()));
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>();

@@ -1,0 +1,36 @@
+<UserControl x:Class="DesignGuard.Views.MainRequirementsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="500" d:DesignWidth="800">
+    <DockPanel Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=4}">
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <TextBlock Text="Security-eisen" Style="{StaticResource DgText.Title}" />
+            <TextBlock Margin="0,6,0,0" Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"
+                       Text="Eisen vertellen wat je systeem moet kunnen of moet afdwingen (bijv. logging, toegang). Ze zijn gekoppeld aan dreigingen en controls."
+                       Visibility="{Binding DetailLevel, Converter={StaticResource StrEqVis}, ConverterParameter=Beginner}" />
+            <WrapPanel Margin="0,8,0,0">
+                <Button Content="Analyse vernieuwen" Command="{Binding RegenerateFromDesignCommand}" Margin="0,0,8,8" />
+                <Button Content="Handmatige eis" Command="{Binding AddCustomRequirementCommand}" Margin="0,0,8,8" />
+            </WrapPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Zoek:" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <TextBox Width="200" Text="{Binding RequirementFilterText, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="Sorteer:" VerticalAlignment="Center" Margin="16,0,8,0" />
+                <ComboBox Width="120" ItemsSource="{Binding RequirementSortOptions}" SelectedItem="{Binding RequirementSort}" />
+            </StackPanel>
+        </StackPanel>
+        <ListBox ItemsSource="{Binding FilteredRequirements}" SelectedItem="{Binding SelectedRequirement}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Margin="4">
+                        <TextBlock Text="{Binding Title}" FontWeight="Bold" />
+                        <TextBlock Text="{Binding Category}" FontSize="11" Foreground="Gray" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</UserControl>

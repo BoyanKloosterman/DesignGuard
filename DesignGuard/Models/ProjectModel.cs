@@ -45,6 +45,21 @@ public sealed class ProjectModel
 
     public string OpenIssuesSummary { get; set; } = "";
 
+    /// <summary>Eigenaar security (mens/team), voor governance en export.</summary>
+    public string GovernanceSecurityOwner { get; set; } = "";
+
+    /// <summary>Eigenaar techniek / product.</summary>
+    public string GovernanceTechnicalOwner { get; set; } = "";
+
+    /// <summary>Compliance / privacy aanspreekpunt of RACI-notitie.</summary>
+    public string GovernanceComplianceStakeholder { get; set; } = "";
+
+    /// <summary>Reviewritme (bv. kwartaal) of planning-notitie.</summary>
+    public string GovernanceReviewCadence { get; set; } = "";
+
     /// <summary>Afgewezen suggesties (rule keys), lokaal opgeslagen.</summary>
     public List<string> DismissedSuggestionKeys { get; set; } = new();
+
+    /// <summary>C4-elementen voor threatmodel-tab (los van architectuurdiagram).</summary>
+    public List<C4ElementModel> C4Elements { get; set; } = new();
 }

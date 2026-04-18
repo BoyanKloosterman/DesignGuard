@@ -9,7 +9,7 @@ public partial class MainViewModel
     [RelayCommand]
     private void AddCustomThreat()
     {
-        Threats.Add(new ThreatModel
+        var t = new ThreatModel
         {
             Origin = ThreatOrigin.Custom,
             Title = "Handmatige dreiging",
@@ -24,7 +24,11 @@ public partial class MainViewModel
                 WhyItMatters = "",
                 WhyIncluded = "Handmatig toegevoegd."
             }
-        });
+        };
+        // Initiële status (Open) vastleggen zodat audit direct zichtbaar is.
+        t.StatusChangedAtUtc = DateTime.UtcNow;
+        t.StatusChangedBy = ResolveReviewerNameForAudit();
+        Threats.Add(t);
         RefreshFilters();
         UpdateDashboard();
     }
@@ -41,7 +45,7 @@ public partial class MainViewModel
     [RelayCommand]
     private void AddCustomRequirement()
     {
-        Requirements.Add(new RequirementModel
+        var r = new RequirementModel
         {
             Origin = RequirementOrigin.Custom,
             Title = "Handmatige eis",
@@ -52,7 +56,10 @@ public partial class MainViewModel
             Priority = RequirementPriority.Medium,
             Status = RequirementStatus.Proposed,
             Explanation = new ExplanationModel { WhatItMeans = "", WhyItMatters = "", WhyIncluded = "" }
-        });
+        };
+        r.StatusChangedAtUtc = DateTime.UtcNow;
+        r.StatusChangedBy = ResolveReviewerNameForAudit();
+        Requirements.Add(r);
         RefreshFilters();
         UpdateDashboard();
     }

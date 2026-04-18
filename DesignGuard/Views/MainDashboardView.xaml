@@ -1,0 +1,88 @@
+<UserControl x:Class="DesignGuard.Views.MainDashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="900">
+    <ScrollViewer Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=0}"
+                  VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <TextBlock Text="Dashboard" Style="{StaticResource DgText.Title}" />
+            <TextBlock Style="{StaticResource DgText.Muted}" Margin="0,8,0,12" FontSize="{DynamicResource DgFontSize.Subtitle}"
+                       Text="Overzicht van je ontwerp en volgende stappen. DesignGuard helpt structureren — geen formele compliance-bewijs." />
+            <Border Style="{StaticResource DgCard}" Margin="0,0,0,16"
+                    Visibility="{Binding HasNoProject, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="Welkom" FontWeight="SemiBold" />
+                    <TextBlock Margin="0,6,0,0" Style="{StaticResource DgText.Muted}" FontSize="12"
+                               Text="Kies een project hiernaast, maak een nieuw project of start met het demoproject. Daarna: vul 'Ontwerp' in en werk naar dreigingen, eisen en export." TextWrapping="Wrap" />
+                    <TextBlock Margin="0,10,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" TextWrapping="Wrap"
+                               Text="1) Project kiezen of aanmaken · 2) Systeem en componenten · 3) Analyse vernieuwen · 4) PDF of Markdown export" />
+                </StackPanel>
+            </Border>
+            <WrapPanel Margin="0,0,0,12">
+                <Button Content="Snapshot (lokaal)" Style="{StaticResource DgButton.Toolbar}"
+                        Command="{Binding SaveProjectSnapshotCommand}" />
+                <Button Content="Control-bibliotheek" Style="{StaticResource DgButton.Toolbar}"
+                        Command="{Binding ApplyControlLibraryCommand}" />
+                <Button Content="Snelstart C4-scope" Style="{StaticResource DgButton.Toolbar}"
+                        Command="{Binding QuickStartMinimalC4Command}"
+                        ToolTip="Voegt een minimale C4-structuur toe als de lijst nog leeg is (tab Threatmodel)." />
+            </WrapPanel>
+            <UniformGrid Columns="2" Margin="0,0,0,16">
+                <Border Style="{StaticResource DgCard}" Margin="0,0,8,8">
+                    <StackPanel>
+                        <TextBlock Text="Openstaande dreigingen" Style="{StaticResource DgText.Muted}" FontSize="11" />
+                        <TextBlock Text="{Binding OpenThreatCount}" FontSize="26" FontWeight="Bold"
+                                   Foreground="{DynamicResource DgBrush.TextPrimary}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource DgCard}" Margin="8,0,0,8">
+                    <StackPanel>
+                        <TextBlock Text="Afgewezen / beperkt risico" Style="{StaticResource DgText.Muted}" FontSize="11"
+                                   ToolTip="Dreigingen met status opgelost of geaccepteerd (met rationale)." />
+                        <TextBlock Text="{Binding MitigatedThreatCount}" FontSize="26" FontWeight="Bold"
+                                   Foreground="{DynamicResource DgBrush.TextPrimary}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource DgCard}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Eisen in uitvoering" Style="{StaticResource DgText.Muted}" FontSize="11" />
+                        <TextBlock Text="{Binding OpenRequirementCount}" FontSize="26" FontWeight="Bold"
+                                   Foreground="{DynamicResource DgBrush.TextPrimary}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource DgCard}" Margin="8,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Eisen afgerond" Style="{StaticResource DgText.Muted}" FontSize="11" />
+                        <TextBlock Text="{Binding ImplementedRequirementCount}" FontSize="26" FontWeight="Bold"
+                                   Foreground="{DynamicResource DgBrush.TextPrimary}" />
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+            <Border Style="{StaticResource DgCard}" Margin="0,0,0,16"
+                    Visibility="{Binding HasOpenProject, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="Ontwerpvalidatie (basis)" Style="{StaticResource DgText.Muted}" FontSize="11" />
+                    <TextBlock Margin="0,8,0,0" Text="{Binding ValidationSummaryText}" TextWrapping="Wrap"
+                               FontSize="12" Foreground="{DynamicResource DgBrush.TextPrimary}" />
+                </StackPanel>
+            </Border>
+            <TextBlock Text="Start met een sjabloon" Style="{StaticResource DgText.SectionLabel}" Margin="0,4,0,0" />
+            <TextBlock Style="{StaticResource DgText.Muted}" FontSize="11" Margin="0,0,0,8"
+                       Text="Sjablonen vullen het ontwerp voorbeeldgewijs; daarna kun je alles aanpassen." />
+            <ItemsControl ItemsSource="{Binding TemplateList}" Margin="0,0,0,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Content="{Binding Title}" Style="{StaticResource DgButton.Toolbar}"
+                                HorizontalAlignment="Left"
+                                ToolTip="{Binding Description}"
+                                Command="{Binding DataContext.ApplyTemplateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{Binding Key}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

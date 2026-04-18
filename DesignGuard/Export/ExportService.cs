@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using DesignGuard.Models;
+using DesignGuard.Services;
 
 namespace DesignGuard.Export;
 
@@ -46,6 +47,23 @@ public sealed class ExportService
         sb.AppendLine($"- **Logging/monitoring (volgens wizard):** {(project.LoggingMonitoringPresent ? "ja" : "nee")}");
         sb.AppendLine($"- **Bedrijfskritisch:** {(project.CriticalBusinessFunction ? "ja" : "nee")}");
         sb.AppendLine();
+
+        if (!string.IsNullOrWhiteSpace(project.GovernanceSecurityOwner) ||
+            !string.IsNullOrWhiteSpace(project.GovernanceTechnicalOwner) ||
+            !string.IsNullOrWhiteSpace(project.GovernanceComplianceStakeholder) ||
+            !string.IsNullOrWhiteSpace(project.GovernanceReviewCadence))
+        {
+            sb.AppendLine("## Governance en organisatie");
+            if (!string.IsNullOrWhiteSpace(project.GovernanceSecurityOwner))
+                sb.AppendLine($"- **Security-eigenaar:** {project.GovernanceSecurityOwner}");
+            if (!string.IsNullOrWhiteSpace(project.GovernanceTechnicalOwner))
+                sb.AppendLine($"- **Technische eigenaar:** {project.GovernanceTechnicalOwner}");
+            if (!string.IsNullOrWhiteSpace(project.GovernanceComplianceStakeholder))
+                sb.AppendLine($"- **Compliance / privacy:** {project.GovernanceComplianceStakeholder}");
+            if (!string.IsNullOrWhiteSpace(project.GovernanceReviewCadence))
+                sb.AppendLine($"- **Reviewritme:** {project.GovernanceReviewCadence}");
+            sb.AppendLine();
+        }
 
         if (project.TrustBoundaries.Count > 0)
         {
@@ -102,12 +120,37 @@ public sealed class ExportService
                 sb.AppendLine($"- **[{n.Kind}] {n.Title}:** {n.Description} {n.Notes}");
         }
 
+        if (project.C4Elements.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("## C4 threatmodel-scope");
+            sb.AppendLine(
+                "Abstractielagen (C1–C4) voor dit dossier. Koppeling naar dreigingen: dezelfde naam in ‘getroffen componenten’ van een open dreiging als bij het C4-element.");
+            foreach (var el in project.C4Elements.OrderBy(x => (int)x.Level).ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+            {
+                var openHits = C4ExportPresentation.CountOpenThreatMatchesForComponentName(el.Name, threats);
+                var parent = el.ParentId is { } pid ? $" (parent id {pid})" : "";
+                sb.AppendLine(
+                    $"- **{C4LevelFormatting.ShortLabel(el.Level)}** — **{el.Name}**{parent}: {el.Description} " +
+                    $"{(string.IsNullOrWhiteSpace(el.Technology) ? "" : $"— _{el.Technology}_ ")}— open dreigingen met naam-match: **{openHits}**");
+            }
+
+            sb.AppendLine();
+        }
+
         sb.AppendLine();
         sb.AppendLine("## Threat model (STRIDE, regelgebaseerd + handmatig)");
         foreach (var t in threats.OrderBy(x => x.StrideCategory).ThenBy(x => x.Title))
         {
             sb.AppendLine($"### {t.Title}");
             sb.AppendLine($"- **STRIDE:** {t.StrideCategory} — **Ernst:** {t.Severity} — **Status:** {t.Status}");
+            if (t.StatusChangedAtUtc is { } atUtc)
+            {
+                var note = string.IsNullOrWhiteSpace(t.StatusChangeNote) ? "" : $" — **Toelichting:** {t.StatusChangeNote}";
+                sb.AppendLine(
+                    $"- **Status-audit (UTC):** {atUtc:O} — **door:** {t.StatusChangedBy}{note}");
+            }
+
             sb.AppendLine($"- **Herkomst:** {t.Origin}{(t.UserModified ? " (handmatig aangepast)" : "")}");
             sb.AppendLine($"- **Beschrijving:** {t.Description}");
             sb.AppendLine($"- **Waarom gegenereerd / opgenomen:** {t.GenerationReason}");
@@ -138,6 +181,13 @@ public sealed class ExportService
                 sb.AppendLine($"#### {r.Title}");
                 sb.AppendLine(
                     $"- **Prioriteit:** {r.Priority} — **Status:** {r.Status} — **Herkomst:** {r.Origin}");
+                if (r.StatusChangedAtUtc is { } rAtUtc)
+                {
+                    var rNote = string.IsNullOrWhiteSpace(r.StatusChangeNote) ? "" : $" — **Toelichting:** {r.StatusChangeNote}";
+                    sb.AppendLine(
+                        $"- **Status-audit (UTC):** {rAtUtc:O} — **door:** {r.StatusChangedBy}{rNote}");
+                }
+
                 sb.AppendLine($"- **Bron-tags (richtinggevend):** {string.Join(", ", r.SourceTags)}");
                 sb.AppendLine($"- **Uitleg:** {r.PlainExplanation}");
                 sb.AppendLine($"- **Waarom van toepassing:** {r.WhyApplies}");
@@ -176,6 +226,8 @@ public sealed class ExportService
             sb.AppendLine(project.OpenIssuesSummary);
             sb.AppendLine();
         }
+
+        sb.Append(NormativeCoverageService.BuildMarkdownAppendix(project, requirements));
 
         sb.AppendLine("## Samenvatting");
         sb.AppendLine(
@@ -242,6 +294,9 @@ public sealed class ExportService
         foreach (var r in requirements)
         {
             sb.AppendLine($"* {r.Title} ({r.Category}) prio={r.Priority} status={r.Status}");
+            if (r.StatusChangedAtUtc is { } rAud)
+                sb.AppendLine(
+                    $"  Status-audit: {rAud:O} — {r.StatusChangedBy}{(string.IsNullOrWhiteSpace(r.StatusChangeNote) ? "" : $" — {r.StatusChangeNote}")}");
             sb.AppendLine($"  Bronnen (richtinggevend): {string.Join(", ", r.SourceTags)}");
             sb.AppendLine($"  {r.PlainExplanation}");
         }
@@ -314,6 +369,23 @@ public sealed class ExportService
         sb.AppendLine($"<tr><td>Aangemaakt (UTC)</td><td>{project.CreatedAtUtc:O}</td></tr>");
         sb.AppendLine($"<tr><td>Bijgewerkt (UTC)</td><td>{project.UpdatedAtUtc:O}</td></tr></table>");
 
+        if (!string.IsNullOrWhiteSpace(project.GovernanceSecurityOwner) ||
+            !string.IsNullOrWhiteSpace(project.GovernanceTechnicalOwner) ||
+            !string.IsNullOrWhiteSpace(project.GovernanceComplianceStakeholder) ||
+            !string.IsNullOrWhiteSpace(project.GovernanceReviewCadence))
+        {
+            sb.AppendLine("<h2>Governance</h2><ul>");
+            if (!string.IsNullOrWhiteSpace(project.GovernanceSecurityOwner))
+                sb.AppendLine($"<li>Security-eigenaar: {Esc(project.GovernanceSecurityOwner)}</li>");
+            if (!string.IsNullOrWhiteSpace(project.GovernanceTechnicalOwner))
+                sb.AppendLine($"<li>Technisch: {Esc(project.GovernanceTechnicalOwner)}</li>");
+            if (!string.IsNullOrWhiteSpace(project.GovernanceComplianceStakeholder))
+                sb.AppendLine($"<li>Compliance/privacy: {Esc(project.GovernanceComplianceStakeholder)}</li>");
+            if (!string.IsNullOrWhiteSpace(project.GovernanceReviewCadence))
+                sb.AppendLine($"<li>Review: {Esc(project.GovernanceReviewCadence)}</li>");
+            sb.AppendLine("</ul>");
+        }
+
         sb.AppendLine("<h2>Executive summary</h2>");
         sb.AppendLine("<p>");
         sb.AppendLine(
@@ -362,6 +434,13 @@ public sealed class ExportService
             sb.AppendLine($"<h3>{Esc(t.Title)}</h3>");
             sb.AppendLine($"<p class=\"tag\">{t.StrideCategory} — {t.Severity} — {t.Status} — herkomst {t.Origin}</p>");
             sb.AppendLine($"<p>{Esc(t.Description)}</p>");
+            if (t.StatusChangedAtUtc is { } audHtml)
+            {
+                var note = string.IsNullOrWhiteSpace(t.StatusChangeNote) ? "" : $" — {Esc(t.StatusChangeNote)}";
+                sb.AppendLine(
+                    $"<p class=\"tag\">Status-audit: {audHtml:O} — {Esc(t.StatusChangedBy)}{note}</p>");
+            }
+
             if (!string.IsNullOrWhiteSpace(t.SourceAttribution.KnowledgePackId))
                 sb.AppendLine(
                     $"<p class=\"tag\">Bronspoor: {Esc(t.SourceAttribution.KnowledgePackDisplayLabel)} ({Esc(t.SourceAttribution.KnowledgePackVersionLabel)}) — " +
@@ -377,6 +456,13 @@ public sealed class ExportService
                 sb.AppendLine($"<h4>{Esc(r.Title)}</h4>");
                 sb.AppendLine($"<p>{Esc(r.PlainExplanation)}</p>");
                 sb.AppendLine($"<p class=\"tag\">Prioriteit {r.Priority}, status {r.Status}, tags: {string.Join(", ", r.SourceTags)}</p>");
+                if (r.StatusChangedAtUtc is { } rAudHtml)
+                {
+                    var rNote = string.IsNullOrWhiteSpace(r.StatusChangeNote) ? "" : $" — {Esc(r.StatusChangeNote)}";
+                    sb.AppendLine(
+                        $"<p class=\"tag\">Status-audit: {rAudHtml:O} — {Esc(r.StatusChangedBy)}{rNote}</p>");
+                }
+
                 if (!string.IsNullOrWhiteSpace(r.SourceAttribution.KnowledgePackId))
                     sb.AppendLine(
                         $"<p class=\"tag\">Bronspoor: {Esc(r.SourceAttribution.KnowledgePackDisplayLabel)} — items {string.Join(", ", r.SourceAttribution.GuidanceItemIds)} — {r.SourceAttribution.Nature}</p>");
@@ -394,6 +480,11 @@ public sealed class ExportService
         if (!string.IsNullOrWhiteSpace(project.OpenIssuesSummary))
             sb.AppendLine($"<li><strong>Open issues</strong>: {Esc(project.OpenIssuesSummary)}</li>");
         sb.AppendLine("</ul>");
+
+        sb.AppendLine("<h2>Normatieve dekking (indicatief)</h2>");
+        sb.AppendLine("<div class=\"disclaimer\">" + Esc(
+                          "Samenvatting van bron-tags op eisen — geen volledige ASVS/NIST/AVG/CRA-dekking. Zie ook markdown-export voor tabel.") +
+                      "</div>");
 
         sb.AppendLine("<h2>Disclaimer (herhaling)</h2>");
         sb.AppendLine("<div class=\"disclaimer\">Geen juridische conformiteit of certificering. Gebruik primaire bronnen voor audits.</div>");
@@ -429,6 +520,11 @@ public sealed class ExportService
                 project.LoggingMonitoringPresent,
                 project.CriticalBusinessFunction,
                 project.OpenIssuesSummary,
+                project.GovernanceSecurityOwner,
+                project.GovernanceTechnicalOwner,
+                project.GovernanceComplianceStakeholder,
+                project.GovernanceReviewCadence,
+                c4Elements = project.C4Elements,
                 TrustBoundaries = project.TrustBoundaries,
                 Components = project.Components,
                 DataFlows = project.DataFlows,
@@ -447,6 +543,9 @@ public sealed class ExportService
                 StrideCategory = t.StrideCategory.ToString(),
                 Severity = t.Severity.ToString(),
                 Status = t.Status.ToString(),
+                statusChangedAtUtc = t.StatusChangedAtUtc,
+                t.StatusChangedBy,
+                t.StatusChangeNote,
                 t.Notes,
                 t.Description,
                 t.GenerationReason,
@@ -469,6 +568,9 @@ public sealed class ExportService
                 r.SourceTags,
                 Priority = r.Priority.ToString(),
                 Status = r.Status.ToString(),
+                statusChangedAtUtc = r.StatusChangedAtUtc,
+                r.StatusChangedBy,
+                r.StatusChangeNote,
                 r.Notes,
                 r.PlainExplanation,
                 r.WhyApplies,

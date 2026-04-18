@@ -1,0 +1,68 @@
+<UserControl x:Class="DesignGuard.Views.MainSidebarView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="248">
+    <Border Background="{DynamicResource DgBrush.Sidebar}"
+            BorderBrush="{DynamicResource DgBrush.Border}" BorderThickness="0,0,1,0"
+            Padding="{DynamicResource DgThickness.SidebarPad}">
+        <DockPanel>
+            <StackPanel DockPanel.Dock="Top">
+                <TextBlock Text="DesignGuard" Style="{StaticResource DgText.SectionLabel}" FontSize="11"
+                           Foreground="{DynamicResource DgBrush.TextMuted}" Margin="0,0,0,2" />
+                <TextBlock Text="Projecten" FontWeight="SemiBold" Margin="0,0,0,8"
+                           Foreground="{DynamicResource DgBrush.TextPrimary}" />
+                <Button Content="Nieuw project" Style="{StaticResource DgButton.Accent}"
+                        Command="{Binding NewProjectCommand}" />
+                <Button Content="Wizard" Style="{StaticResource DgButton.Toolbar}"
+                        Command="{Binding OpenProjectWizardCommand}" />
+                <Button Content="Opslaan" Style="{StaticResource DgButton.Toolbar}"
+                        Command="{Binding SaveProjectCommand}"
+                        ToolTip="Slaat op en werkt dreigingen/eisen automatisch bij op basis van ontwerp (componenten, vlaggen, tekst)." />
+                <Button Content="Verwijderen" Style="{StaticResource DgButton.Toolbar}"
+                        Command="{Binding DeleteProjectCommand}" />
+                <Button Content="Demoproject" Style="{StaticResource DgButton.Toolbar}"
+                        Command="{Binding EnsureDemoCommand}" Margin="0,0,0,12" />
+                <TextBlock Text="Werkruimte" Style="{StaticResource DgText.SectionLabel}" />
+                <ListBox Style="{StaticResource DgNavListBox}" MinHeight="220"
+                         SelectedIndex="{Binding NavSection, Mode=TwoWay}">
+                    <ListBoxItem Content="Dashboard" />
+                    <ListBoxItem Content="Ontwerp" />
+                    <ListBoxItem Content="Dreigingen" />
+                    <ListBoxItem Content="Threatmodel" />
+                    <ListBoxItem Content="Eisen" />
+                    <ListBoxItem Content="Controls" />
+                    <ListBoxItem Content="Beslissingen" />
+                    <ListBoxItem Content="Review" />
+                    <ListBoxItem Content="Traceability" />
+                    <ListBoxItem Content="Export" />
+                    <ListBoxItem Content="Instellingen" />
+                    <ListBoxItem Content="App security review" />
+                </ListBox>
+                <TextBlock Text="Weergave" Style="{StaticResource DgText.SectionLabel}" Margin="0,12,0,4" />
+                <TextBlock Text="Thema" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                <ComboBox Margin="0,2,0,8" ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding UiTheme}" />
+                <TextBlock Text="Uitlegniveau" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}"
+                           ToolTip="Beginner: korte hulp en minder jargon in beeld. Advanced: alle technische velden." />
+                <ComboBox Margin="0,2,0,8" ItemsSource="{Binding DetailLevelOptions}"
+                          SelectedItem="{Binding DetailLevel}" />
+                <TextBlock Text="Dichtheid" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                <ComboBox Margin="0,2,0,0" ItemsSource="{Binding UiDensityOptions}"
+                          SelectedItem="{Binding UiDensity}" />
+            </StackPanel>
+            <ListBox DockPanel.Dock="Bottom" Margin="0,12,0,0" MinHeight="100"
+                     Background="Transparent" BorderThickness="0"
+                     ItemsSource="{Binding ProjectList}"
+                     SelectedItem="{Binding SelectedProjectSummary}"
+                     DisplayMemberPath="Name">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
+        </DockPanel>
+    </Border>
+</UserControl>

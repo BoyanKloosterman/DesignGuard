@@ -317,14 +317,13 @@ Hieronder: per tab één README-plaatje. Navigatie: klik in de **werkruimte** li
 
 **Op deze afbeelding:** tab **Instellingen** met **Knowledge packs** (aan/uit, versie, bron) en het blok **Database / MongoDB** (diagnose, gemaskeerde connection string, ping).
 
-**Waarvoor:** bepalen welke kennisbronnen voor attributie worden gebruikt; databaseconfiguratie controleren; optioneel SQLite-import starten.
+**Waarvoor:** bepalen welke kennisbronnen voor attributie worden gebruikt; databaseconfiguratie controleren.
 
 | Onderdeel | Uitleg |
 |-----------|--------|
 | **Knowledge packs** | Per pack: aan/uit, versie, bron, waarschuwing als pack verouderd is. Uitgeschakelde packs worden niet gebruikt voor **nieuwe** attributie. |
 | **Database / MongoDB** | Diagnose: omgeving, env-vars (overzicht), database-naam, application name, opties, gemaskeerde connection string, waarschuwingen, ping-resultaat. |
 | **Verbinding testen (ping)** | Controleert bereikbaarheid met huidige configuratie. |
-| **Importeer SQLite → MongoDB** | Migratie vanaf oude v4-database; zie [DEPLOYMENT.md](DEPLOYMENT.md). |
 
 ### App security review — `11-app-security-review.png`
 
@@ -437,12 +436,6 @@ Zorg dat MongoDB draait en bereikbaar is voordat je projecten opslaat.
 - **Knowledge packs:** JSON onder `KnowledgePacks\` naast de executable.
 - **Back-up:** gebruik MongoDB-backups (`mongodump`, Atlas, enz.) en kopieer indien nodig de LocalAppData-map voor instellingen.
 
-### Migratie vanaf SQLite (v4)
-
-In de app: **Instellingen → Importeer SQLite → MongoDB** en selecteer het oude `.db`-bestand. Zie [DEPLOYMENT.md](DEPLOYMENT.md).
-
----
-
 ## Eerste gebruik
 
 1. Configureer MongoDB (env of `.env` in Development).
@@ -479,14 +472,13 @@ In de app: **Instellingen → Importeer SQLite → MongoDB** en selecteer het ou
 ## Technische stack (kort)
 
 - **.NET / WPF**, **MongoDB.Driver**, **CommunityToolkit.Mvvm**, **QuestPDF**.
-- **Entity Framework Core + SQLite** alleen nog voor **import** van oude databases.
 
 ---
 
 ## Documentatie
 
 - [CONFIGURATION.md](CONFIGURATION.md) — omgevingsvariabelen en `.env`.
-- [DEPLOYMENT.md](DEPLOYMENT.md) — Docker, serverwissel, migratie.
+- [DEPLOYMENT.md](DEPLOYMENT.md) — Docker, serverwissel, back-up.
 - [SECURITY_REVIEW.md](SECURITY_REVIEW.md) — engineering security note.
 
 ---

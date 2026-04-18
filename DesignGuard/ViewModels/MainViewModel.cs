@@ -38,10 +38,11 @@ public partial class MainViewModel : ObservableObject
     private readonly UserSettingsService _userSettings;
     private readonly PdfReportService _pdfReport;
     private readonly DiagramRasterizer _diagramRasterizer;
+    private readonly C4ModelRasterizer _c4Rasterizer;
     private readonly AppSecurityReviewService _appSecurityReview;
     private readonly IAppConfigurationService _appConfiguration;
     private readonly IMongoDiagnosticsService _mongoDiagnostics;
-    private readonly SqliteToMongoImportService _sqliteImport;
+    private readonly DesignValidationService _designValidation;
     private HashSet<string> _dismissedSuggestionKeys = new(StringComparer.Ordinal);
     private readonly DispatcherTimer _filterDebounceTimer;
     private bool _suppressPreferencePersist;
@@ -63,10 +64,11 @@ public partial class MainViewModel : ObservableObject
         UserSettingsService userSettings,
         PdfReportService pdfReport,
         DiagramRasterizer diagramRasterizer,
+        C4ModelRasterizer c4Rasterizer,
         AppSecurityReviewService appSecurityReview,
         IAppConfigurationService appConfiguration,
         IMongoDiagnosticsService mongoDiagnostics,
-        SqliteToMongoImportService sqliteImport)
+        DesignValidationService designValidation)
     {
         _projects = projects;
         _threatService = threatService;
@@ -83,10 +85,11 @@ public partial class MainViewModel : ObservableObject
         _userSettings = userSettings;
         _pdfReport = pdfReport;
         _diagramRasterizer = diagramRasterizer;
+        _c4Rasterizer = c4Rasterizer;
         _appSecurityReview = appSecurityReview;
         _appConfiguration = appConfiguration;
         _mongoDiagnostics = mongoDiagnostics;
-        _sqliteImport = sqliteImport;
+        _designValidation = designValidation;
         _suppressPreferencePersist = true;
         UiTheme = string.IsNullOrWhiteSpace(_userSettings.Current.Theme) ? "Light" : _userSettings.Current.Theme;
         DetailLevel = string.IsNullOrWhiteSpace(_userSettings.Current.DetailLevel)
@@ -99,6 +102,7 @@ public partial class MainViewModel : ObservableObject
         KnowledgePackRemoteSyncEnabled = _userSettings.Current.KnowledgePackRemoteSyncEnabled;
         KnowledgePackSyncOnStartup = _userSettings.Current.KnowledgePackSyncOnStartup;
         KnowledgePackSyncTrustedHostExtra = _userSettings.Current.KnowledgePackSyncTrustedHostExtra ?? "";
+        ReviewerDisplayName = _userSettings.Current.ReviewerDisplayName ?? "";
         ThemeSwitcher.ApplyTheme(UiTheme);
         ApplyUiDensity();
         _suppressPreferencePersist = false;
@@ -189,6 +193,10 @@ public partial class MainViewModel : ObservableObject
 
     public IReadOnlyList<string> UiDensityOptions { get; } = new[] { "Comfortable", "Compact" };
 
+    public IReadOnlyList<string> ThreatSortOptions { get; } = new[] { "Severity", "Status", "Category" };
+
+    public IReadOnlyList<string> RequirementSortOptions { get; } = new[] { "Priority", "Status", "Category" };
+
     public IReadOnlyList<string> PresetAssetClassifications { get; } =
         Enum.GetNames(typeof(AssetClassification));
 
@@ -211,6 +219,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private int _navSection;
 
     [ObservableProperty] private string _statusMessage = "DesignGuard v6 — klaar.";
+
+    /// <summary>Pad van de laatste geslaagde bestandsexport (openen in Verkenner).</summary>
+    [ObservableProperty] private string? _lastExportedFilePath;
 
     [ObservableProperty] private bool _isBusy;
 
@@ -274,6 +285,14 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private string _openIssuesSummary = "";
 
+    [ObservableProperty] private string _editorGovernanceSecurityOwner = "";
+
+    [ObservableProperty] private string _editorGovernanceTechnicalOwner = "";
+
+    [ObservableProperty] private string _editorGovernanceComplianceStakeholder = "";
+
+    [ObservableProperty] private string _editorGovernanceReviewCadence = "";
+
     [ObservableProperty] private ObservableCollection<TrustBoundaryRowViewModel> _trustBoundaries = new();
 
     [ObservableProperty] private ObservableCollection<ComponentRowViewModel> _components = new();
@@ -295,6 +314,18 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<ReviewItemRowViewModel> _reviewItems = new();
 
     [ObservableProperty] private ObservableCollection<SnapshotRowViewModel> _snapshots = new();
+
+    [ObservableProperty] private ObservableCollection<C4ElementRowViewModel> _c4Elements = new();
+
+    [ObservableProperty] private ObservableCollection<C4ElementRowViewModel> _c4VisualContext = new();
+
+    [ObservableProperty] private ObservableCollection<C4ElementRowViewModel> _c4VisualContainers = new();
+
+    [ObservableProperty] private ObservableCollection<C4ElementRowViewModel> _c4VisualComponents = new();
+
+    [ObservableProperty] private ObservableCollection<C4ElementRowViewModel> _c4VisualCode = new();
+
+    [ObservableProperty] private C4ElementRowViewModel? _selectedC4Element;
 
     [ObservableProperty] private ObservableCollection<ModelingSuggestion> _suggestions = new();
 
@@ -329,6 +360,8 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private int _openRequirementCount;
 
     [ObservableProperty] private int _implementedRequirementCount;
+
+    [ObservableProperty] private string _validationSummaryText = "";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowProjectOverviewInDetails))]
@@ -368,6 +401,8 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private string _knowledgePackSyncTrustedHostExtra = "";
 
+    [ObservableProperty] private string _reviewerDisplayName = "";
+
     [ObservableProperty] private ObservableCollection<AppSecurityReviewRowViewModel> _appSecurityReviewRows = new();
 
     public bool ShowProjectOverviewInDetails =>
@@ -404,12 +439,15 @@ public partial class MainViewModel : ObservableObject
         PersistUserPreferences();
     }
 
+    partial void OnReviewerDisplayNameChanged(string value) => PersistUserPreferences();
+
     private void PersistUserPreferences()
     {
         if (_suppressPreferencePersist) return;
         _userSettings.Current.Theme = UiTheme;
         _userSettings.Current.DetailLevel = DetailLevel;
         _userSettings.Current.UiDensity = UiDensity;
+        _userSettings.Current.ReviewerDisplayName = (ReviewerDisplayName ?? "").Trim();
         _userSettings.Save();
     }
 
@@ -459,21 +497,22 @@ public partial class MainViewModel : ObservableObject
     partial void OnNavSectionChanged(int value)
     {
         if (value == 1) RefreshDiagram();
-        if (value is 2 or 3)
+        if (value == 3) RefreshC4ThreatLinkCounts();
+        if (value is 2 or 4)
         {
             RefreshFilters();
             UpdateDashboard();
         }
 
-        if (value == 7) RefreshTraceability();
-        if (value == 8) RefreshExportPreview();
-        if (value == 9)
+        if (value == 8) RefreshTraceability();
+        if (value == 9) RefreshExportPreview();
+        if (value == 10)
         {
             RefreshKnowledgePackRows();
             RefreshMongoDiagnostics();
         }
-        if (value == 10) RefreshAppSecurityReview();
-        if (value is 0 or 1 or 4 or 5 or 6) RefreshSuggestions();
+        if (value == 11) RefreshAppSecurityReview();
+        if (value is 0 or 1 or 3 or 4 or 5 or 6) RefreshSuggestions();
     }
 
     partial void OnDiagramOverlayTrustBoundariesChanged(bool value) => RefreshDiagram();

@@ -12,6 +12,16 @@ public sealed class ThreatModel
     public StrideCategory StrideCategory { get; set; }
     public SeverityEstimate Severity { get; set; } = SeverityEstimate.Medium;
     public ThreatStatus Status { get; set; } = ThreatStatus.Open;
+
+    /// <summary>UTC-tijdstip van de laatste statuswijziging (review/mitigatie).</summary>
+    public DateTime? StatusChangedAtUtc { get; set; }
+
+    /// <summary>Wie de status vastlegde (vrij veld, zie ook instellingen ‘Weergavenaam reviewer’).</summary>
+    public string StatusChangedBy { get; set; } = "";
+
+    /// <summary>Korte toelichting bij de laatste statuswijziging (bijv. geaccepteerd risico, verwijzing ticket).</summary>
+    public string StatusChangeNote { get; set; } = "";
+
     public string Notes { get; set; } = "";
 
     public string Description { get; set; } = "";

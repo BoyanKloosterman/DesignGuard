@@ -18,6 +18,9 @@ public sealed class UserAppSettings
     /// <summary>Comfortable of Compact — marges en sidebar.</summary>
     public string UiDensity { get; set; } = "Comfortable";
 
+    /// <summary>Standaard naam bij vastleggen dreiging-status (audit).</summary>
+    public string ReviewerDisplayName { get; set; } = "";
+
     /// <summary>HTTPS-manifest voor knowledge packs; leeg = alleen lokaal.</summary>
     public string KnowledgePackManifestUrl { get; set; } = "";
 

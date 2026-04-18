@@ -32,6 +32,13 @@ public sealed class ProjectDocument
     public string OpenIssuesSummary { get; set; } = "";
     public string DismissedSuggestionKeysJson { get; set; } = "[]";
 
+    public string GovernanceSecurityOwner { get; set; } = "";
+    public string GovernanceTechnicalOwner { get; set; } = "";
+    public string GovernanceComplianceStakeholder { get; set; } = "";
+    public string GovernanceReviewCadence { get; set; } = "";
+
+    public string C4ElementsJson { get; set; } = "[]";
+
     public List<TrustBoundaryDoc> TrustBoundaries { get; set; } = new();
     public List<ComponentDoc> Components { get; set; } = new();
     public List<DataFlowDoc> DataFlows { get; set; } = new();
@@ -188,6 +195,9 @@ public sealed class ThreatDoc
     public int StrideCategory { get; set; }
     public int Severity { get; set; }
     public int Status { get; set; }
+    public string? StatusChangedAtUtc { get; set; }
+    public string StatusChangedBy { get; set; } = "";
+    public string StatusChangeNote { get; set; } = "";
     public string Notes { get; set; } = "";
     public string Description { get; set; } = "";
     public string GenerationReason { get; set; } = "";
@@ -212,6 +222,9 @@ public sealed class RequirementDoc
     public string SourceTagsJson { get; set; } = "[]";
     public int Priority { get; set; }
     public int Status { get; set; }
+    public string? StatusChangedAtUtc { get; set; }
+    public string StatusChangedBy { get; set; } = "";
+    public string StatusChangeNote { get; set; } = "";
     public string Notes { get; set; } = "";
     public string PlainExplanation { get; set; } = "";
     public string WhyApplies { get; set; } = "";

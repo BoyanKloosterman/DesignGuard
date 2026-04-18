@@ -92,6 +92,10 @@ public partial class MainViewModel
         FlagLoggingMonitoring = true;
         FlagCriticalBusiness = false;
         OpenIssuesSummary = "";
+        EditorGovernanceSecurityOwner = "";
+        EditorGovernanceTechnicalOwner = "";
+        EditorGovernanceComplianceStakeholder = "";
+        EditorGovernanceReviewCadence = "";
         TrustBoundaries.Clear();
         Components.Clear();
         DataFlows.Clear();
@@ -103,6 +107,8 @@ public partial class MainViewModel
         SensitiveDataRows.Clear();
         ReviewItems.Clear();
         Snapshots.Clear();
+        C4Elements.Clear();
+        SelectedC4Element = null;
         Suggestions.Clear();
         _dismissedSuggestionKeys.Clear();
         Threats.Clear();
@@ -121,6 +127,7 @@ public partial class MainViewModel
 
     private void ApplyModelToEditor(ProjectModel p)
     {
+        LastExportedFilePath = null;
         CurrentProjectId = p.Id;
         EditorProjectName = p.Name;
         EditorProjectDescription = p.Description;
@@ -137,6 +144,10 @@ public partial class MainViewModel
         FlagLoggingMonitoring = p.LoggingMonitoringPresent;
         FlagCriticalBusiness = p.CriticalBusinessFunction;
         OpenIssuesSummary = p.OpenIssuesSummary;
+        EditorGovernanceSecurityOwner = p.GovernanceSecurityOwner;
+        EditorGovernanceTechnicalOwner = p.GovernanceTechnicalOwner;
+        EditorGovernanceComplianceStakeholder = p.GovernanceComplianceStakeholder;
+        EditorGovernanceReviewCadence = p.GovernanceReviewCadence;
         _dismissedSuggestionKeys = new HashSet<string>(p.DismissedSuggestionKeys, StringComparer.Ordinal);
 
         TrustBoundaries.Clear();
@@ -312,6 +323,20 @@ public partial class MainViewModel
             });
         }
 
+        C4Elements.Clear();
+        foreach (var el in p.C4Elements.OrderBy(x => (int)x.Level).ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+        {
+            C4Elements.Add(new C4ElementRowViewModel
+            {
+                Id = el.Id,
+                Level = el.Level,
+                Name = el.Name,
+                Description = el.Description,
+                Technology = el.Technology,
+                ParentId = el.ParentId
+            });
+        }
+
         Threats = new ObservableCollection<ThreatModel>(p.Threats);
         Requirements = new ObservableCollection<RequirementModel>(p.Requirements);
         RefreshFilters();
@@ -466,6 +491,16 @@ public partial class MainViewModel
             SnapshotJson = s.SnapshotJson
         }).ToList();
 
+        var c4List = C4Elements.Select(e => new C4ElementModel
+        {
+            Id = e.Id,
+            Level = e.Level,
+            Name = e.Name.Trim(),
+            Description = e.Description.Trim(),
+            Technology = e.Technology.Trim(),
+            ParentId = e.ParentId
+        }).ToList();
+
         return new ProjectModel
         {
             Id = CurrentProjectId,
@@ -484,6 +519,10 @@ public partial class MainViewModel
             LoggingMonitoringPresent = FlagLoggingMonitoring,
             CriticalBusinessFunction = FlagCriticalBusiness,
             OpenIssuesSummary = OpenIssuesSummary,
+            GovernanceSecurityOwner = EditorGovernanceSecurityOwner,
+            GovernanceTechnicalOwner = EditorGovernanceTechnicalOwner,
+            GovernanceComplianceStakeholder = EditorGovernanceComplianceStakeholder,
+            GovernanceReviewCadence = EditorGovernanceReviewCadence,
             TrustBoundaries = tbList,
             Components = compList,
             DataFlows = flows,
@@ -495,6 +534,7 @@ public partial class MainViewModel
             SensitiveDataItems = sensList,
             ReviewItems = revList,
             Snapshots = snapList,
+            C4Elements = c4List,
             Threats = Threats.ToList(),
             Requirements = Requirements.ToList(),
             DismissedSuggestionKeys = _dismissedSuggestionKeys.ToList()

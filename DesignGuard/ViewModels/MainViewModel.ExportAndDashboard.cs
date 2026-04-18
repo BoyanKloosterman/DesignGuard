@@ -1,15 +1,50 @@
 // Export, traceability, filters en dashboard-tellingen.
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
+using System.Windows;
 using CommunityToolkit.Mvvm.Input;
 using DesignGuard.Models;
 using DesignGuard.Security;
+using DesignGuard.Services;
 using Microsoft.Win32;
 
 namespace DesignGuard.ViewModels;
 
 public partial class MainViewModel
 {
+    partial void OnLastExportedFilePathChanged(string? value) =>
+        OpenLastExportLocationCommand.NotifyCanExecuteChanged();
+
+    [RelayCommand(CanExecute = nameof(CanOpenLastExportLocation))]
+    private void OpenLastExportLocation()
+    {
+        if (string.IsNullOrWhiteSpace(LastExportedFilePath)) return;
+        try
+        {
+            if (File.Exists(LastExportedFilePath))
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"/select,\"{LastExportedFilePath}\"",
+                    UseShellExecute = true
+                });
+                return;
+            }
+
+            var dir = Path.GetDirectoryName(LastExportedFilePath);
+            if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir))
+                Process.Start(new ProcessStartInfo { FileName = dir, UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Locatie openen mislukt: {ex.Message}";
+        }
+    }
+
+    private bool CanOpenLastExportLocation() => !string.IsNullOrWhiteSpace(LastExportedFilePath);
+
     private void RefreshExportPreview()
     {
         try
@@ -38,54 +73,38 @@ public partial class MainViewModel
 
     private void RefreshFilters()
     {
-        IEnumerable<ThreatModel> tq = Threats;
-        if (!string.IsNullOrWhiteSpace(ThreatFilterText))
-        {
-            var f = ThreatFilterText.Trim();
-            tq = tq.Where(t =>
-                t.Title.Contains(f, StringComparison.OrdinalIgnoreCase) ||
-                t.Description.Contains(f, StringComparison.OrdinalIgnoreCase) ||
-                t.StrideCategory.ToString().Contains(f, StringComparison.OrdinalIgnoreCase));
-        }
-
-        tq = ThreatSort switch
-        {
-            "Status" => tq.OrderBy(t => t.Status).ThenBy(t => t.Title),
-            "Category" => tq.OrderBy(t => t.StrideCategory).ThenBy(t => t.Title),
-            _ => tq.OrderByDescending(t => t.Severity).ThenBy(t => t.Title)
-        };
-
-        FilteredThreats = new ObservableCollection<ThreatModel>(tq);
-
-        IEnumerable<RequirementModel> rq = Requirements;
-        if (!string.IsNullOrWhiteSpace(RequirementFilterText))
-        {
-            var f = RequirementFilterText.Trim();
-            rq = rq.Where(r =>
-                r.Title.Contains(f, StringComparison.OrdinalIgnoreCase) ||
-                r.Category.Contains(f, StringComparison.OrdinalIgnoreCase) ||
-                r.PlainExplanation.Contains(f, StringComparison.OrdinalIgnoreCase));
-        }
-
-        rq = RequirementSort switch
-        {
-            "Status" => rq.OrderBy(r => r.Status).ThenBy(r => r.Title),
-            "Category" => rq.OrderBy(r => r.Category).ThenBy(r => r.Title),
-            _ => rq.OrderByDescending(r => r.Priority).ThenBy(r => r.Title)
-        };
-
-        FilteredRequirements = new ObservableCollection<RequirementModel>(rq);
+        FilteredThreats = new ObservableCollection<ThreatModel>(
+            EditorListFilter.FilterAndSortThreats(Threats, ThreatFilterText, ThreatSort));
+        FilteredRequirements = new ObservableCollection<RequirementModel>(
+            EditorListFilter.FilterAndSortRequirements(Requirements, RequirementFilterText, RequirementSort));
     }
 
     private void UpdateDashboard()
     {
-        OpenThreatCount = Threats.Count(t => t.Status == ThreatStatus.Open);
-        MitigatedThreatCount =
-            Threats.Count(t => t.Status is ThreatStatus.Mitigated or ThreatStatus.Accepted);
-        OpenRequirementCount = Requirements.Count(r =>
-            r.Status is RequirementStatus.Proposed or RequirementStatus.Accepted);
-        ImplementedRequirementCount = Requirements.Count(r => r.Status == RequirementStatus.Implemented);
+        var (o, m, orc, ir) = DashboardMetrics.Compute(Threats, Requirements);
+        OpenThreatCount = o;
+        MitigatedThreatCount = m;
+        OpenRequirementCount = orc;
+        ImplementedRequirementCount = ir;
+        RefreshC4ThreatLinkCounts();
+        try
+        {
+            var model = BuildModelFromEditor();
+            ValidationSummaryText = FormatValidation(_designValidation.Validate(model));
+        }
+        catch (Exception ex)
+        {
+            ValidationSummaryText = $"Validatie kon niet worden uitgevoerd: {ex.Message}";
+        }
     }
+
+    private static string FormatValidation(IReadOnlyList<DesignValidationFinding> findings) =>
+        string.Join(Environment.NewLine, findings.Select(f => f.Severity switch
+        {
+            DesignValidationSeverity.Error => $"[Fout] {f.Code}: {f.Message}",
+            DesignValidationSeverity.Warning => $"[Waarschuwing] {f.Code}: {f.Message}",
+            _ => $"[Info] {f.Code}: {f.Message}"
+        }));
 
     [RelayCommand]
     private void ExportMarkdown()
@@ -99,7 +118,7 @@ public partial class MainViewModel
                 Filter = "Markdown (*.md)|*.md|All files (*.*)|*.*",
                 FileName = $"{SanitizeFileName(m.Name)}-designguard.md"
             };
-            if (dlg.ShowDialog() != true) return;
+            if (!ShowModalSaveDialog(dlg)) return;
             if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
             {
                 StatusMessage = err ?? "Export geannuleerd.";
@@ -107,7 +126,8 @@ public partial class MainViewModel
             }
 
             File.WriteAllText(path, md);
-            StatusMessage = "Markdown geëxporteerd.";
+            LastExportedFilePath = path;
+            StatusMessage = $"Markdown geëxporteerd: {path}";
         }
         catch (Exception ex)
         {
@@ -127,7 +147,7 @@ public partial class MainViewModel
                 Filter = "Text (*.txt)|*.txt|All files (*.*)|*.*",
                 FileName = $"{SanitizeFileName(m.Name)}-designguard.txt"
             };
-            if (dlg.ShowDialog() != true) return;
+            if (!ShowModalSaveDialog(dlg)) return;
             if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
             {
                 StatusMessage = err ?? "Export geannuleerd.";
@@ -135,7 +155,8 @@ public partial class MainViewModel
             }
 
             File.WriteAllText(path, txt);
-            StatusMessage = "Tekst geëxporteerd.";
+            LastExportedFilePath = path;
+            StatusMessage = $"Tekst geëxporteerd: {path}";
         }
         catch (Exception ex)
         {
@@ -155,7 +176,7 @@ public partial class MainViewModel
                 Filter = "HTML (*.html)|*.html|All files (*.*)|*.*",
                 FileName = $"{SanitizeFileName(m.Name)}-designguard.html"
             };
-            if (dlg.ShowDialog() != true) return;
+            if (!ShowModalSaveDialog(dlg)) return;
             if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
             {
                 StatusMessage = err ?? "Export geannuleerd.";
@@ -163,7 +184,8 @@ public partial class MainViewModel
             }
 
             File.WriteAllText(path, html);
-            StatusMessage = "HTML geëxporteerd.";
+            LastExportedFilePath = path;
+            StatusMessage = $"HTML geëxporteerd: {path}";
         }
         catch (Exception ex)
         {
@@ -183,7 +205,7 @@ public partial class MainViewModel
                 Filter = "HTML (*.html)|*.html|All files (*.*)|*.*",
                 FileName = $"{SanitizeFileName(m.Name)}-designguard-print.html"
             };
-            if (dlg.ShowDialog() != true) return;
+            if (!ShowModalSaveDialog(dlg)) return;
             if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
             {
                 StatusMessage = err ?? "Export geannuleerd.";
@@ -191,7 +213,8 @@ public partial class MainViewModel
             }
 
             File.WriteAllText(path, html);
-            StatusMessage = "Print-HTML geëxporteerd.";
+            LastExportedFilePath = path;
+            StatusMessage = $"Print-HTML geëxporteerd: {path}";
         }
         catch (Exception ex)
         {
@@ -212,24 +235,31 @@ public partial class MainViewModel
                 Filter = "PDF (*.pdf)|*.pdf|All files (*.*)|*.*",
                 FileName = $"{SanitizeFileName(m.Name)}-designguard.pdf"
             };
-            if (dlg.ShowDialog() != true) return;
+            if (!ShowModalSaveDialog(dlg)) return;
             if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
             {
                 StatusMessage = err ?? "Export geannuleerd.";
                 return;
             }
 
-            IsBusy = true;
-            BusyMessage = "PDF opbouwen (diagram + rapport)…";
-            var (_, pdf) = await Task.Run(() =>
+            var disp = Application.Current?.Dispatcher;
+            if (disp == null)
             {
-                var pngB = _diagramRasterizer.RenderPng(m);
-                var pdfB = _pdfReport.BuildSecurityDesignReport(m, threats, reqs, pngB);
-                return (pngB, pdfB);
-            }).ConfigureAwait(true);
+                StatusMessage = "PDF-export mislukt: geen UI-context.";
+                return;
+            }
 
-            await File.WriteAllBytesAsync(path, pdf);
-            StatusMessage = "PDF geëxporteerd.";
+            IsBusy = true;
+            BusyMessage = "PDF opbouwen (diagram + C4 + rapport)…";
+            // WPF-rasters alleen op de UI-thread (RenderTargetBitmap / visuele elementen).
+            var pngB = await disp.InvokeAsync(() => _diagramRasterizer.RenderPng(m));
+            var c4Png = await disp.InvokeAsync(() => _c4Rasterizer.RenderPng(m, threats));
+            var pdf = await Task.Run(() => _pdfReport.BuildSecurityDesignReport(m, threats, reqs, pngB, c4Png))
+                .ConfigureAwait(true);
+
+            await File.WriteAllBytesAsync(path, pdf).ConfigureAwait(true);
+            LastExportedFilePath = path;
+            StatusMessage = $"PDF geëxporteerd: {path}";
         }
         catch (Exception ex)
         {
@@ -254,7 +284,7 @@ public partial class MainViewModel
                 Filter = "JSON (*.json)|*.json|All files (*.*)|*.*",
                 FileName = $"{SanitizeFileName(m.Name)}-designguard.json"
             };
-            if (dlg.ShowDialog() != true) return;
+            if (!ShowModalSaveDialog(dlg)) return;
             if (!SafeExportPath.TryGetSafeWritePath(dlg.FileName, out var path, out var err))
             {
                 StatusMessage = err ?? "Export geannuleerd.";
@@ -262,7 +292,8 @@ public partial class MainViewModel
             }
 
             File.WriteAllText(path, json);
-            StatusMessage = "JSON geëxporteerd.";
+            LastExportedFilePath = path;
+            StatusMessage = $"JSON geëxporteerd: {path}";
         }
         catch (Exception ex)
         {
@@ -276,4 +307,8 @@ public partial class MainViewModel
             name = name.Replace(c, '_');
         return string.IsNullOrWhiteSpace(name) ? "project" : name.Trim();
     }
+
+    /// <summary>Modaal aan hoofdvenster koppelen (betrouwbaarder pad/OK op Windows).</summary>
+    private static bool ShowModalSaveDialog(SaveFileDialog dlg) =>
+        dlg.ShowDialog(Application.Current?.MainWindow) == true;
 }

@@ -83,4 +83,41 @@ public sealed class AnalysisMergeServiceTests
         Assert.Single(project.Requirements);
         Assert.Equal(RequirementStatus.Implemented, project.Requirements[0].Status);
     }
+
+    [Fact]
+    public void MergeRequirements_behoudt_status_audit_van_oude_generated_rij()
+    {
+        var at = new DateTime(2026, 3, 1, 12, 0, 0, DateTimeKind.Utc);
+        var project = new ProjectModel();
+        var old = new RequirementModel
+        {
+            Origin = RequirementOrigin.Generated,
+            UserModified = false,
+            RuleFingerprint = "r1",
+            Status = RequirementStatus.Implemented,
+            Title = "Eis",
+            StatusChangedAtUtc = at,
+            StatusChangedBy = "Charlie",
+            StatusChangeNote = "OK"
+        };
+        project.Requirements.Add(old);
+
+        var generated = new List<RequirementModel>
+        {
+            new()
+            {
+                Origin = RequirementOrigin.Generated,
+                RuleFingerprint = "r1",
+                Status = RequirementStatus.Proposed,
+                Title = "Eis"
+            }
+        };
+
+        _sut.MergeRequirements(project, generated);
+
+        var r = Assert.Single(project.Requirements);
+        Assert.Equal(at, r.StatusChangedAtUtc);
+        Assert.Equal("Charlie", r.StatusChangedBy);
+        Assert.Equal("OK", r.StatusChangeNote);
+    }
 }

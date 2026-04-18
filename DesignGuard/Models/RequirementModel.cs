@@ -12,6 +12,16 @@ public sealed class RequirementModel
     public List<string> SourceTags { get; set; } = new();
     public RequirementPriority Priority { get; set; } = RequirementPriority.Medium;
     public RequirementStatus Status { get; set; } = RequirementStatus.Proposed;
+
+    /// <summary>UTC van laatste statuswijziging (workflow).</summary>
+    public DateTime? StatusChangedAtUtc { get; set; }
+
+    /// <summary>Wie de status vastlegde (zelfde als dreigingen: weergavenaam reviewer).</summary>
+    public string StatusChangedBy { get; set; } = "";
+
+    /// <summary>Toelichting bij laatste statuswijziging.</summary>
+    public string StatusChangeNote { get; set; } = "";
+
     public string Notes { get; set; } = "";
 
     public string PlainExplanation { get; set; } = "";

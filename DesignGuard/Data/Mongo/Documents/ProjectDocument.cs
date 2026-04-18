@@ -222,6 +222,9 @@ public sealed class RequirementDoc
     public string SourceTagsJson { get; set; } = "[]";
     public int Priority { get; set; }
     public int Status { get; set; }
+    public string? StatusChangedAtUtc { get; set; }
+    public string StatusChangedBy { get; set; } = "";
+    public string StatusChangeNote { get; set; } = "";
     public string Notes { get; set; } = "";
     public string PlainExplanation { get; set; } = "";
     public string WhyApplies { get; set; } = "";

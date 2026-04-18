@@ -181,6 +181,13 @@ public sealed class ExportService
                 sb.AppendLine($"#### {r.Title}");
                 sb.AppendLine(
                     $"- **Prioriteit:** {r.Priority} — **Status:** {r.Status} — **Herkomst:** {r.Origin}");
+                if (r.StatusChangedAtUtc is { } rAtUtc)
+                {
+                    var rNote = string.IsNullOrWhiteSpace(r.StatusChangeNote) ? "" : $" — **Toelichting:** {r.StatusChangeNote}";
+                    sb.AppendLine(
+                        $"- **Status-audit (UTC):** {rAtUtc:O} — **door:** {r.StatusChangedBy}{rNote}");
+                }
+
                 sb.AppendLine($"- **Bron-tags (richtinggevend):** {string.Join(", ", r.SourceTags)}");
                 sb.AppendLine($"- **Uitleg:** {r.PlainExplanation}");
                 sb.AppendLine($"- **Waarom van toepassing:** {r.WhyApplies}");
@@ -287,6 +294,9 @@ public sealed class ExportService
         foreach (var r in requirements)
         {
             sb.AppendLine($"* {r.Title} ({r.Category}) prio={r.Priority} status={r.Status}");
+            if (r.StatusChangedAtUtc is { } rAud)
+                sb.AppendLine(
+                    $"  Status-audit: {rAud:O} — {r.StatusChangedBy}{(string.IsNullOrWhiteSpace(r.StatusChangeNote) ? "" : $" — {r.StatusChangeNote}")}");
             sb.AppendLine($"  Bronnen (richtinggevend): {string.Join(", ", r.SourceTags)}");
             sb.AppendLine($"  {r.PlainExplanation}");
         }
@@ -446,6 +456,13 @@ public sealed class ExportService
                 sb.AppendLine($"<h4>{Esc(r.Title)}</h4>");
                 sb.AppendLine($"<p>{Esc(r.PlainExplanation)}</p>");
                 sb.AppendLine($"<p class=\"tag\">Prioriteit {r.Priority}, status {r.Status}, tags: {string.Join(", ", r.SourceTags)}</p>");
+                if (r.StatusChangedAtUtc is { } rAudHtml)
+                {
+                    var rNote = string.IsNullOrWhiteSpace(r.StatusChangeNote) ? "" : $" — {Esc(r.StatusChangeNote)}";
+                    sb.AppendLine(
+                        $"<p class=\"tag\">Status-audit: {rAudHtml:O} — {Esc(r.StatusChangedBy)}{rNote}</p>");
+                }
+
                 if (!string.IsNullOrWhiteSpace(r.SourceAttribution.KnowledgePackId))
                     sb.AppendLine(
                         $"<p class=\"tag\">Bronspoor: {Esc(r.SourceAttribution.KnowledgePackDisplayLabel)} — items {string.Join(", ", r.SourceAttribution.GuidanceItemIds)} — {r.SourceAttribution.Nature}</p>");
@@ -551,6 +568,9 @@ public sealed class ExportService
                 r.SourceTags,
                 Priority = r.Priority.ToString(),
                 Status = r.Status.ToString(),
+                statusChangedAtUtc = r.StatusChangedAtUtc,
+                r.StatusChangedBy,
+                r.StatusChangeNote,
                 r.Notes,
                 r.PlainExplanation,
                 r.WhyApplies,

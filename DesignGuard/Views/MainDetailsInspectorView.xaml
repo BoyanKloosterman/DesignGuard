@@ -159,7 +159,24 @@
                               SelectedItem="{Binding Priority}" />
                     <ComboBox Margin="0,4,0,0"
                               ItemsSource="{Binding DataContext.AllRequirementStatuses, RelativeSource={RelativeSource AncestorType=Window}}"
-                              SelectedItem="{Binding Status}" />
+                              SelectedItem="{Binding Status}"
+                              GotFocus="RequirementStatusCombo_GotFocus"
+                              DropDownOpened="RequirementStatusCombo_DropDownOpened"
+                              LostFocus="RequirementStatusCombo_LostFocus"
+                              DropDownClosed="RequirementStatusCombo_DropDownClosed" />
+                    <TextBlock Text="Status-audit" FontWeight="SemiBold" FontSize="11" Margin="0,10,0,0"
+                               Foreground="{DynamicResource DgBrush.TextMuted}" />
+                    <TextBlock FontSize="11" Margin="0,4,0,0" Foreground="{DynamicResource DgBrush.TextSecondary}"
+                               TextWrapping="Wrap">
+                        <Run Text="Vastgelegd (UTC): " />
+                        <Run Text="{Binding StatusChangedAtUtc, Converter={StaticResource UtcDateOrDash}, Mode=OneWay}" />
+                        <Run Text=" — door: " />
+                        <Run Text="{Binding StatusChangedBy, Mode=OneWay}" />
+                    </TextBlock>
+                    <TextBlock Text="Toelichting bij statuswijziging (optioneel)" FontSize="11"
+                               Foreground="{DynamicResource DgBrush.TextMuted}" Margin="0,8,0,0" />
+                    <TextBox Text="{Binding StatusChangeNote, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap"
+                             MinHeight="44" />
                     <TextBlock Text="Uitleg in gewone taal" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
                     <TextBox Text="{Binding PlainExplanation, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" Height="60" />
                     <TextBlock Text="Waarom dit voor jouw systeem geldt" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />

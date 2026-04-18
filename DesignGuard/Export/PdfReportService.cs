@@ -157,6 +157,13 @@ public sealed class PdfReportService
                     {
                         col.Item().Text($"{r.Title} [{r.Category}] — {r.Priority}, {r.Status}").SemiBold();
                         col.Item().PaddingLeft(12).Text(r.PlainExplanation);
+                        if (r.StatusChangedAtUtc is { } rAud)
+                        {
+                            var rNote = string.IsNullOrWhiteSpace(r.StatusChangeNote) ? "" : $" — {r.StatusChangeNote}";
+                            col.Item().PaddingLeft(12).Text($"Audit: {rAud:yyyy-MM-dd HH:mm} UTC — {r.StatusChangedBy}{rNote}")
+                                .FontSize(9.5f).FontColor(Colors.Grey.Darken2);
+                        }
+
                         if (!string.IsNullOrWhiteSpace(r.SourceAttribution.KnowledgePackId))
                             col.Item().PaddingLeft(12).Text(
                                 $"Bronspoor: pack {r.SourceAttribution.KnowledgePackDisplayLabel} ({r.SourceAttribution.KnowledgePackVersionLabel}), " +

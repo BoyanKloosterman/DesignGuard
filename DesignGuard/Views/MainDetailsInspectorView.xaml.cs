@@ -9,6 +9,8 @@ public partial class MainDetailsInspectorView : UserControl
 {
     private string? _threatStatusAuditCaptureId;
     private ThreatStatus _threatStatusAuditCaptureValue;
+    private string? _requirementStatusAuditCaptureId;
+    private RequirementStatus _requirementStatusAuditCaptureValue;
 
     public MainDetailsInspectorView() => InitializeComponent();
 
@@ -44,4 +46,37 @@ public partial class MainDetailsInspectorView : UserControl
 
     private void ThreatStatusCombo_DropDownClosed(object sender, EventArgs e) =>
         TryCommitThreatStatusAudit(sender as ComboBox);
+
+    private void CaptureRequirementStatusBaseline(ComboBox? cb)
+    {
+        if (cb?.DataContext is RequirementModel r)
+        {
+            _requirementStatusAuditCaptureId = r.Id;
+            _requirementStatusAuditCaptureValue = r.Status;
+        }
+    }
+
+    private void RequirementStatusCombo_GotFocus(object sender, RoutedEventArgs e) =>
+        CaptureRequirementStatusBaseline(sender as ComboBox);
+
+    private void RequirementStatusCombo_DropDownOpened(object sender, EventArgs e) =>
+        CaptureRequirementStatusBaseline(sender as ComboBox);
+
+    private void TryCommitRequirementStatusAudit(ComboBox? cb)
+    {
+        if (DataContext is not MainViewModel vm) return;
+        if (cb?.DataContext is not RequirementModel r) return;
+        if (_requirementStatusAuditCaptureId != r.Id) return;
+        if (r.Status != _requirementStatusAuditCaptureValue)
+        {
+            vm.ApplyRequirementStatusAudit(r, _requirementStatusAuditCaptureValue);
+            _requirementStatusAuditCaptureValue = r.Status;
+        }
+    }
+
+    private void RequirementStatusCombo_LostFocus(object sender, RoutedEventArgs e) =>
+        TryCommitRequirementStatusAudit(sender as ComboBox);
+
+    private void RequirementStatusCombo_DropDownClosed(object sender, EventArgs e) =>
+        TryCommitRequirementStatusAudit(sender as ComboBox);
 }

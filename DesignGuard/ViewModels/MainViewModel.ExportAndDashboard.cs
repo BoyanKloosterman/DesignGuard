@@ -1,5 +1,6 @@
 // Export, traceability, filters en dashboard-tellingen.
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using CommunityToolkit.Mvvm.Input;
@@ -12,6 +13,38 @@ namespace DesignGuard.ViewModels;
 
 public partial class MainViewModel
 {
+    partial void OnLastExportedFilePathChanged(string? value) =>
+        OpenLastExportLocationCommand.NotifyCanExecuteChanged();
+
+    [RelayCommand(CanExecute = nameof(CanOpenLastExportLocation))]
+    private void OpenLastExportLocation()
+    {
+        if (string.IsNullOrWhiteSpace(LastExportedFilePath)) return;
+        try
+        {
+            if (File.Exists(LastExportedFilePath))
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"/select,\"{LastExportedFilePath}\"",
+                    UseShellExecute = true
+                });
+                return;
+            }
+
+            var dir = Path.GetDirectoryName(LastExportedFilePath);
+            if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir))
+                Process.Start(new ProcessStartInfo { FileName = dir, UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Locatie openen mislukt: {ex.Message}";
+        }
+    }
+
+    private bool CanOpenLastExportLocation() => !string.IsNullOrWhiteSpace(LastExportedFilePath);
+
     private void RefreshExportPreview()
     {
         try
@@ -93,6 +126,7 @@ public partial class MainViewModel
             }
 
             File.WriteAllText(path, md);
+            LastExportedFilePath = path;
             StatusMessage = $"Markdown geëxporteerd: {path}";
         }
         catch (Exception ex)
@@ -121,6 +155,7 @@ public partial class MainViewModel
             }
 
             File.WriteAllText(path, txt);
+            LastExportedFilePath = path;
             StatusMessage = $"Tekst geëxporteerd: {path}";
         }
         catch (Exception ex)
@@ -149,6 +184,7 @@ public partial class MainViewModel
             }
 
             File.WriteAllText(path, html);
+            LastExportedFilePath = path;
             StatusMessage = $"HTML geëxporteerd: {path}";
         }
         catch (Exception ex)
@@ -177,6 +213,7 @@ public partial class MainViewModel
             }
 
             File.WriteAllText(path, html);
+            LastExportedFilePath = path;
             StatusMessage = $"Print-HTML geëxporteerd: {path}";
         }
         catch (Exception ex)
@@ -221,6 +258,7 @@ public partial class MainViewModel
                 .ConfigureAwait(true);
 
             await File.WriteAllBytesAsync(path, pdf).ConfigureAwait(true);
+            LastExportedFilePath = path;
             StatusMessage = $"PDF geëxporteerd: {path}";
         }
         catch (Exception ex)
@@ -254,6 +292,7 @@ public partial class MainViewModel
             }
 
             File.WriteAllText(path, json);
+            LastExportedFilePath = path;
             StatusMessage = $"JSON geëxporteerd: {path}";
         }
         catch (Exception ex)

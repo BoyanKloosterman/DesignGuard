@@ -8,6 +8,8 @@
     <DockPanel Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=9}">
         <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
             <TextBlock Text="Export" FontSize="22" FontWeight="SemiBold" />
+            <TextBlock Margin="0,6,0,0" Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"
+                       Text="Na een geslaagde export verschijnt het pad in de statusbalk. PDF kapt lange lijsten af voor leesbaarheid — volledige dreigingen, eisen en traceability: Markdown of JSON." />
             <WrapPanel Margin="0,8,0,0">
                 <Button Content="PDF" Command="{Binding ExportPdfCommand}" Margin="0,0,8,8" />
                 <Button Content="HTML (print)" Command="{Binding ExportPrintFriendlyHtmlCommand}" Margin="0,0,8,8" />
@@ -15,6 +17,8 @@
                 <Button Content="Tekst" Command="{Binding ExportPlainTextCommand}" Margin="0,0,8,8" />
                 <Button Content="HTML (kort)" Command="{Binding ExportHtmlCommand}" Margin="0,0,8,8" />
                 <Button Content="JSON" Command="{Binding ExportStructuredJsonCommand}" Margin="0,0,8,8" />
+                <Button Content="Open locatie laatste export" Command="{Binding OpenLastExportLocationCommand}"
+                        Margin="0,0,8,8" />
             </WrapPanel>
         </StackPanel>
         <TextBox Text="{Binding ExportPreview}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"

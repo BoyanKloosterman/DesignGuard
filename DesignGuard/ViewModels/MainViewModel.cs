@@ -222,6 +222,9 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private string _statusMessage = "DesignGuard v6 — klaar.";
 
+    /// <summary>Pad van de laatste geslaagde bestandsexport (openen in Verkenner).</summary>
+    [ObservableProperty] private string? _lastExportedFilePath;
+
     [ObservableProperty] private bool _isBusy;
 
     [ObservableProperty] private string _busyMessage = "";

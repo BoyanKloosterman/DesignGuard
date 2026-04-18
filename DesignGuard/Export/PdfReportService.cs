@@ -8,6 +8,10 @@ namespace DesignGuard.Export;
 
 public sealed class PdfReportService
 {
+    private const int PdfThreatListMax = 120;
+    private const int PdfRequirementListMax = 150;
+    private const int PdfTraceabilityTriggerMax = 60;
+
     private readonly KnowledgePackService _packs;
 
     public PdfReportService(KnowledgePackService packs)
@@ -56,6 +60,9 @@ public sealed class PdfReportService
                         $"Componenten: {project.Components.Count}, datastromen: {project.DataFlows.Count}, " +
                         $"C4-elementen: {project.C4Elements.Count}, dreigingen: {threats.Count}, eisen: {requirements.Count}, " +
                         $"controls: {project.Controls.Count}.");
+                    col.Item().Text(
+                            "PDF toont beperkte lengtes voor dreigingen/eisen/traceability. Volledige inhoud: export Markdown of JSON.")
+                        .FontSize(9.5f).FontColor(Colors.Grey.Darken2);
 
                     col.Item().Text("Systeemcontext").SemiBold().FontSize(12);
                     col.Item().Text(
@@ -130,17 +137,17 @@ public sealed class PdfReportService
                     }
 
                     col.Item().Text("Dreigingen (selectie)").SemiBold().FontSize(12);
-                    foreach (var t in threats.OrderBy(x => x.Title).Take(40))
+                    foreach (var t in threats.OrderBy(x => x.Title).Take(PdfThreatListMax))
                     {
                         col.Item().Text($"{t.Title} — {t.StrideCategory}, {t.Severity}, {t.Status}").SemiBold();
                         col.Item().PaddingLeft(12).Text(t.Description);
                     }
 
-                    if (threats.Count > 40)
-                        col.Item().Text($"... en {threats.Count - 40} extra (zie export JSON/Markdown).");
+                    if (threats.Count > PdfThreatListMax)
+                        col.Item().Text($"... en {threats.Count - PdfThreatListMax} extra (Markdown/JSON-export).");
 
                     col.Item().Text("Security-eisen (selectie)").SemiBold().FontSize(12);
-                    foreach (var r in requirements.OrderBy(x => x.Category).ThenBy(x => x.Title).Take(50))
+                    foreach (var r in requirements.OrderBy(x => x.Category).ThenBy(x => x.Title).Take(PdfRequirementListMax))
                     {
                         col.Item().Text($"{r.Title} [{r.Category}] — {r.Priority}, {r.Status}").SemiBold();
                         col.Item().PaddingLeft(12).Text(r.PlainExplanation);
@@ -151,8 +158,32 @@ public sealed class PdfReportService
                                 .FontColor(Colors.Grey.Darken2);
                     }
 
-                    if (requirements.Count > 50)
-                        col.Item().Text($"... en {requirements.Count - 50} extra.");
+                    if (requirements.Count > PdfRequirementListMax)
+                        col.Item().Text($"... en {requirements.Count - PdfRequirementListMax} extra (Markdown/JSON-export).");
+
+                    col.Item().Text("Traceability (trigger-sleutels)").SemiBold().FontSize(12);
+                    col.Item().Text(
+                            "Korte koppeling ontwerp → dreiging/eis. Uitgebreide toelichting: tab Traceability en Markdown-export.")
+                        .FontSize(9.5f).FontColor(Colors.Grey.Darken2);
+                    foreach (var t in threats.OrderBy(x => x.StrideCategory).ThenBy(x => x.Title).Take(PdfTraceabilityTriggerMax))
+                    {
+                        var keys = t.TriggerKeys.Count > 0 ? string.Join(", ", t.TriggerKeys) : "—";
+                        col.Item().PaddingLeft(8).Text($"Dreiging — {t.Title}: {keys}").FontSize(9.5f);
+                    }
+
+                    if (threats.Count > PdfTraceabilityTriggerMax)
+                        col.Item().Text($"... {threats.Count - PdfTraceabilityTriggerMax} extra dreigingen.")
+                            .FontColor(Colors.Grey.Medium);
+
+                    foreach (var r in requirements.OrderBy(x => x.Category).ThenBy(x => x.Title).Take(PdfTraceabilityTriggerMax))
+                    {
+                        var keys = r.TriggerKeys.Count > 0 ? string.Join(", ", r.TriggerKeys) : "—";
+                        col.Item().PaddingLeft(8).Text($"Eis — {r.Title}: {keys}").FontSize(9.5f);
+                    }
+
+                    if (requirements.Count > PdfTraceabilityTriggerMax)
+                        col.Item().Text($"... {requirements.Count - PdfTraceabilityTriggerMax} extra eisen.")
+                            .FontColor(Colors.Grey.Medium);
 
                     col.Item().Text("Controls").SemiBold().FontSize(12);
                     foreach (var c in project.Controls)

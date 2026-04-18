@@ -2,16 +2,17 @@ using DesignGuard.Models;
 
 namespace DesignGuard.Export;
 
-/// <summary>Gedeelde C4-teksten en dreiging-koppeling voor PDF en raster-export.</summary>
-internal static class C4ExportPresentation
+/// <summary>Gedeelde C4-teksten en dreiging-koppeling (één definitie voor UI, export, PDF, raster).</summary>
+public static class C4ExportPresentation
 {
     public static Dictionary<int, string> BuildIdToNameMap(IEnumerable<C4ElementModel> elements) =>
         elements.ToDictionary(e => e.Id, e => string.IsNullOrWhiteSpace(e.Name) ? $"#{e.Id}" : e.Name.Trim());
 
-    public static int CountOpenThreatNameMatches(C4ElementModel el, IReadOnlyList<ThreatModel> threats)
+    /// <summary>Aantal open dreigingen met minstens één getroffen component gelijk aan <paramref name="componentName"/> (trim, case-insensitive).</summary>
+    public static int CountOpenThreatMatchesForComponentName(string? componentName, IEnumerable<ThreatModel> threats)
     {
-        if (string.IsNullOrWhiteSpace(el.Name)) return 0;
-        var nm = el.Name.Trim();
+        if (string.IsNullOrWhiteSpace(componentName)) return 0;
+        var nm = componentName.Trim();
         var n = 0;
         foreach (var t in threats)
         {
@@ -28,6 +29,9 @@ internal static class C4ExportPresentation
 
         return n;
     }
+
+    public static int CountOpenThreatNameMatches(C4ElementModel el, IEnumerable<ThreatModel> threats) =>
+        CountOpenThreatMatchesForComponentName(el.Name, threats);
 
     public static string FormatC4ParentHintPdf(C4ElementModel el, IReadOnlyDictionary<int, string> idToName)
     {

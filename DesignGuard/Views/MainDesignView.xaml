@@ -314,7 +314,7 @@
             <GroupBox Header="Architectuurdiagram" Margin="0,8,0,0">
                 <StackPanel Margin="8">
                     <TextBlock Margin="0,0,0,6" Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"
-                               Text="Tip: groene rand = ingang, oranje streep = gevoelige data. Trust boundary = vertrouwensgrens tussen twee omgevingen (bijv. internet vs intern). Dit is het architectuurdiagram; dreigingen (STRIDE) koppel je via ‘Dreiging → component’ of het tabblad Threatmodel." />
+                               Text="Tip: groene rand = ingang, oranje streep = gevoelige data. Trust boundary = vertrouwensgrens (bijv. internet vs intern). Dit canvas is je architectuurdiagram. Tab Threatmodel bevat een apart C4-overzicht (context t/m code): werk beide bewust bij — het canvas voor de tekening, C4 voor abstractielagen en om dreigingen via exact dezelfde componentnaam te koppelen." />
                     <views:ArchitectureDiagramPanel ShowThreatLinkCheckbox="True" />
                     <Button Content="Analyse vernieuwen (dreigingen/eisen)" HorizontalAlignment="Left" Margin="0,8,0,0" Command="{Binding RegenerateFromDesignCommand}" />
                 </StackPanel>

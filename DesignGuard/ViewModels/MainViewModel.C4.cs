@@ -1,6 +1,7 @@
 // C4 threatmodel-tab (elementen + koppeling naar open dreigingen via componentnamen).
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.Input;
+using DesignGuard.Export;
 using DesignGuard.Models;
 
 namespace DesignGuard.ViewModels;
@@ -56,30 +57,7 @@ public partial class MainViewModel
     private void RefreshC4ThreatLinkCounts()
     {
         foreach (var row in C4Elements)
-        {
-            if (string.IsNullOrWhiteSpace(row.Name))
-            {
-                row.LinkedOpenThreatCount = 0;
-                continue;
-            }
-
-            var nm = row.Name.Trim();
-            var n = 0;
-            foreach (var t in Threats)
-            {
-                if (t.Status != ThreatStatus.Open) continue;
-                foreach (var a in t.AffectedComponents)
-                {
-                    if (string.Equals(a.Trim(), nm, StringComparison.OrdinalIgnoreCase))
-                    {
-                        n++;
-                        break;
-                    }
-                }
-            }
-
-            row.LinkedOpenThreatCount = n;
-        }
+            row.LinkedOpenThreatCount = C4ExportPresentation.CountOpenThreatMatchesForComponentName(row.Name, Threats);
 
         SyncC4VisualBandCollections();
     }

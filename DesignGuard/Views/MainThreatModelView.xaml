@@ -85,7 +85,7 @@
         <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
             <TextBlock Text="Threatmodel (C1–C4)" Style="{StaticResource DgText.Title}" />
             <TextBlock Margin="0,6,0,0" Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"
-                       Text="Vul hier je C4-scope (context t/m code). Boven: overzicht per C4-laag (zoals klassiek C4). Onder: tabel voor invoer. Architectuurdiagram blijft op Ontwerp. Koppel dreigingen door dezelfde naam in ‘getroffen componenten’ te zetten als bij het C4-element." />
+                       Text="C4 hier is los van het architectuurcanvas op Ontwerp: het canvas toont je tekening; C4 structureert scope in lagen (C1–C4). Houd namen synchroon als je beide gebruikt voor review. Koppel open dreigingen door exact dezelfde naam in ‘getroffen componenten’ te zetten als bij het C4-element." />
             <WrapPanel Margin="0,8,0,0">
                 <Button Content="Analyse vernieuwen" Command="{Binding RegenerateFromDesignCommand}" Style="{StaticResource DgButton.Toolbar}" Margin="0,0,8,8" />
                 <Button Content="C4-rij toevoegen" Command="{Binding AddC4ElementCommand}" Style="{StaticResource DgButton.Toolbar}" Margin="0,0,8,8" />

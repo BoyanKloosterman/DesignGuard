@@ -128,11 +128,7 @@ public sealed class ExportService
                 "Abstractielagen (C1–C4) voor dit dossier. Koppeling naar dreigingen: dezelfde naam in ‘getroffen componenten’ van een open dreiging als bij het C4-element.");
             foreach (var el in project.C4Elements.OrderBy(x => (int)x.Level).ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
             {
-                var openHits = threats.Count(t =>
-                    t.Status == ThreatStatus.Open &&
-                    !string.IsNullOrWhiteSpace(el.Name) &&
-                    t.AffectedComponents.Exists(a =>
-                        string.Equals(a.Trim(), el.Name.Trim(), StringComparison.OrdinalIgnoreCase)));
+                var openHits = C4ExportPresentation.CountOpenThreatMatchesForComponentName(el.Name, threats);
                 var parent = el.ParentId is { } pid ? $" (parent id {pid})" : "";
                 sb.AppendLine(
                     $"- **{C4LevelFormatting.ShortLabel(el.Level)}** — **{el.Name}**{parent}: {el.Description} " +

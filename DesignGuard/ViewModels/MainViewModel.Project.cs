@@ -127,6 +127,7 @@ public partial class MainViewModel
 
     private void ApplyModelToEditor(ProjectModel p)
     {
+        LastExportedFilePath = null;
         CurrentProjectId = p.Id;
         EditorProjectName = p.Name;
         EditorProjectDescription = p.Description;

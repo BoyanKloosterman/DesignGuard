@@ -141,6 +141,12 @@ public sealed class PdfReportService
                     {
                         col.Item().Text($"{t.Title} — {t.StrideCategory}, {t.Severity}, {t.Status}").SemiBold();
                         col.Item().PaddingLeft(12).Text(t.Description);
+                        if (t.StatusChangedAtUtc is { } aud)
+                        {
+                            var note = string.IsNullOrWhiteSpace(t.StatusChangeNote) ? "" : $" — {t.StatusChangeNote}";
+                            col.Item().PaddingLeft(12).Text($"Audit: {aud:yyyy-MM-dd HH:mm} UTC — {t.StatusChangedBy}{note}")
+                                .FontSize(9.5f).FontColor(Colors.Grey.Darken2);
+                        }
                     }
 
                     if (threats.Count > PdfThreatListMax)

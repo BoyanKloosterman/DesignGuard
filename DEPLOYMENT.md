@@ -51,16 +51,6 @@ DESIGNGUARD_MONGODB_CONNECTION_STRING=mongodb://localhost:27017
 
 Geen code-aanpassingen nodig.
 
-## Migratie van oude SQLite-data
-
-1. Zorg dat MongoDB-configuratie werkt (ping OK).
-2. In de app: **Instellingen → Importeer SQLite → MongoDB** en kies `designguard-v3.db` (of ander back-upbestand).
-3. Controleer de projectlijst en open een project.
-
-**Wel gemigreerd:** alle projecten en bijbehorende entiteiten zoals opgeslagen in de SQLite-database.
-
-**Niet gemigreerd via deze import:** `user-settings.json`, knowledge pack JSON op schijf (blijven lokaal).
-
 ## Back-up
 
 - **MongoDB:** gebruik `mongodump` / Atlas backups / je eigen DB-backupbeleid.

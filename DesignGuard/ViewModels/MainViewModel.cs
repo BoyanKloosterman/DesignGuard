@@ -42,7 +42,6 @@ public partial class MainViewModel : ObservableObject
     private readonly AppSecurityReviewService _appSecurityReview;
     private readonly IAppConfigurationService _appConfiguration;
     private readonly IMongoDiagnosticsService _mongoDiagnostics;
-    private readonly SqliteToMongoImportService _sqliteImport;
     private readonly DesignValidationService _designValidation;
     private HashSet<string> _dismissedSuggestionKeys = new(StringComparer.Ordinal);
     private readonly DispatcherTimer _filterDebounceTimer;
@@ -69,7 +68,6 @@ public partial class MainViewModel : ObservableObject
         AppSecurityReviewService appSecurityReview,
         IAppConfigurationService appConfiguration,
         IMongoDiagnosticsService mongoDiagnostics,
-        SqliteToMongoImportService sqliteImport,
         DesignValidationService designValidation)
     {
         _projects = projects;
@@ -91,7 +89,6 @@ public partial class MainViewModel : ObservableObject
         _appSecurityReview = appSecurityReview;
         _appConfiguration = appConfiguration;
         _mongoDiagnostics = mongoDiagnostics;
-        _sqliteImport = sqliteImport;
         _designValidation = designValidation;
         _suppressPreferencePersist = true;
         UiTheme = string.IsNullOrWhiteSpace(_userSettings.Current.Theme) ? "Light" : _userSettings.Current.Theme;
@@ -105,6 +102,7 @@ public partial class MainViewModel : ObservableObject
         KnowledgePackRemoteSyncEnabled = _userSettings.Current.KnowledgePackRemoteSyncEnabled;
         KnowledgePackSyncOnStartup = _userSettings.Current.KnowledgePackSyncOnStartup;
         KnowledgePackSyncTrustedHostExtra = _userSettings.Current.KnowledgePackSyncTrustedHostExtra ?? "";
+        ReviewerDisplayName = _userSettings.Current.ReviewerDisplayName ?? "";
         ThemeSwitcher.ApplyTheme(UiTheme);
         ApplyUiDensity();
         _suppressPreferencePersist = false;
@@ -403,6 +401,8 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private string _knowledgePackSyncTrustedHostExtra = "";
 
+    [ObservableProperty] private string _reviewerDisplayName = "";
+
     [ObservableProperty] private ObservableCollection<AppSecurityReviewRowViewModel> _appSecurityReviewRows = new();
 
     public bool ShowProjectOverviewInDetails =>
@@ -439,12 +439,15 @@ public partial class MainViewModel : ObservableObject
         PersistUserPreferences();
     }
 
+    partial void OnReviewerDisplayNameChanged(string value) => PersistUserPreferences();
+
     private void PersistUserPreferences()
     {
         if (_suppressPreferencePersist) return;
         _userSettings.Current.Theme = UiTheme;
         _userSettings.Current.DetailLevel = DetailLevel;
         _userSettings.Current.UiDensity = UiDensity;
+        _userSettings.Current.ReviewerDisplayName = (ReviewerDisplayName ?? "").Trim();
         _userSettings.Save();
     }
 

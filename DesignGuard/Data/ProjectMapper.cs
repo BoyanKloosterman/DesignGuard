@@ -1,3 +1,4 @@
+using System.Globalization;
 using DesignGuard.Data.Entities;
 using DesignGuard.Models;
 
@@ -5,6 +6,15 @@ namespace DesignGuard.Data;
 
 internal static class ProjectMapper
 {
+    internal static DateTime? ParseOptionalUtc(string? s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return null;
+        return DateTime.Parse(s, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+    }
+
+    internal static string? FormatOptionalUtc(DateTime? dt) =>
+        dt == null ? null : dt.Value.ToUniversalTime().ToString("o", CultureInfo.InvariantCulture);
+
     public static ProjectModel ToModel(ProjectEntity e)
     {
         return new ProjectModel
@@ -173,6 +183,9 @@ internal static class ProjectMapper
         StrideCategory = (StrideCategory)e.StrideCategory,
         Severity = (SeverityEstimate)e.Severity,
         Status = (ThreatStatus)e.Status,
+        StatusChangedAtUtc = ParseOptionalUtc(e.StatusChangedAtUtc),
+        StatusChangedBy = e.StatusChangedBy ?? "",
+        StatusChangeNote = e.StatusChangeNote ?? "",
         Notes = e.Notes,
         Description = e.Description,
         GenerationReason = e.GenerationReason,
@@ -218,6 +231,9 @@ internal static class ProjectMapper
         StrideCategory = (int)m.StrideCategory,
         Severity = (int)m.Severity,
         Status = (int)m.Status,
+        StatusChangedAtUtc = FormatOptionalUtc(m.StatusChangedAtUtc),
+        StatusChangedBy = m.StatusChangedBy ?? "",
+        StatusChangeNote = m.StatusChangeNote ?? "",
         Notes = m.Notes,
         Description = m.Description,
         GenerationReason = m.GenerationReason,

@@ -1,6 +1,5 @@
-// MongoDB-instellingen, diagnose en SQLite-import.
+// MongoDB-instellingen en diagnose.
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Win32;
 
 namespace DesignGuard.ViewModels;
 
@@ -43,37 +42,4 @@ public partial class MainViewModel
         }
     }
 
-    [RelayCommand]
-    private async Task ImportSqliteToMongoAsync()
-    {
-        if (!_appConfiguration.Current.IsMongoFullyConfigured)
-        {
-            StatusMessage = "Eerst MongoDB configureren.";
-            return;
-        }
-
-        var dlg = new OpenFileDialog
-        {
-            Title = "SQLite DesignGuard-database (designguard-v3.db)",
-            Filter = "SQLite database (*.db)|*.db|Alle bestanden (*.*)|*.*"
-        };
-        if (dlg.ShowDialog() != true)
-        {
-            StatusMessage = "Import geannuleerd.";
-            return;
-        }
-
-        try
-        {
-            var progress = new Progress<string>(msg => StatusMessage = msg);
-            var r = await _sqliteImport.ImportAllProjectsAsync(dlg.FileName, progress);
-            await ReloadProjectListAsync();
-            StatusMessage =
-                $"SQLite-import klaar: {r.ImportedCount}/{r.SourceProjectCount} projecten naar MongoDB.";
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Import mislukt: {ex.Message}";
-        }
-    }
 }

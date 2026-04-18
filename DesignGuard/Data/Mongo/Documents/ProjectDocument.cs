@@ -195,6 +195,9 @@ public sealed class ThreatDoc
     public int StrideCategory { get; set; }
     public int Severity { get; set; }
     public int Status { get; set; }
+    public string? StatusChangedAtUtc { get; set; }
+    public string StatusChangedBy { get; set; } = "";
+    public string StatusChangeNote { get; set; } = "";
     public string Notes { get; set; } = "";
     public string Description { get; set; } = "";
     public string GenerationReason { get; set; } = "";

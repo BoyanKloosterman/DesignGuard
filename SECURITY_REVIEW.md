@@ -26,7 +26,6 @@ This document summarizes a **self-assessment** of the DesignGuard desktop applic
 - **Secret display**: connection string **masked** in diagnostics; do not log full connection strings (avoid `Console`/file logging of config).
 - **MongoDB driver**: explicit timeouts when `DESIGNGUARD_MONGODB_TIMEOUT_SECONDS` is set; optional TLS flag and read preference for server deployments.
 - **Persistence model**: stable BSON documents with `[BsonIgnoreExtraElements]` on project root to reduce breakage from stray fields; mapping via explicit DTOs / entity conversion (no arbitrary `dynamic` document graphs for domain load).
-- **SQLite import**: user-selected `.db` path only; imports through the same `ProjectMapper` + `ProjectDocumentBuilder` path as normal saves (consistent domain mapping).
 - **Knowledge pack loading**: relative paths only, `..` rejected, file size cap, JSON parse failures swallowed per file.
 - **Export path check**: `SafeExportPath.TryGetSafeWritePath` validates full path and parent directory existence before write.
 - **Disclaimers** in UI-oriented copy, exports, and knowledge pack JSON (no compliance/certification wording).
@@ -46,15 +45,13 @@ This document summarizes a **self-assessment** of the DesignGuard desktop applic
 1. **JSON Schema validation** for knowledge packs and optional user-imported packs.
 2. **Structured logging** (optional, file-based, opt-in) with redaction rules instead of only status bar text.
 3. **Automated dependency scanning** in CI (`dotnet list package --vulnerable`).
-4. **QuestPDF / licensing**: confirm QuestPDF Community license terms match your distribution model before shipping broadly.
-5. **EF Core** retained only for SQLite import path; consider isolating import in a separate tool/assembly if attack surface is a concern.
+4. **Third-party licenses** (o.a. QuestPDF Community): bevestigen dat ze passen bij jouw distributiemodel.
 
 ## Dependency notes (manual)
 
 Review periodically:
 
 - `MongoDB.Driver`
-- `Microsoft.EntityFrameworkCore.Sqlite` (import only)
 - `CommunityToolkit.Mvvm`
 - `QuestPDF`
 - Transitive packages reported by `dotnet list package --include-transitive`

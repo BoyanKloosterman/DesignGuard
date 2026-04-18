@@ -1,9 +1,10 @@
 using DesignGuard.Data.Mongo.Documents;
 using DesignGuard.Models;
+using ProjectMapperCore = DesignGuard.Data.ProjectMapper;
 
 namespace DesignGuard.Data.Mongo;
 
-/// <summary>Bouwt een <see cref="ProjectDocument"/> vanuit het domeinmodel (zelfde remapping als SQLite-save).</summary>
+/// <summary>Bouwt een <see cref="ProjectDocument"/> vanuit het domeinmodel.</summary>
 internal static class ProjectDocumentBuilder
 {
     public static ProjectDocument Build(ProjectModel m, int projectId, DateTime createdAtUtc)
@@ -287,6 +288,9 @@ internal static class ProjectDocumentBuilder
         StrideCategory = (int)t.StrideCategory,
         Severity = (int)t.Severity,
         Status = (int)t.Status,
+        StatusChangedAtUtc = ProjectMapperCore.FormatOptionalUtc(t.StatusChangedAtUtc),
+        StatusChangedBy = t.StatusChangedBy ?? "",
+        StatusChangeNote = t.StatusChangeNote ?? "",
         Notes = t.Notes,
         Description = t.Description,
         GenerationReason = t.GenerationReason,

@@ -144,6 +144,13 @@ public sealed class ExportService
         {
             sb.AppendLine($"### {t.Title}");
             sb.AppendLine($"- **STRIDE:** {t.StrideCategory} — **Ernst:** {t.Severity} — **Status:** {t.Status}");
+            if (t.StatusChangedAtUtc is { } atUtc)
+            {
+                var note = string.IsNullOrWhiteSpace(t.StatusChangeNote) ? "" : $" — **Toelichting:** {t.StatusChangeNote}";
+                sb.AppendLine(
+                    $"- **Status-audit (UTC):** {atUtc:O} — **door:** {t.StatusChangedBy}{note}");
+            }
+
             sb.AppendLine($"- **Herkomst:** {t.Origin}{(t.UserModified ? " (handmatig aangepast)" : "")}");
             sb.AppendLine($"- **Beschrijving:** {t.Description}");
             sb.AppendLine($"- **Waarom gegenereerd / opgenomen:** {t.GenerationReason}");
@@ -417,6 +424,13 @@ public sealed class ExportService
             sb.AppendLine($"<h3>{Esc(t.Title)}</h3>");
             sb.AppendLine($"<p class=\"tag\">{t.StrideCategory} — {t.Severity} — {t.Status} — herkomst {t.Origin}</p>");
             sb.AppendLine($"<p>{Esc(t.Description)}</p>");
+            if (t.StatusChangedAtUtc is { } audHtml)
+            {
+                var note = string.IsNullOrWhiteSpace(t.StatusChangeNote) ? "" : $" — {Esc(t.StatusChangeNote)}";
+                sb.AppendLine(
+                    $"<p class=\"tag\">Status-audit: {audHtml:O} — {Esc(t.StatusChangedBy)}{note}</p>");
+            }
+
             if (!string.IsNullOrWhiteSpace(t.SourceAttribution.KnowledgePackId))
                 sb.AppendLine(
                     $"<p class=\"tag\">Bronspoor: {Esc(t.SourceAttribution.KnowledgePackDisplayLabel)} ({Esc(t.SourceAttribution.KnowledgePackVersionLabel)}) — " +
@@ -512,6 +526,9 @@ public sealed class ExportService
                 StrideCategory = t.StrideCategory.ToString(),
                 Severity = t.Severity.ToString(),
                 Status = t.Status.ToString(),
+                statusChangedAtUtc = t.StatusChangedAtUtc,
+                t.StatusChangedBy,
+                t.StatusChangeNote,
                 t.Notes,
                 t.Description,
                 t.GenerationReason,

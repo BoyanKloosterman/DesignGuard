@@ -36,7 +36,6 @@ public partial class App : Application
         services.AddSingleton<MongoConnectionFactory>();
         services.AddSingleton<IMongoDiagnosticsService, MongoDiagnosticsService>();
         services.AddSingleton<IProjectRepository, MongoProjectRepository>();
-        services.AddSingleton<SqliteToMongoImportService>();
 
         services.AddSingleton(_ => new UserSettingsService(dir));
         services.AddSingleton(sp =>

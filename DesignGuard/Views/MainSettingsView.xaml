@@ -9,8 +9,13 @@
                   VerticalScrollBarVisibility="Auto">
         <StackPanel>
             <TextBlock Text="Instellingen" FontSize="22" FontWeight="SemiBold" />
-            <TextBlock TextWrapping="Wrap" Foreground="Gray" Margin="0,8,0,16"
+            <TextBlock TextWrapping="Wrap" Foreground="Gray" Margin="0,8,0,12"
                        Text="Knowledge packs: schakel bron-modules in/uit. Uitgeschakelde packs worden niet gebruikt voor nieuwe attributie. Standaarden wijzigen — herzie packs periodiek." />
+            <TextBlock Text="Review / audit" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,4,0,4"
+                       Text="Standaardnaam bij het vastleggen van een dreiging-status (wie). Leeg = Windows-gebruikersnaam. Je kunt per dreiging nog een toelichting typen." />
+            <TextBlock Text="Weergavenaam reviewer" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" Margin="0,0,0,2" />
+            <TextBox Text="{Binding ReviewerDisplayName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16" />
             <TextBlock Text="Knowledge packs" FontWeight="SemiBold" />
             <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,8,0,8"
                        Text="Online bijwerken: alleen HTTPS, downloadlimiet, SHA256-controle, TLS met certificaatrevocatie. Alleen de host van de manifest-URL en optioneel één extra hostnaam. Geen machine learning — bijgewerkte JSON wordt direct gebruikt voor attributie." />
@@ -77,8 +82,7 @@
             <TextBlock Text="{Binding MongoDiagPing}" TextWrapping="Wrap" Margin="0,8,0,0" FontSize="11"
                        Foreground="{DynamicResource DgBrush.Success}" />
             <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                <Button Content="Verbinding testen (ping)" Command="{Binding TestMongoConnectionCommand}" Margin="0,0,8,0" />
-                <Button Content="Importeer SQLite → MongoDB" Command="{Binding ImportSqliteToMongoCommand}" />
+                <Button Content="Verbinding testen (ping)" Command="{Binding TestMongoConnectionCommand}" />
             </StackPanel>
             <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="Gray" Margin="0,8,0,0"
                        Text="Lokale voorkeuren en export-map blijven in user-settings.json onder %LocalAppData%\DesignGuard\." />

@@ -180,14 +180,44 @@ public sealed class KnowledgePackRemoteSyncService
             $"Synchronisatie gelukt: {done} bestand(en). Packs opnieuw geladen.");
     }
 
+    private static string NormalizeTrustedHost(string trustedHostExtra)
+    {
+        var value = trustedHostExtra.Trim();
+        if (value.Length == 0)
+            throw new InvalidOperationException("Extra vertrouwde host is leeg.");
+
+        if (Uri.TryCreate(value, UriKind.Absolute, out var absoluteUri))
+        {
+            if (string.IsNullOrWhiteSpace(absoluteUri.Host))
+                throw new InvalidOperationException("Extra vertrouwde host bevat geen geldige hostnaam.");
+
+            return absoluteUri.Host;
+        }
+
+        if (value.Contains("://", StringComparison.Ordinal) ||
+            value.Contains('/') ||
+            value.Contains('\\') ||
+            value.Contains('?') ||
+            value.Contains('#') ||
+            value.Contains('@'))
+        {
+            throw new InvalidOperationException(
+                "Extra vertrouwde host moet een hostnaam of absolute URL zijn.");
+        }
+
+        if (!Uri.CheckHostName(value).Equals(UriHostNameType.Unknown))
+            return value;
+
+        throw new InvalidOperationException("Extra vertrouwde host bevat geen geldige hostnaam.");
+    }
+
     private static HashSet<string> BuildAllowedHosts(Uri manifestUri, string? trustedHostExtra)
     {
         var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { manifestUri.Host };
         if (!string.IsNullOrWhiteSpace(trustedHostExtra))
         {
-            var h = trustedHostExtra.Trim();
-            if (h.Length > 0)
-                set.Add(h);
+            var normalizedHost = NormalizeTrustedHost(trustedHostExtra);
+            set.Add(normalizedHost);
         }
 
         return set;

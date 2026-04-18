@@ -9,24 +9,7 @@
         <StackPanel>
             <TextBlock Text="Details" Style="{StaticResource DgText.Title}" Margin="0,0,0,4" />
             <TextBlock Style="{StaticResource DgText.Muted}" FontSize="11" Margin="0,0,0,12" TextWrapping="Wrap"
-                       Text="Context voor het geselecteerde item. Suggesties hieronder komen uit je ontwerp (geen automatische goedkeuring)." />
-            <TextBlock Text="Suggesties" Style="{StaticResource DgText.SectionLabel}" />
-            <ItemsControl ItemsSource="{Binding Suggestions}" Margin="0,0,0,12">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Style="{StaticResource DgCard}" Margin="0,0,0,8">
-                            <StackPanel>
-                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                                <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" FontSize="11" Margin="0,4,0,0" />
-                                <TextBlock Text="{Binding Because}" Foreground="{DynamicResource DgBrush.TextMuted}" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0" />
-                                <Button Content="Negeren" Style="{StaticResource DgButton.Toolbar}" HorizontalAlignment="Left" Margin="0,6,0,0" FontSize="11"
-                                        Command="{Binding DataContext.DismissSuggestionCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                        CommandParameter="{Binding}" />
-                            </StackPanel>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                       Text="Eerst het geselecteerde item; suggesties staan onderaan (uit je ontwerp, geen automatische goedkeuring)." />
             <Border Visibility="{Binding ShowProjectOverviewInDetails, Converter={StaticResource BoolToVis}}"
                     Style="{StaticResource DgCard}" Margin="0,0,0,8">
                 <StackPanel>
@@ -214,6 +197,23 @@
                             Command="{Binding DataContext.RefreshDiagramLayoutCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
                 </StackPanel>
             </Border>
+            <TextBlock Text="Suggesties" Style="{StaticResource DgText.SectionLabel}" Margin="0,16,0,0" />
+            <ItemsControl ItemsSource="{Binding Suggestions}" Margin="0,4,0,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource DgCard}" Margin="0,0,0,8">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" FontSize="11" Margin="0,4,0,0" />
+                                <TextBlock Text="{Binding Because}" Foreground="{DynamicResource DgBrush.TextMuted}" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                <Button Content="Negeren" Style="{StaticResource DgButton.Toolbar}" HorizontalAlignment="Left" Margin="0,6,0,0" FontSize="11"
+                                        Command="{Binding DataContext.DismissSuggestionCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

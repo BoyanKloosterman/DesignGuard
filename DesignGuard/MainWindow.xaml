@@ -6,7 +6,7 @@
         mc:Ignorable="d"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         Title="DesignGuard v6 — Security-by-design werkbench"
-        Height="820" Width="1320"
+        Height="960" Width="1480"
         Background="{DynamicResource DgBrush.Window}"
         Foreground="{DynamicResource DgBrush.TextPrimary}"
         Loaded="Window_Loaded">
@@ -41,7 +41,8 @@
                         <Button Content="Wizard" Style="{StaticResource DgButton.Toolbar}"
                                 Command="{Binding OpenProjectWizardCommand}" />
                         <Button Content="Opslaan" Style="{StaticResource DgButton.Toolbar}"
-                                Command="{Binding SaveProjectCommand}" />
+                                Command="{Binding SaveProjectCommand}"
+                                ToolTip="Slaat op en werkt dreigingen/eisen automatisch bij op basis van ontwerp (componenten, vlaggen, tekst)." />
                         <Button Content="Verwijderen" Style="{StaticResource DgButton.Toolbar}"
                                 Command="{Binding DeleteProjectCommand}" />
                         <Button Content="Demoproject" Style="{StaticResource DgButton.Toolbar}"
@@ -242,10 +243,35 @@
                                           CanUserAddRows="False" HeadersVisibility="Column" Height="200">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                                        <DataGridTextColumn Header="Tag" Binding="{Binding Tag, UpdateSourceTrigger=PropertyChanged}" Width="70" />
+                                        <DataGridTemplateColumn Header="Tag" Width="118">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox IsEditable="True" StaysOpenOnEdit="False"
+                                                              ItemsSource="{Binding DataContext.ComponentTagSuggestions, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              Text="{Binding Tag, UpdateSourceTrigger=PropertyChanged}" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTemplateColumn Header="Classificatie" Width="118">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox IsEditable="True" StaysOpenOnEdit="False"
+                                                              ItemsSource="{Binding DataContext.PresetAssetClassifications, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              Text="{Binding AssetClassification, UpdateSourceTrigger=PropertyChanged}" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
                                         <DataGridCheckBoxColumn Header="Entry" Binding="{Binding IsEntryPoint}" Width="50" />
                                         <DataGridTextColumn Header="Boundary (naam)" Binding="{Binding TrustBoundaryName, UpdateSourceTrigger=PropertyChanged}" Width="110" />
-                                        <DataGridTextColumn Header="Data" Binding="{Binding DataSensitivity, UpdateSourceTrigger=PropertyChanged}" Width="80" />
+                                        <DataGridTemplateColumn Header="Data" Width="118">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox IsEditable="True" StaysOpenOnEdit="False"
+                                                              ItemsSource="{Binding DataContext.PresetDataSensitivityLabels, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              Text="{Binding DataSensitivity, UpdateSourceTrigger=PropertyChanged}" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
                                         <DataGridTextColumn Header="Notities" Binding="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                                         <DataGridTemplateColumn Width="70">
                                             <DataGridTemplateColumn.CellTemplate>
@@ -318,11 +344,36 @@
                         <GroupBox Header="Assets" Margin="0,8,0,0">
                             <StackPanel Margin="8">
                                 <Button Content="Asset toevoegen" Command="{Binding AddAssetCommand}" HorizontalAlignment="Left" Margin="0,0,0,8" />
-                                <DataGrid ItemsSource="{Binding Assets}" AutoGenerateColumns="False" CanUserAddRows="False" Height="100">
+                                <DataGrid ItemsSource="{Binding Assets}" AutoGenerateColumns="False" CanUserAddRows="False" Height="120">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                                        <DataGridTextColumn Header="Classificatie" Binding="{Binding Classification, UpdateSourceTrigger=PropertyChanged}" Width="100" />
-                                        <DataGridTextColumn Header="Gevoeligheid" Binding="{Binding Sensitivity, UpdateSourceTrigger=PropertyChanged}" Width="100" />
+                                        <DataGridTemplateColumn Header="Classificatie" Width="118">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox IsEditable="True" StaysOpenOnEdit="False"
+                                                              ItemsSource="{Binding DataContext.PresetAssetClassifications, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              Text="{Binding Classification, UpdateSourceTrigger=PropertyChanged}" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTemplateColumn Header="Gevoeligheid" Width="118">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox IsEditable="True" StaysOpenOnEdit="False"
+                                                              ItemsSource="{Binding DataContext.PresetDataSensitivityLabels, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              Text="{Binding Sensitivity, UpdateSourceTrigger=PropertyChanged}" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTemplateColumn Header="Component" Width="140" MinWidth="100">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              SelectedItem="{Binding RelatedComponent, UpdateSourceTrigger=PropertyChanged}"
+                                                              DisplayMemberPath="Name" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
                                         <DataGridTemplateColumn Width="70">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
@@ -340,7 +391,15 @@
                                 <DataGrid ItemsSource="{Binding EntryPoints}" AutoGenerateColumns="False" CanUserAddRows="False" Height="100">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                                        <DataGridTextColumn Header="Component-Id" Binding="{Binding RelatedComponentId, UpdateSourceTrigger=PropertyChanged}" Width="90" />
+                                        <DataGridTemplateColumn Header="Component" Width="160" MinWidth="120">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              SelectedItem="{Binding RelatedComponent, UpdateSourceTrigger=PropertyChanged}"
+                                                              DisplayMemberPath="Name" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
                                         <DataGridTextColumn Header="Notities" Binding="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                                         <DataGridTemplateColumn Width="70">
                                             <DataGridTemplateColumn.CellTemplate>
@@ -361,7 +420,15 @@
                                         <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                                         <DataGridTextColumn Header="Categorie" Binding="{Binding Category, UpdateSourceTrigger=PropertyChanged}" Width="90" />
                                         <DataGridTextColumn Header="Opslag" Binding="{Binding StorageLocation, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                                        <DataGridTextColumn Header="Comp-Id" Binding="{Binding RelatedComponentId, UpdateSourceTrigger=PropertyChanged}" Width="70" />
+                                        <DataGridTemplateColumn Header="Component" Width="140" MinWidth="100">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              SelectedItem="{Binding RelatedComponent, UpdateSourceTrigger=PropertyChanged}"
+                                                              DisplayMemberPath="Name" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
                                         <DataGridTemplateColumn Width="70">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
@@ -403,7 +470,7 @@
                                                                             </GeometryGroup>
                                                                         </GeometryDrawing.Geometry>
                                                                         <GeometryDrawing.Pen>
-                                                                            <Pen Brush="#E2E8F0" Thickness="0.6" />
+                                                                            <Pen Brush="{DynamicResource DgBrush.Border}" Thickness="0.6" />
                                                                         </GeometryDrawing.Pen>
                                                                     </GeometryDrawing>
                                                                 </DrawingBrush.Drawing>
@@ -461,15 +528,15 @@
                                                     <DataTemplate>
                                                         <Canvas>
                                                             <!-- Alleen stroke op curve: geen lint-vulling -->
-                                                            <Path Data="{Binding CurvePath}" Stroke="#64748B" StrokeThickness="1"
+                                                            <Path Data="{Binding CurvePath}" Stroke="{DynamicResource DgBrush.DiagramEdge}" StrokeThickness="1"
                                                                   StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                                                   Fill="Transparent" SnapsToDevicePixels="True" Opacity="0.92" />
-                                                            <Path Data="{Binding ArrowPath}" Fill="#475569" Stroke="#334155" StrokeThickness="0.35"
+                                                            <Path Data="{Binding ArrowPath}" Fill="{DynamicResource DgBrush.DiagramArrowFill}" Stroke="{DynamicResource DgBrush.DiagramArrowStroke}" StrokeThickness="0.35"
                                                                   StrokeLineJoin="Miter" SnapsToDevicePixels="True" />
                                                             <Border Canvas.Left="{Binding LabelX}" Canvas.Top="{Binding LabelY}"
-                                                                    Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1"
+                                                                    Background="{DynamicResource DgBrush.DiagramLabelBg}" BorderBrush="{DynamicResource DgBrush.Border}" BorderThickness="1"
                                                                     CornerRadius="3" Padding="4,2">
-                                                                <TextBlock Text="{Binding Label}" FontSize="9" Foreground="#1E293B"
+                                                                <TextBlock Text="{Binding Label}" FontSize="9" Foreground="{DynamicResource DgBrush.TextPrimary}"
                                                                            TextWrapping="Wrap" MaxWidth="200" />
                                                             </Border>
                                                         </Canvas>
@@ -491,10 +558,10 @@
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <Border Width="196" Height="64" CornerRadius="8" BorderThickness="1.5" Padding="8,6,8,6"
-                                                                Background="White" SnapsToDevicePixels="True" MouseLeftButtonDown="DiagramNode_MouseDown">
+                                                                Background="{DynamicResource DgBrush.DiagramNodeFill}" SnapsToDevicePixels="True" MouseLeftButtonDown="DiagramNode_MouseDown">
                                                             <Border.Style>
                                                                 <Style TargetType="Border">
-                                                                    <Setter Property="BorderBrush" Value="#2D3748" />
+                                                                    <Setter Property="BorderBrush" Value="{DynamicResource DgBrush.DiagramNodeBorder}" />
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
                                                                             <Setter Property="BorderBrush" Value="#C53030" />
@@ -530,9 +597,9 @@
                                                                     </Border.Style>
                                                                 </Border>
                                                                 <StackPanel Grid.Column="1">
-                                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" FontSize="12" Foreground="#1A202C" />
-                                                                    <TextBlock Text="{Binding Tag}" Foreground="#718096" FontSize="10" />
-                                                                    <TextBlock Text="{Binding DataSensitivity}" FontSize="9" Foreground="#4A5568" Visibility="{Binding ShowSensitiveStripe, Converter={StaticResource BoolToVis}}" />
+                                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource DgBrush.TextPrimary}" />
+                                                                    <TextBlock Text="{Binding Tag}" Foreground="{DynamicResource DgBrush.TextMuted}" FontSize="10" />
+                                                                    <TextBlock Text="{Binding DataSensitivity}" FontSize="9" Foreground="{DynamicResource DgBrush.TextSecondary}" Visibility="{Binding ShowSensitiveStripe, Converter={StaticResource BoolToVis}}" />
                                                                 </StackPanel>
                                                             </Grid>
                                                         </Border>
@@ -632,28 +699,106 @@
                             <Button Content="Handmatige control" Command="{Binding AddControlCommand}" Margin="0,0,8,8" />
                             <Button Content="Pas bibliotheek toe" Command="{Binding ApplyControlLibraryCommand}" Margin="0,0,8,8" />
                         </WrapPanel>
-                        <DataGrid ItemsSource="{Binding Controls}" AutoGenerateColumns="False" CanUserAddRows="False" MinHeight="200" HeadersVisibility="Column">
+                        <TextBlock Margin="0,0,0,6" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" TextWrapping="Wrap"
+                                   Text="Tip: scroll horizontaal als de tabel breder is dan het venster — kolommen hebben vaste minimumbreedte zodat koppen leesbaar blijven." />
+                        <!-- Geen star-widths: anders worden alle kolommen geperst. Vaste breedtes + horizontaal scrollen. -->
+                        <DataGrid ItemsSource="{Binding Controls}" AutoGenerateColumns="False" CanUserAddRows="False"
+                                  MinHeight="260" HeadersVisibility="Column"
+                                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                  GridLinesVisibility="Horizontal" RowHeight="28">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Titel" Binding="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
-                                <DataGridTextColumn Header="Categorie" Binding="{Binding Category, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                                <DataGridTextColumn Header="Tags" Binding="{Binding SourceTags, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                                <DataGridTemplateColumn Header="Status" Width="120">
+                                <DataGridTextColumn Header="Titel" Binding="{Binding Title, UpdateSourceTrigger=PropertyChanged}"
+                                                    Width="280" MinWidth="200" />
+                                <DataGridTextColumn Header="Categorie" Binding="{Binding Category, UpdateSourceTrigger=PropertyChanged}"
+                                                    Width="160" MinWidth="120" />
+                                <DataGridTemplateColumn Header="Bron-tags" Width="200" MinWidth="160">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <ComboBox ItemsSource="{Binding DataContext.ControlLifecycleStatusOptions, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            <ComboBox MinWidth="150" IsEditable="True" StaysOpenOnEdit="False"
+                                                      ItemsSource="{Binding DataContext.ControlSourceTagSuggestions, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                      Text="{Binding SourceTags, UpdateSourceTrigger=PropertyChanged}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Component" Width="180" MinWidth="140">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox MinWidth="130"
+                                                      ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                      SelectedItem="{Binding LinkedComponent, UpdateSourceTrigger=PropertyChanged}"
+                                                      DisplayMemberPath="Name" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Meer ID's" Binding="{Binding ExtraLinkedComponentIds, UpdateSourceTrigger=PropertyChanged}"
+                                                    Width="110" MinWidth="90" />
+                                <DataGridTemplateColumn Header="Status" Width="140" MinWidth="120">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox MinWidth="110"
+                                                      ItemsSource="{Binding DataContext.ControlLifecycleStatusOptions, RelativeSource={RelativeSource AncestorType=Window}}"
                                                       SelectedItem="{Binding Status, UpdateSourceTrigger=PropertyChanged}" />
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTextColumn Header="Dreiging (stable id)" Binding="{Binding LinkedThreatStableId, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                                <DataGridTextColumn Header="Eisen (ids, komma)" Binding="{Binding LinkedRequirementStableIds, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                                <DataGridTextColumn Header="Library id" Binding="{Binding LibraryDefinitionId, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" Width="120" />
-                                <DataGridTextColumn Header="Uitleg" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
-                                <DataGridTextColumn Header="Implementatie" Binding="{Binding ImplementationGuidance, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
-                                <DataGridTemplateColumn Width="70">
+                                <DataGridTemplateColumn Header="Dreiging" Width="260" MinWidth="200">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Button Content="Verwijder" Command="{Binding DataContext.RemoveControlCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" />
+                                            <ComboBox MinWidth="200"
+                                                      ItemsSource="{Binding DataContext.ControlThreatPickList, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                      DisplayMemberPath="Display"
+                                                      SelectedValuePath="Id"
+                                                      SelectedValue="{Binding LinkedThreatStableId, UpdateSourceTrigger=PropertyChanged}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Eisen" Width="300" MinWidth="260">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel>
+                                                <ScrollViewer MaxHeight="88" VerticalScrollBarVisibility="Auto">
+                                                    <ItemsControl ItemsSource="{Binding LinkedRequirementChips}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <DockPanel Margin="0,2,0,0">
+                                                                    <Button DockPanel.Dock="Right" Content="×" Width="22" Padding="0" Margin="4,0,0,0"
+                                                                            Command="{Binding DataContext.RemoveLinkedRequirementChipCommand, RelativeSource={RelativeSource AncestorType=DataGridRow}}"
+                                                                            CommandParameter="{Binding}" />
+                                                                    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis"
+                                                                               ToolTip="{Binding Id}" VerticalAlignment="Center" />
+                                                                </DockPanel>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </ScrollViewer>
+                                                <ComboBox Margin="0,4,0,0" MinWidth="160" DisplayMemberPath="Title"
+                                                          ItemsSource="{Binding DataContext.Requirements, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                          SelectionChanged="ControlAddRequirement_OnSelectionChanged" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Bibliotheek" Width="300" MinWidth="240">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox MinWidth="220"
+                                                      ItemsSource="{Binding DataContext.ControlLibraryPickList, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                      DisplayMemberPath="Display"
+                                                      SelectedValuePath="Id"
+                                                      SelectedValue="{Binding LibraryDefinitionId, UpdateSourceTrigger=PropertyChanged}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Uitleg" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                                                    Width="320" MinWidth="220" />
+                                <DataGridTextColumn Header="Implementatie" Binding="{Binding ImplementationGuidance, UpdateSourceTrigger=PropertyChanged}"
+                                                    Width="320" MinWidth="220" />
+                                <DataGridTemplateColumn Header="Actie" Width="104" MinWidth="104">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="Verwijder" Padding="6,2"
+                                                    Command="{Binding DataContext.RemoveControlCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}" />
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
@@ -775,10 +920,23 @@
                         <TextBlock TextWrapping="Wrap" Foreground="Gray" Margin="0,8,0,16"
                                    Text="Knowledge packs: schakel bron-modules in/uit. Uitgeschakelde packs worden niet gebruikt voor nieuwe attributie. Standaarden wijzigen — herzie packs periodiek." />
                         <TextBlock Text="Knowledge packs" FontWeight="SemiBold" />
+                        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,8,0,8"
+                                   Text="Online bijwerken: alleen HTTPS, downloadlimiet, SHA256-controle, TLS met certificaatrevocatie. Alleen de host van de manifest-URL en optioneel één extra hostnaam. Geen machine learning — bijgewerkte JSON wordt direct gebruikt voor attributie." />
+                        <TextBlock Text="Manifest-URL (HTTPS)" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" Margin="0,0,0,2" />
+                        <TextBox Text="{Binding KnowledgePackManifestUrl, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+                        <TextBlock Text="Extra toegestane host (optioneel, bv. enterprise CDN)" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" Margin="0,0,0,2" />
+                        <TextBox Text="{Binding KnowledgePackSyncTrustedHostExtra, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <CheckBox IsChecked="{Binding KnowledgePackRemoteSyncEnabled}" VerticalAlignment="Center" Margin="0,0,16,0"
+                                      Content="Netwerk-sync toestaan" />
+                            <CheckBox IsChecked="{Binding KnowledgePackSyncOnStartup}" VerticalAlignment="Center"
+                                      Content="Bij start synchroniseren" />
+                        </StackPanel>
+                        <Button Content="Knowledge packs nu synchroniseren" Command="{Binding SyncKnowledgePacksRemoteCommand}" HorizontalAlignment="Left" Margin="0,0,0,16" />
                         <ItemsControl ItemsSource="{Binding KnowledgePackRows}" Margin="0,8,0,16">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border BorderBrush="#E2E8F0" BorderThickness="1" Padding="10" Margin="0,0,0,8" Background="White">
+                                    <Border BorderBrush="{DynamicResource DgBrush.Border}" BorderThickness="1" Padding="10" Margin="0,0,0,8" Background="{DynamicResource DgBrush.InputBackground}">
                                         <StackPanel>
                                             <StackPanel Orientation="Horizontal">
                                                 <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}" VerticalAlignment="Top" Margin="0,2,8,0" />
@@ -792,7 +950,7 @@
                                             <TextBlock Margin="20,4,0,0" FontSize="10" Foreground="Gray" TextWrapping="Wrap">
                                                 <Run Text="Versie: " /><Run Text="{Binding VersionLabel, Mode=OneWay}" />
                                             </TextBlock>
-                                            <TextBlock Margin="20,2,0,0" FontSize="10" Foreground="#475569" TextWrapping="Wrap" Text="{Binding SourceName, Mode=OneWay}" />
+                                            <TextBlock Margin="20,2,0,0" FontSize="10" Foreground="{DynamicResource DgBrush.TextSecondary}" TextWrapping="Wrap" Text="{Binding SourceName, Mode=OneWay}" />
                                             <TextBlock Margin="20,4,0,0" FontSize="10" Foreground="DarkOrange" TextWrapping="Wrap"
                                                        Visibility="{Binding IsStale, Converter={StaticResource BoolToVis}}">
                                                 Pack is ouder dan de ingestelde waarschuwingsperiode — controleer bron en update pack.
@@ -805,27 +963,27 @@
                         <TextBlock Text="Database / MongoDB" FontWeight="SemiBold" />
                         <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="Gray" Margin="0,4,0,12"
                                    Text="Projectdata staat in MongoDB. Configureer omgevingsvariabelen (of .env in Development) — zie CONFIGURATION.md en DEPLOYMENT.md." />
-                        <TextBlock FontSize="11" Foreground="#334155">
+                        <TextBlock FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}">
                             <Run Text="Omgeving: " /><Run Text="{Binding MongoDiagEnvironment, Mode=OneWay}" />
                         </TextBlock>
-                        <TextBlock Text="Omgevingsvariabelen" FontSize="11" Foreground="#334155" Margin="0,4,0,0" FontWeight="SemiBold" />
-                        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#334155" Text="{Binding MongoDiagEnvVars}" />
-                        <TextBlock FontSize="11" Foreground="#334155" Margin="0,4,0,0">
+                        <TextBlock Text="Omgevingsvariabelen" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,4,0,0" FontWeight="SemiBold" />
+                        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Text="{Binding MongoDiagEnvVars}" />
+                        <TextBlock FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,4,0,0">
                             <Run Text="Database-naam: " /><Run Text="{Binding MongoDiagDatabase, Mode=OneWay}" />
                         </TextBlock>
-                        <TextBlock FontSize="11" Foreground="#334155" Margin="0,4,0,0">
+                        <TextBlock FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,4,0,0">
                             <Run Text="ApplicationName: " /><Run Text="{Binding MongoDiagAppName, Mode=OneWay}" />
                         </TextBlock>
-                        <TextBlock Text="Optionele opties" FontSize="11" Foreground="#334155" Margin="0,4,0,0" FontWeight="SemiBold" />
-                        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#334155" Text="{Binding MongoDiagOptions}" />
-                        <TextBlock Text="Connection (gemaskeerd)" FontSize="11" Foreground="#334155" Margin="0,4,0,0" FontWeight="SemiBold" />
-                        <TextBlock TextWrapping="Wrap" FontSize="11" FontFamily="Consolas" Foreground="#334155"
+                        <TextBlock Text="Optionele opties" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,4,0,0" FontWeight="SemiBold" />
+                        <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Text="{Binding MongoDiagOptions}" />
+                        <TextBlock Text="Connection (gemaskeerd)" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" Margin="0,4,0,0" FontWeight="SemiBold" />
+                        <TextBlock TextWrapping="Wrap" FontSize="11" FontFamily="Consolas" Foreground="{DynamicResource DgBrush.TextSecondary}"
                                    Text="{Binding MongoDiagMaskedConnection}" />
                         <TextBlock Text="{Binding MongoDiagWarning}" TextWrapping="Wrap" Margin="0,8,0,0" FontSize="11"
-                                   Foreground="DarkOrange"
+                                   Foreground="{DynamicResource DgBrush.Warning}"
                                    Visibility="{Binding MongoDiagHasConfigWarning, Converter={StaticResource BoolToVis}}" />
                         <TextBlock Text="{Binding MongoDiagPing}" TextWrapping="Wrap" Margin="0,8,0,0" FontSize="11"
-                                   Foreground="#0F766E" />
+                                   Foreground="{DynamicResource DgBrush.Success}" />
                         <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
                             <Button Content="Verbinding testen (ping)" Command="{Binding TestMongoConnectionCommand}" Margin="0,0,8,0" />
                             <Button Content="Importeer SQLite → MongoDB" Command="{Binding ImportSqliteToMongoCommand}" />
@@ -844,16 +1002,16 @@
                         <ItemsControl ItemsSource="{Binding AppSecurityReviewRows}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border BorderBrush="#E2E8F0" BorderThickness="1" Padding="10" Margin="0,0,0,10" Background="#FAFAFA">
+                                    <Border BorderBrush="{DynamicResource DgBrush.Border}" BorderThickness="1" Padding="10" Margin="0,0,0,10" Background="{DynamicResource DgBrush.DataGridRowAlt}">
                                         <StackPanel>
-                                            <TextBlock Text="{Binding Domain}" FontWeight="SemiBold" FontSize="11" Foreground="#4A5568" />
+                                            <TextBlock Text="{Binding Domain}" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" />
                                             <TextBlock Text="{Binding Item}" TextWrapping="Wrap" Margin="0,4,0,0" />
                                             <TextBlock Margin="0,6,0,0" FontSize="10" Foreground="Gray" TextWrapping="Wrap">
                                                 <Run Text="Status: " /><Run Text="{Binding Status, Mode=OneWay}" />
                                             </TextBlock>
                                             <TextBlock Margin="0,2,0,0" FontSize="10" TextWrapping="Wrap"><Run Text="Rationale: " /><Run Text="{Binding Rationale, Mode=OneWay}" /></TextBlock>
                                             <TextBlock Margin="0,2,0,0" FontSize="10" TextWrapping="Wrap"><Run Text="Aanbeveling: " /><Run Text="{Binding Recommendation, Mode=OneWay}" /></TextBlock>
-                                            <TextBlock Margin="0,2,0,0" FontSize="10" Foreground="#2B6CB0" TextWrapping="Wrap"><Run Text="Bron-tag: " /><Run Text="{Binding SourceTag, Mode=OneWay}" /></TextBlock>
+                                            <TextBlock Margin="0,2,0,0" FontSize="10" Foreground="{DynamicResource DgBrush.Link}" TextWrapping="Wrap"><Run Text="Bron-tag: " /><Run Text="{Binding SourceTag, Mode=OneWay}" /></TextBlock>
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>
@@ -877,8 +1035,8 @@
                                     <StackPanel>
                                         <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
                                         <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" FontSize="11" Margin="0,4,0,0" />
-                                        <TextBlock Text="{Binding Because}" Foreground="Gray" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0" />
-                                        <Button Content="Negeren" HorizontalAlignment="Left" Margin="0,6,0,0" FontSize="11"
+                                        <TextBlock Text="{Binding Because}" Foreground="{DynamicResource DgBrush.TextMuted}" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                        <Button Content="Negeren" Style="{StaticResource DgButton.Toolbar}" HorizontalAlignment="Left" Margin="0,6,0,0" FontSize="11"
                                                 Command="{Binding DataContext.DismissSuggestionCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                 CommandParameter="{Binding}" />
                                     </StackPanel>

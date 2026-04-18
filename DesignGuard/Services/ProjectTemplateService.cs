@@ -80,7 +80,7 @@ public sealed class ProjectTemplateService
             Tag = "frontend",
             TrustBoundaryName = dmz.Name,
             IsEntryPoint = true,
-            StoresOrProcesses = DataSensitivity.Personal
+            StoresOrProcesses = nameof(DataSensitivity.Personal)
         });
         p.Components.Add(new ComponentModel
         {
@@ -94,7 +94,7 @@ public sealed class ProjectTemplateService
             Name = "Database",
             Tag = "database",
             TrustBoundaryName = corp.Name,
-            StoresOrProcesses = DataSensitivity.Sensitive
+            StoresOrProcesses = nameof(DataSensitivity.Sensitive)
         });
         p.Components.Add(new ComponentModel
         {
@@ -187,7 +187,7 @@ public sealed class ProjectTemplateService
             Tag = "frontend",
             TrustBoundaryName = "Endpoint",
             IsEntryPoint = true,
-            StoresOrProcesses = DataSensitivity.Sensitive
+            StoresOrProcesses = nameof(DataSensitivity.Sensitive)
         });
         p.Components.Add(new ComponentModel
             { Name = "Lokale DB", Tag = "database", TrustBoundaryName = "Endpoint" });

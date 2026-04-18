@@ -9,7 +9,7 @@ public sealed class AuthenticationRequirementRule : IRequirementRule
 {
     public IEnumerable<RequirementModel> Evaluate(SystemDesignContext ctx)
     {
-        if (!ctx.Project.HasAuthentication) yield break;
+        if (!ctx.EffectiveHasAuthentication) yield break;
 
         yield return Req(
             "Sterke authenticatie en bescherming van accounts",
@@ -46,7 +46,7 @@ public sealed class AuthorizationRequirementRule : IRequirementRule
 {
     public IEnumerable<RequirementModel> Evaluate(SystemDesignContext ctx)
     {
-        if (!ctx.Project.HasAuthentication) yield break;
+        if (!ctx.EffectiveHasAuthentication) yield break;
 
         yield return new RequirementModel
         {
@@ -92,7 +92,7 @@ public sealed class DataProtectionRequirementRule : IRequirementRule
 {
     public IEnumerable<RequirementModel> Evaluate(SystemDesignContext ctx)
     {
-        if (!ctx.Project.PersonalDataProcessed) yield break;
+        if (!ctx.EffectivePersonalData) yield break;
 
         yield return new RequirementModel
         {
@@ -135,7 +135,7 @@ public sealed class LoggingRequirementRule : IRequirementRule
 {
     public IEnumerable<RequirementModel> Evaluate(SystemDesignContext ctx)
     {
-        if (!ctx.Project.HasAuthentication && !ctx.HasAdminSurface) yield break;
+        if (!ctx.EffectiveHasAuthentication && !ctx.HasAdminSurface) yield break;
 
         yield return new RequirementModel
         {
@@ -225,7 +225,7 @@ public sealed class InputValidationRequirementRule : IRequirementRule
             }
         };
 
-        if (!ctx.Project.FileUpload) yield break;
+        if (!ctx.EffectiveFileUpload) yield break;
 
         yield return new RequirementModel
         {
@@ -277,7 +277,7 @@ public sealed class SessionManagementRequirementRule : IRequirementRule
 {
     public IEnumerable<RequirementModel> Evaluate(SystemDesignContext ctx)
     {
-        if (!ctx.Project.HasAuthentication) yield break;
+        if (!ctx.EffectiveHasAuthentication) yield break;
 
         yield return new RequirementModel
         {
@@ -331,7 +331,7 @@ public sealed class PrivacyMinimizationRequirementRule : IRequirementRule
 {
     public IEnumerable<RequirementModel> Evaluate(SystemDesignContext ctx)
     {
-        if (!ctx.Project.PersonalDataProcessed) yield break;
+        if (!ctx.EffectivePersonalData) yield break;
 
         yield return new RequirementModel
         {

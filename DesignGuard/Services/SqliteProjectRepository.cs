@@ -198,8 +198,8 @@ public sealed class SqliteProjectRepository : IProjectRepository
             {
                 TrustBoundaryId = tbId,
                 IsEntryPoint = c.IsEntryPoint,
-                AssetClassification = c.AssetClassification.ToString(),
-                DataSensitivity = c.StoresOrProcesses.ToString(),
+                AssetClassification = c.AssetClassification,
+                DataSensitivity = c.StoresOrProcesses,
                 Notes = c.Notes,
                 VisualX = c.VisualX,
                 VisualY = c.VisualY,
@@ -254,8 +254,8 @@ public sealed class SqliteProjectRepository : IProjectRepository
             {
                 Name = a.Name,
                 Description = a.Description,
-                Classification = a.Classification.ToString(),
-                Sensitivity = a.Sensitivity.ToString(),
+                Classification = a.Classification,
+                Sensitivity = a.Sensitivity,
                 Notes = a.Notes,
                 RelatedComponentId = related
             });
@@ -292,7 +292,8 @@ public sealed class SqliteProjectRepository : IProjectRepository
                 LinkedRequirementStableIdsJson = JsonBlobs.Serialize(c.LinkedRequirementStableIds),
                 Status = (int)c.Status,
                 StatusNotes = c.StatusNotes,
-                LibraryDefinitionId = c.LibraryDefinitionId
+                LibraryDefinitionId = c.LibraryDefinitionId,
+                LinkedComponentIdsJson = JsonBlobs.Serialize(c.LinkedComponentIds)
             });
         }
     }

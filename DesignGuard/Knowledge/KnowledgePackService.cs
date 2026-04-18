@@ -8,7 +8,7 @@ namespace DesignGuard.Knowledge;
 /// <summary>Laadt knowledge packs van schijf; valideert grootte en structuur beperkt.</summary>
 public sealed class KnowledgePackService
 {
-    private const long MaxPackFileBytes = 1_500_000;
+    public const long MaxPackFileBytes = 1_500_000;
 
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -27,6 +27,9 @@ public sealed class KnowledgePackService
         _userSettings = userSettings;
         _packsDirectory = Path.Combine(AppContext.BaseDirectory, "KnowledgePacks");
     }
+
+    /// <summary>Map waarin index.json en pack-JSON staan (naast executable).</summary>
+    public string PacksDirectory => _packsDirectory;
 
     public IReadOnlyList<LoadedKnowledgePack> LoadedPacks => _packs;
 

@@ -14,6 +14,23 @@
     <Color x:Key="DgColor.NavSelected">#FFDCE7FF</Color>
     <Color x:Key="DgColor.DiagramCanvas">#FFEEF2F6</Color>
     <Color x:Key="DgColor.OverlayScrim">#66000000</Color>
+    <Color x:Key="DgColor.InputBackground">#FFFFFFFF</Color>
+    <Color x:Key="DgColor.InputBorder">#FFD5DDE5</Color>
+    <Color x:Key="DgColor.DataGridHeader">#FFF1F5F9</Color>
+    <Color x:Key="DgColor.DataGridRow">#FFFFFFFF</Color>
+    <Color x:Key="DgColor.DataGridRowAlt">#FFF8FAFC</Color>
+    <Color x:Key="DgColor.DataGridRowSelected">#FFE8EEFB</Color>
+    <Color x:Key="DgColor.DiagramNodeFill">#FFFFFFFF</Color>
+    <Color x:Key="DgColor.DiagramNodeBorder">#FF2D3748</Color>
+    <Color x:Key="DgColor.DiagramEdge">#FF64748B</Color>
+    <Color x:Key="DgColor.DiagramArrowFill">#FF475569</Color>
+    <Color x:Key="DgColor.DiagramArrowStroke">#FF334155</Color>
+    <Color x:Key="DgColor.DiagramLabelBg">#FFF8FAFC</Color>
+    <Color x:Key="DgColor.ScrollBarTrack">#FFE8ECF0</Color>
+    <Color x:Key="DgColor.ScrollBarThumb">#FF9AA8B8</Color>
+    <Color x:Key="DgColor.Warning">#FFC05621</Color>
+    <Color x:Key="DgColor.Success">#FF276749</Color>
+    <Color x:Key="DgColor.Link">#FF2B6CB0</Color>
 
     <SolidColorBrush x:Key="DgBrush.Window" Color="{StaticResource DgColor.Window}" />
     <SolidColorBrush x:Key="DgBrush.Surface" Color="{StaticResource DgColor.Surface}" />
@@ -28,6 +45,23 @@
     <SolidColorBrush x:Key="DgBrush.NavSelected" Color="{StaticResource DgColor.NavSelected}" />
     <SolidColorBrush x:Key="DgBrush.DiagramCanvas" Color="{StaticResource DgColor.DiagramCanvas}" />
     <SolidColorBrush x:Key="DgBrush.OverlayScrim" Color="{StaticResource DgColor.OverlayScrim}" />
+    <SolidColorBrush x:Key="DgBrush.InputBackground" Color="{StaticResource DgColor.InputBackground}" />
+    <SolidColorBrush x:Key="DgBrush.InputBorder" Color="{StaticResource DgColor.InputBorder}" />
+    <SolidColorBrush x:Key="DgBrush.DataGridHeader" Color="{StaticResource DgColor.DataGridHeader}" />
+    <SolidColorBrush x:Key="DgBrush.DataGridRow" Color="{StaticResource DgColor.DataGridRow}" />
+    <SolidColorBrush x:Key="DgBrush.DataGridRowAlt" Color="{StaticResource DgColor.DataGridRowAlt}" />
+    <SolidColorBrush x:Key="DgBrush.DataGridRowSelected" Color="{StaticResource DgColor.DataGridRowSelected}" />
+    <SolidColorBrush x:Key="DgBrush.DiagramNodeFill" Color="{StaticResource DgColor.DiagramNodeFill}" />
+    <SolidColorBrush x:Key="DgBrush.DiagramNodeBorder" Color="{StaticResource DgColor.DiagramNodeBorder}" />
+    <SolidColorBrush x:Key="DgBrush.DiagramEdge" Color="{StaticResource DgColor.DiagramEdge}" />
+    <SolidColorBrush x:Key="DgBrush.DiagramArrowFill" Color="{StaticResource DgColor.DiagramArrowFill}" />
+    <SolidColorBrush x:Key="DgBrush.DiagramArrowStroke" Color="{StaticResource DgColor.DiagramArrowStroke}" />
+    <SolidColorBrush x:Key="DgBrush.DiagramLabelBg" Color="{StaticResource DgColor.DiagramLabelBg}" />
+    <SolidColorBrush x:Key="DgBrush.ScrollBarTrack" Color="{StaticResource DgColor.ScrollBarTrack}" />
+    <SolidColorBrush x:Key="DgBrush.ScrollBarThumb" Color="{StaticResource DgColor.ScrollBarThumb}" />
+    <SolidColorBrush x:Key="DgBrush.Warning" Color="{StaticResource DgColor.Warning}" />
+    <SolidColorBrush x:Key="DgBrush.Success" Color="{StaticResource DgColor.Success}" />
+    <SolidColorBrush x:Key="DgBrush.Link" Color="{StaticResource DgColor.Link}" />
 
     <Thickness x:Key="DgThickness.PageMargin">20,16,20,16</Thickness>
     <Thickness x:Key="DgThickness.CardPadding">14,12,14,12</Thickness>

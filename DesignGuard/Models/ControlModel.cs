@@ -18,4 +18,7 @@ public sealed class ControlModel
     public string StatusNotes { get; set; } = "";
     /// <summary>Id uit control-library.json (optioneel).</summary>
     public string LibraryDefinitionId { get; set; } = "";
+
+    /// <summary>Gekoppelde componenten (scope van de maatregel).</summary>
+    public List<int> LinkedComponentIds { get; set; } = new();
 }

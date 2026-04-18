@@ -45,6 +45,7 @@ public partial class App : Application
             ks.Reload();
             return ks;
         });
+        services.AddSingleton<KnowledgePackRemoteSyncService>();
         services.AddSingleton<ControlLibraryService>();
         services.AddSingleton<ModelingSuggestionService>();
         services.AddSingleton<DiagramLayoutService>();

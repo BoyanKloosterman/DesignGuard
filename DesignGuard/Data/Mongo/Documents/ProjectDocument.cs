@@ -128,6 +128,7 @@ public sealed class ControlDoc
     public int Status { get; set; }
     public string StatusNotes { get; set; } = "";
     public string LibraryDefinitionId { get; set; } = "";
+    public string LinkedComponentIdsJson { get; set; } = "[]";
 }
 
 [BsonIgnoreExtraElements]

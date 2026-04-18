@@ -36,7 +36,7 @@ internal static class RuleTriggerBootstrap
                 break;
             case nameof(PersonalDataThreatRule):
                 add(RuleTriggerKeys.PersonalData);
-                if (ctx.Project.SensitiveDataStored) add(RuleTriggerKeys.SensitiveStorage);
+                if (ctx.EffectiveSensitiveStorage) add(RuleTriggerKeys.SensitiveStorage);
                 break;
             case nameof(TransportAndApiThreatRule):
                 add(RuleTriggerKeys.ApiLayer);

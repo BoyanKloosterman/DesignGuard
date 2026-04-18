@@ -47,12 +47,12 @@ internal static class ProjectMapper
                 TrustBoundaryId = c.TrustBoundaryId,
                 TrustBoundaryName = c.TrustBoundary?.Name,
                 IsEntryPoint = c.IsEntryPoint,
-                AssetClassification = Enum.TryParse<AssetClassification>(c.AssetClassification, out var ac)
-                    ? ac
-                    : AssetClassification.Unspecified,
-                StoresOrProcesses = Enum.TryParse<DataSensitivity>(c.DataSensitivity, out var ds)
-                    ? ds
-                    : DataSensitivity.None,
+                AssetClassification = string.IsNullOrWhiteSpace(c.AssetClassification)
+                    ? nameof(AssetClassification.Unspecified)
+                    : c.AssetClassification,
+                StoresOrProcesses = string.IsNullOrWhiteSpace(c.DataSensitivity)
+                    ? nameof(DataSensitivity.None)
+                    : c.DataSensitivity,
                 Notes = c.Notes,
                 VisualX = c.VisualX,
                 VisualY = c.VisualY
@@ -76,12 +76,12 @@ internal static class ProjectMapper
                 Id = a.Id,
                 Name = a.Name,
                 Description = a.Description,
-                Classification = Enum.TryParse<AssetClassification>(a.Classification, out var cl)
-                    ? cl
-                    : AssetClassification.Unspecified,
-                Sensitivity = Enum.TryParse<DataSensitivity>(a.Sensitivity, out var se)
-                    ? se
-                    : DataSensitivity.None,
+                Classification = string.IsNullOrWhiteSpace(a.Classification)
+                    ? nameof(AssetClassification.Unspecified)
+                    : a.Classification,
+                Sensitivity = string.IsNullOrWhiteSpace(a.Sensitivity)
+                    ? nameof(DataSensitivity.None)
+                    : a.Sensitivity,
                 Notes = a.Notes,
                 RelatedComponentId = a.RelatedComponentId
             }).ToList(),
@@ -108,7 +108,8 @@ internal static class ProjectMapper
                     ? (ControlLifecycleStatus)c.Status
                     : ControlLifecycleStatus.Draft,
                 StatusNotes = c.StatusNotes,
-                LibraryDefinitionId = c.LibraryDefinitionId
+                LibraryDefinitionId = c.LibraryDefinitionId,
+                LinkedComponentIds = JsonBlobs.IntList(c.LinkedComponentIdsJson)
             }).ToList(),
             EntryPoints = e.EntryPoints.OrderBy(x => x.Id).Select(x => new EntryPointModel
             {

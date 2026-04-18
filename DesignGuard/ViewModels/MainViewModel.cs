@@ -1,5 +1,6 @@
 // Kern: DI, state properties, navigatie-hooks (partial MainViewModel).
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Text.Json;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -33,6 +34,7 @@ public partial class MainViewModel : ObservableObject
     private readonly ControlLibraryService _controlLibrary;
     private readonly ModelingSuggestionService _suggestionService;
     private readonly KnowledgePackService _knowledgePacks;
+    private readonly KnowledgePackRemoteSyncService _packRemoteSync;
     private readonly UserSettingsService _userSettings;
     private readonly PdfReportService _pdfReport;
     private readonly DiagramRasterizer _diagramRasterizer;
@@ -43,6 +45,7 @@ public partial class MainViewModel : ObservableObject
     private HashSet<string> _dismissedSuggestionKeys = new(StringComparer.Ordinal);
     private readonly DispatcherTimer _filterDebounceTimer;
     private bool _suppressPreferencePersist;
+    private ObservableCollection<ThreatModel>? _threatsWatchedForPicker;
 
     public MainViewModel(
         IProjectRepository projects,
@@ -56,6 +59,7 @@ public partial class MainViewModel : ObservableObject
         ControlLibraryService controlLibrary,
         ModelingSuggestionService suggestionService,
         KnowledgePackService knowledgePacks,
+        KnowledgePackRemoteSyncService packRemoteSync,
         UserSettingsService userSettings,
         PdfReportService pdfReport,
         DiagramRasterizer diagramRasterizer,
@@ -75,6 +79,7 @@ public partial class MainViewModel : ObservableObject
         _controlLibrary = controlLibrary;
         _suggestionService = suggestionService;
         _knowledgePacks = knowledgePacks;
+        _packRemoteSync = packRemoteSync;
         _userSettings = userSettings;
         _pdfReport = pdfReport;
         _diagramRasterizer = diagramRasterizer;
@@ -90,6 +95,10 @@ public partial class MainViewModel : ObservableObject
         UiDensity = string.IsNullOrWhiteSpace(_userSettings.Current.UiDensity)
             ? "Comfortable"
             : _userSettings.Current.UiDensity;
+        KnowledgePackManifestUrl = _userSettings.Current.KnowledgePackManifestUrl ?? "";
+        KnowledgePackRemoteSyncEnabled = _userSettings.Current.KnowledgePackRemoteSyncEnabled;
+        KnowledgePackSyncOnStartup = _userSettings.Current.KnowledgePackSyncOnStartup;
+        KnowledgePackSyncTrustedHostExtra = _userSettings.Current.KnowledgePackSyncTrustedHostExtra ?? "";
         ThemeSwitcher.ApplyTheme(UiTheme);
         ApplyUiDensity();
         _suppressPreferencePersist = false;
@@ -111,6 +120,25 @@ public partial class MainViewModel : ObservableObject
         Suggestions = new ObservableCollection<ModelingSuggestion>();
         KnowledgePackRows = new ObservableCollection<KnowledgePackToggleRow>();
         AppSecurityReviewRows = new ObservableCollection<AppSecurityReviewRowViewModel>();
+        Components.CollectionChanged += (_, _) => RefreshComponentTagSuggestions();
+        Controls.CollectionChanged += (_, _) => RefreshControlSourceTagSuggestions();
+        ControlLibraryPickList.Add(new LibraryPickItem("", "Geen bibliotheek-item"));
+        foreach (var lib in _controlLibrary.EnumerateLibraryDefinitions())
+            ControlLibraryPickList.Add(new LibraryPickItem(lib.Id, lib.Title));
+        _threatsWatchedForPicker = Threats;
+        Threats.CollectionChanged += OnThreatsCollectionChangedForControlPickers;
+        RefreshControlThreatPickList();
+    }
+
+    private void OnThreatsCollectionChangedForControlPickers(object? _, NotifyCollectionChangedEventArgs __) =>
+        RefreshControlThreatPickList();
+
+    private void RefreshControlThreatPickList()
+    {
+        ControlThreatPickList.Clear();
+        ControlThreatPickList.Add(new ThreatPickItem("", "Geen gekoppelde dreiging"));
+        foreach (var t in Threats.OrderBy(x => x.Title))
+            ControlThreatPickList.Add(new ThreatPickItem(t.Id, t.Title));
     }
 
     public IReadOnlyList<string> SystemTypeOptions { get; }
@@ -160,6 +188,20 @@ public partial class MainViewModel : ObservableObject
     public IReadOnlyList<string> DetailLevelOptions { get; } = new[] { "Beginner", "Advanced" };
 
     public IReadOnlyList<string> UiDensityOptions { get; } = new[] { "Comfortable", "Compact" };
+
+    public IReadOnlyList<string> PresetAssetClassifications { get; } =
+        Enum.GetNames(typeof(AssetClassification));
+
+    public IReadOnlyList<string> PresetDataSensitivityLabels { get; } =
+        Enum.GetNames(typeof(DataSensitivity));
+
+    public ObservableCollection<string> ComponentTagSuggestions { get; } = new();
+
+    public ObservableCollection<string> ControlSourceTagSuggestions { get; } = new();
+
+    public ObservableCollection<ThreatPickItem> ControlThreatPickList { get; } = new();
+
+    public ObservableCollection<LibraryPickItem> ControlLibraryPickList { get; } = new();
 
     [ObservableProperty] private ObservableCollection<ProjectSummaryItem> _projectList = new();
 
@@ -318,6 +360,14 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private ObservableCollection<KnowledgePackToggleRow> _knowledgePackRows = new();
 
+    [ObservableProperty] private string _knowledgePackManifestUrl = "";
+
+    [ObservableProperty] private bool _knowledgePackRemoteSyncEnabled;
+
+    [ObservableProperty] private bool _knowledgePackSyncOnStartup;
+
+    [ObservableProperty] private string _knowledgePackSyncTrustedHostExtra = "";
+
     [ObservableProperty] private ObservableCollection<AppSecurityReviewRowViewModel> _appSecurityReviewRows = new();
 
     public bool ShowProjectOverviewInDetails =>
@@ -360,6 +410,24 @@ public partial class MainViewModel : ObservableObject
         _userSettings.Current.Theme = UiTheme;
         _userSettings.Current.DetailLevel = DetailLevel;
         _userSettings.Current.UiDensity = UiDensity;
+        _userSettings.Save();
+    }
+
+    partial void OnKnowledgePackManifestUrlChanged(string value) => PersistKnowledgePackSyncPreferences();
+
+    partial void OnKnowledgePackRemoteSyncEnabledChanged(bool value) => PersistKnowledgePackSyncPreferences();
+
+    partial void OnKnowledgePackSyncOnStartupChanged(bool value) => PersistKnowledgePackSyncPreferences();
+
+    partial void OnKnowledgePackSyncTrustedHostExtraChanged(string value) => PersistKnowledgePackSyncPreferences();
+
+    private void PersistKnowledgePackSyncPreferences()
+    {
+        if (_suppressPreferencePersist) return;
+        _userSettings.Current.KnowledgePackManifestUrl = (KnowledgePackManifestUrl ?? "").Trim();
+        _userSettings.Current.KnowledgePackRemoteSyncEnabled = KnowledgePackRemoteSyncEnabled;
+        _userSettings.Current.KnowledgePackSyncOnStartup = KnowledgePackSyncOnStartup;
+        _userSettings.Current.KnowledgePackSyncTrustedHostExtra = (KnowledgePackSyncTrustedHostExtra ?? "").Trim();
         _userSettings.Save();
     }
 
@@ -435,4 +503,39 @@ public partial class MainViewModel : ObservableObject
     partial void OnThreatSortChanged(string value) => RefreshFilters();
 
     partial void OnRequirementSortChanged(string value) => RefreshFilters();
+
+    private void RefreshComponentTagSuggestions()
+    {
+        ComponentTagSuggestions.Clear();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var t in DesignDropdownPresets.ComponentTags)
+            if (seen.Add(t)) ComponentTagSuggestions.Add(t);
+        foreach (var c in Components)
+        {
+            var tag = c.Tag?.Trim();
+            if (!string.IsNullOrEmpty(tag) && seen.Add(tag)) ComponentTagSuggestions.Add(tag);
+        }
+    }
+
+    private void RefreshControlSourceTagSuggestions()
+    {
+        ControlSourceTagSuggestions.Clear();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var t in DesignDropdownPresets.ControlSourceTags)
+            if (seen.Add(t)) ControlSourceTagSuggestions.Add(t);
+        foreach (var row in Controls)
+        {
+            foreach (var token in SplitCommaList(row.SourceTags))
+                if (seen.Add(token)) ControlSourceTagSuggestions.Add(token);
+        }
+    }
+
+    partial void OnThreatsChanged(ObservableCollection<ThreatModel> value)
+    {
+        if (_threatsWatchedForPicker != null)
+            _threatsWatchedForPicker.CollectionChanged -= OnThreatsCollectionChangedForControlPickers;
+        _threatsWatchedForPicker = value;
+        value.CollectionChanged += OnThreatsCollectionChangedForControlPickers;
+        RefreshControlThreatPickList();
+    }
 }

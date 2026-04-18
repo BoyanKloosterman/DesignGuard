@@ -79,7 +79,7 @@ public sealed class MissingLoggingThreatRule : IThreatRule
     public IEnumerable<ThreatModel> Evaluate(SystemDesignContext ctx)
     {
         if (ctx.Project.LoggingMonitoringPresent) yield break;
-        if (!ctx.Project.HasAuthentication && !ctx.HasAdminSurface) yield break;
+        if (!ctx.EffectiveHasAuthentication && !ctx.HasAdminSurface) yield break;
 
         yield return new ThreatModel
         {

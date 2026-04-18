@@ -78,6 +78,14 @@ public partial class MainViewModel
         Components.Remove(row);
         foreach (var f in DataFlows.Where(f => f.From == row || f.To == row).ToList())
             DataFlows.Remove(f);
+        foreach (var a in Assets.Where(a => a.RelatedComponent == row).ToList())
+            a.RelatedComponent = null;
+        foreach (var ep in EntryPoints.Where(ep => ep.RelatedComponent == row).ToList())
+            ep.RelatedComponent = null;
+        foreach (var s in SensitiveDataRows.Where(s => s.RelatedComponent == row).ToList())
+            s.RelatedComponent = null;
+        foreach (var c in Controls.Where(c => c.LinkedComponent == row).ToList())
+            c.LinkedComponent = null;
         RefreshDiagram();
     }
 
@@ -121,7 +129,8 @@ public partial class MainViewModel
             if (Controls.Any(r =>
                     string.Equals(r.LibraryDefinitionId, c.LibraryDefinitionId, StringComparison.OrdinalIgnoreCase)))
                 continue;
-            Controls.Add(new ControlRowViewModel
+            var linkIds = c.LinkedComponentIds ?? new List<int>();
+            var newRow = new ControlRowViewModel
             {
                 Id = c.Id,
                 StableId = c.StableId,
@@ -134,8 +143,14 @@ public partial class MainViewModel
                 LinkedRequirementStableIds = string.Join(", ", c.LinkedRequirementStableIds),
                 Status = c.Status.ToString(),
                 StatusNotes = c.StatusNotes,
-                LibraryDefinitionId = c.LibraryDefinitionId
-            });
+                LibraryDefinitionId = c.LibraryDefinitionId,
+                LinkedComponent = linkIds.Count > 0
+                    ? Components.FirstOrDefault(x => x.Id == linkIds[0])
+                    : null,
+                ExtraLinkedComponentIds = linkIds.Count > 1 ? string.Join(", ", linkIds.Skip(1)) : ""
+            };
+            Controls.Add(newRow);
+            newRow.RebuildLinkedRequirementChips(Requirements);
         }
     }
 

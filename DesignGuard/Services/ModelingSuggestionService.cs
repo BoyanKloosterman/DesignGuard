@@ -55,8 +55,8 @@ public sealed class ModelingSuggestionService
                 "Componentnaam/tag suggereert admin.");
 
         var piiAsset = project.Assets.Any(a =>
-            a.Sensitivity != DataSensitivity.None ||
-            a.Classification is AssetClassification.Confidential or AssetClassification.Restricted);
+            DesignOntwerpWaarden.IsAssetSensitivityElevatedForSuggestions(a.Sensitivity) ||
+            DesignOntwerpWaarden.IsAssetClassificationRestricted(a.Classification));
         var piiSensitive = project.SensitiveDataItems.Any(s =>
             s.Category.Contains("PII", StringComparison.OrdinalIgnoreCase) ||
             s.Category.Contains("persoon", StringComparison.OrdinalIgnoreCase));

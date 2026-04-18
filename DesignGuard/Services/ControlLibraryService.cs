@@ -14,6 +14,16 @@ public sealed class ControlLibraryService
 
     private IReadOnlyList<ControlLibraryItemDto>? _cache;
 
+    /// <summary>Ids en titels voor UI-koppeling (control-grid).</summary>
+    public IEnumerable<(string Id, string Title)> EnumerateLibraryDefinitions()
+    {
+        foreach (var d in GetDefinitions())
+        {
+            if (string.IsNullOrWhiteSpace(d.Id)) continue;
+            yield return (d.Id, d.Title);
+        }
+    }
+
     private IReadOnlyList<ControlLibraryItemDto> GetDefinitions()
     {
         if (_cache != null) return _cache;
@@ -60,7 +70,8 @@ public sealed class ControlLibraryService
                 LinkedThreatStableId = linkedThreat ?? "",
                 LinkedRequirementStableIds = linkedReq,
                 Status = ControlLifecycleStatus.Proposed,
-                LibraryDefinitionId = def.Id
+                LibraryDefinitionId = def.Id,
+                LinkedComponentIds = new List<int>()
             });
             added++;
         }
@@ -126,7 +137,9 @@ public sealed class ControlLibraryService
             project.Components.Any(c =>
                 w.AnyComponentTagContains.Any(n =>
                     c.Tag.Contains(n, StringComparison.OrdinalIgnoreCase) ||
-                    c.Name.Contains(n, StringComparison.OrdinalIgnoreCase))))
+                    c.Name.Contains(n, StringComparison.OrdinalIgnoreCase) ||
+                    c.Description.Contains(n, StringComparison.OrdinalIgnoreCase) ||
+                    c.Notes.Contains(n, StringComparison.OrdinalIgnoreCase))))
             return true;
 
         return false;

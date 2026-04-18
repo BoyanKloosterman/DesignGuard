@@ -115,7 +115,10 @@ internal static class ProjectDocumentEntityConverter
                 LinkedRequirementStableIdsJson = c.LinkedRequirementStableIdsJson,
                 Status = c.Status,
                 StatusNotes = c.StatusNotes,
-                LibraryDefinitionId = c.LibraryDefinitionId
+                LibraryDefinitionId = c.LibraryDefinitionId,
+                LinkedComponentIdsJson = string.IsNullOrWhiteSpace(c.LinkedComponentIdsJson)
+                    ? "[]"
+                    : c.LinkedComponentIdsJson
             }).ToList(),
             EntryPoints = d.EntryPoints.Select(x => new EntryPointEntity
             {

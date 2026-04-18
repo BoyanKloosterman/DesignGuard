@@ -13,6 +13,7 @@ public static class SqliteLegacySchema
         {
             await AddColumnIfMissingAsync(conn, "Requirements", "SourceAttributionJson", "TEXT NOT NULL DEFAULT '{}'", ct);
             await AddColumnIfMissingAsync(conn, "Threats", "SourceAttributionJson", "TEXT NOT NULL DEFAULT '{}'", ct);
+            await AddColumnIfMissingAsync(conn, "Controls", "LinkedComponentIdsJson", "TEXT NOT NULL DEFAULT '[]'", ct);
         }
         finally
         {

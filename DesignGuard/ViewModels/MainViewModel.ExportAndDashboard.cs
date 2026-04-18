@@ -213,10 +213,11 @@ public partial class MainViewModel
             }
 
             IsBusy = true;
-            BusyMessage = "PDF opbouwen (diagram + rapport)…";
-            // WPF-diagramraster alleen op de UI-thread (RenderTargetBitmap / visuele elementen).
+            BusyMessage = "PDF opbouwen (diagram + C4 + rapport)…";
+            // WPF-rasters alleen op de UI-thread (RenderTargetBitmap / visuele elementen).
             var pngB = await disp.InvokeAsync(() => _diagramRasterizer.RenderPng(m));
-            var pdf = await Task.Run(() => _pdfReport.BuildSecurityDesignReport(m, threats, reqs, pngB))
+            var c4Png = await disp.InvokeAsync(() => _c4Rasterizer.RenderPng(m, threats));
+            var pdf = await Task.Run(() => _pdfReport.BuildSecurityDesignReport(m, threats, reqs, pngB, c4Png))
                 .ConfigureAwait(true);
 
             await File.WriteAllBytesAsync(path, pdf).ConfigureAwait(true);

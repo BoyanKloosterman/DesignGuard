@@ -51,6 +51,7 @@ public partial class App : Application
         services.AddSingleton<DiagramLayoutService>();
         services.AddSingleton<ExportService>();
         services.AddSingleton<DiagramRasterizer>();
+        services.AddSingleton<C4ModelRasterizer>();
         services.AddSingleton<PdfReportService>();
         services.AddSingleton<AppSecurityReviewService>();
         services.AddSingleton<AnalysisMergeService>();

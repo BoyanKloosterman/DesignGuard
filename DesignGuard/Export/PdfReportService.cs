@@ -19,7 +19,8 @@ public sealed class PdfReportService
         ProjectModel project,
         IReadOnlyList<ThreatModel> threats,
         IReadOnlyList<RequirementModel> requirements,
-        byte[]? diagramPng)
+        byte[]? diagramPng,
+        byte[]? c4OverviewPng)
     {
         _packs.Reload();
         var exportUtc = DateTime.UtcNow;
@@ -53,7 +54,8 @@ public sealed class PdfReportService
                     col.Item().Text("Executive summary").SemiBold().FontSize(12);
                     col.Item().Text(
                         $"Componenten: {project.Components.Count}, datastromen: {project.DataFlows.Count}, " +
-                        $"dreigingen: {threats.Count}, eisen: {requirements.Count}, controls: {project.Controls.Count}.");
+                        $"C4-elementen: {project.C4Elements.Count}, dreigingen: {threats.Count}, eisen: {requirements.Count}, " +
+                        $"controls: {project.Controls.Count}.");
 
                     col.Item().Text("Systeemcontext").SemiBold().FontSize(12);
                     col.Item().Text(
@@ -69,6 +71,63 @@ public sealed class PdfReportService
                     col.Item().Text("Trust boundaries").SemiBold().FontSize(12);
                     foreach (var b in project.TrustBoundaries)
                         col.Item().Text($"• {b.Name}: {b.Description}");
+
+                    if (c4OverviewPng is { Length: > 0 })
+                    {
+                        col.Item().Text("C4-overzicht (visualisatie)").SemiBold().FontSize(12);
+                        col.Item().Image(c4OverviewPng).FitArea();
+                    }
+
+                    col.Item().Text("C4 threatmodel-scope").SemiBold().FontSize(12);
+                    col.Item().Text(
+                        "Het C4-model (Simon Brown) heeft vier zoomniveaus: van context tot code. In DesignGuard vullen " +
+                        "we dit los van het architectuurcanvas; het helpt om dreigingen te koppelen aan benoemde onderdelen.");
+                    col.Item().Text(
+                        "Koppeling naar dreigingen: gebruik exact dezelfde naam in ‘getroffen componenten’ van een open dreiging " +
+                        "als bij het C4-element hieronder. De kolom ‘open dreig.’ telt die matches.");
+
+                    foreach (var lvl in new[]
+                             {
+                                 C4Level.Context, C4Level.Container, C4Level.Component, C4Level.Code
+                             })
+                    {
+                        col.Item().PaddingLeft(6).Text($"{C4LevelFormatting.ShortLabel(lvl)} — {C4LevelFormatting.LevelScopeExplanation(lvl)}")
+                            .FontSize(9.5f).FontColor(Colors.Grey.Darken2);
+                    }
+
+                    if (project.C4Elements.Count == 0)
+                    {
+                        col.Item().Text("— Geen C4-elementen vastgelegd in dit dossier.").FontColor(Colors.Grey.Medium);
+                    }
+                    else
+                    {
+                        var idToName = C4ExportPresentation.BuildIdToNameMap(project.C4Elements);
+
+                        foreach (var lvl in new[]
+                                 {
+                                     C4Level.Context, C4Level.Container, C4Level.Component, C4Level.Code
+                                 })
+                        {
+                            var els = project.C4Elements
+                                .Where(e => e.Level == lvl)
+                                .OrderBy(e => e.Name, StringComparer.OrdinalIgnoreCase)
+                                .ToList();
+                            if (els.Count == 0)
+                                continue;
+
+                            col.Item().Text(C4LevelFormatting.ShortLabel(lvl)).SemiBold().FontSize(11);
+                            foreach (var el in els)
+                            {
+                                var openHits = C4ExportPresentation.CountOpenThreatNameMatches(el, threats);
+                                var parentHint = C4ExportPresentation.FormatC4ParentHintPdf(el, idToName);
+                                var tech = string.IsNullOrWhiteSpace(el.Technology) ? "" : $" — Tech/notitie: {el.Technology}";
+                                col.Item().PaddingLeft(10).Text($"{el.Name} (id {el.Id}){parentHint}{tech} — open dreig. met naam-match: {openHits}")
+                                    .SemiBold();
+                                if (!string.IsNullOrWhiteSpace(el.Description))
+                                    col.Item().PaddingLeft(18).Text(el.Description);
+                            }
+                        }
+                    }
 
                     col.Item().Text("Dreigingen (selectie)").SemiBold().FontSize(12);
                     foreach (var t in threats.OrderBy(x => x.Title).Take(40))

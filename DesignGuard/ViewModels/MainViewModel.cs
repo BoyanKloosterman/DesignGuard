@@ -38,6 +38,7 @@ public partial class MainViewModel : ObservableObject
     private readonly UserSettingsService _userSettings;
     private readonly PdfReportService _pdfReport;
     private readonly DiagramRasterizer _diagramRasterizer;
+    private readonly C4ModelRasterizer _c4Rasterizer;
     private readonly AppSecurityReviewService _appSecurityReview;
     private readonly IAppConfigurationService _appConfiguration;
     private readonly IMongoDiagnosticsService _mongoDiagnostics;
@@ -64,6 +65,7 @@ public partial class MainViewModel : ObservableObject
         UserSettingsService userSettings,
         PdfReportService pdfReport,
         DiagramRasterizer diagramRasterizer,
+        C4ModelRasterizer c4Rasterizer,
         AppSecurityReviewService appSecurityReview,
         IAppConfigurationService appConfiguration,
         IMongoDiagnosticsService mongoDiagnostics,
@@ -85,6 +87,7 @@ public partial class MainViewModel : ObservableObject
         _userSettings = userSettings;
         _pdfReport = pdfReport;
         _diagramRasterizer = diagramRasterizer;
+        _c4Rasterizer = c4Rasterizer;
         _appSecurityReview = appSecurityReview;
         _appConfiguration = appConfiguration;
         _mongoDiagnostics = mongoDiagnostics;

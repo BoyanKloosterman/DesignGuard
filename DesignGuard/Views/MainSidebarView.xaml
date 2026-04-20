@@ -8,8 +8,17 @@
     <Border Background="{DynamicResource DgBrush.Sidebar}"
             BorderBrush="{DynamicResource DgBrush.Border}" BorderThickness="0,0,1,0"
             Padding="{DynamicResource DgThickness.SidebarPad}">
-        <DockPanel>
-            <StackPanel DockPanel.Dock="Top">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Op kleine laptophoogtes blijft alles bereikbaar via scroll -->
+            <ScrollViewer Grid.Row="0"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
                 <TextBlock Text="DesignGuard" Style="{StaticResource DgText.SectionLabel}" FontSize="11"
                            Foreground="{DynamicResource DgBrush.TextMuted}" Margin="0,0,0,2" />
                 <TextBlock Text="Projecten" FontWeight="SemiBold" Margin="0,0,0,8"
@@ -51,8 +60,10 @@
                 <TextBlock Text="Dichtheid" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
                 <ComboBox Margin="0,2,0,0" ItemsSource="{Binding UiDensityOptions}"
                           SelectedItem="{Binding UiDensity}" />
-            </StackPanel>
-            <ListBox DockPanel.Dock="Bottom" Margin="0,12,0,0" MinHeight="100"
+                </StackPanel>
+            </ScrollViewer>
+
+            <ListBox Grid.Row="1" Margin="0,12,0,0" MinHeight="80" MaxHeight="180"
                      Background="Transparent" BorderThickness="0"
                      ItemsSource="{Binding ProjectList}"
                      SelectedItem="{Binding SelectedProjectSummary}"
@@ -63,6 +74,6 @@
                     </Style>
                 </ListBox.ItemContainerStyle>
             </ListBox>
-        </DockPanel>
+        </Grid>
     </Border>
 </UserControl>

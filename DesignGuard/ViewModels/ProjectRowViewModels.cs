@@ -110,11 +110,23 @@ public partial class DiagramLineViewModel : ObservableObject
 
     [ObservableProperty] private string _arrowPath = "";
 
-    [ObservableProperty] private double _labelX;
+    [ObservableProperty] private double _labelDrawLeft;
 
-    [ObservableProperty] private double _labelY;
+    [ObservableProperty] private double _labelDrawTop;
 
     [ObservableProperty] private string _label = "";
+
+    // Houdt link tussen edge en componenten vast voor live-updates bij drag
+    [ObservableProperty] private int _fromId;
+
+    [ObservableProperty] private int _toId;
+
+    // Cached fan-in/fan-out offsets uit layout zodat bogen tijdens drag er nog kloppend uitzien
+    [ObservableProperty] private double _lateralStart;
+
+    [ObservableProperty] private double _lateralEnd;
+
+    [ObservableProperty] private double _labelT = 0.5;
 }
 
 public partial class TrustBoundaryRowViewModel : ObservableObject

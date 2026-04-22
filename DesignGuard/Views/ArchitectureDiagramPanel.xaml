@@ -14,8 +14,10 @@
             <CheckBox Content="Raster" IsChecked="{Binding DiagramShowGrid}" VerticalAlignment="Center" Margin="0,0,12,6" />
             <CheckBox Content="Trust boundaries" IsChecked="{Binding DiagramOverlayTrustBoundaries}" VerticalAlignment="Center" Margin="0,0,12,6" />
             <CheckBox Content="Gevoelige data" IsChecked="{Binding DiagramOverlaySensitiveData}" VerticalAlignment="Center" Margin="0,0,12,6" />
-            <CheckBox Content="Dreiging → component" IsChecked="{Binding DiagramOverlayThreatLinks}" VerticalAlignment="Center" Margin="0,0,0,6"
+            <CheckBox Content="Dreiging → component" IsChecked="{Binding DiagramOverlayThreatLinks}" VerticalAlignment="Center" Margin="0,0,12,6"
                       Visibility="{Binding ShowThreatLinkCheckbox, ElementName=RootPanel, Converter={StaticResource BoolToVis}}" />
+            <Button Content="Herschik automatisch" Style="{StaticResource DgButton.Toolbar}" Command="{Binding ResetDiagramPositionsCommand}"
+                    ToolTip="Wist handmatige posities en laat alles automatisch neerzetten" />
         </WrapPanel>
         <Border BorderBrush="{DynamicResource DgBrush.Border}" BorderThickness="1" Height="420"
                 Background="{DynamicResource DgBrush.DiagramCanvas}" CornerRadius="8">
@@ -46,7 +48,7 @@
                 </Style>
             </Border.Style>
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <Grid Width="{Binding DiagramContentWidth}" Height="{Binding DiagramContentHeight}"
+                <Grid x:Name="DiagramGrid" Width="{Binding DiagramContentWidth}" Height="{Binding DiagramContentHeight}"
                       Background="Transparent" UseLayoutRounding="True" SnapsToDevicePixels="True">
                     <Grid.LayoutTransform>
                         <ScaleTransform ScaleX="{Binding DiagramZoom}" ScaleY="{Binding DiagramZoom}" />
@@ -76,6 +78,7 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+                    <!-- Lijnen onder knopen; labels erboven (na nudge uit nodes) -->
                     <ItemsControl ItemsSource="{Binding DiagramLines}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -96,12 +99,6 @@
                                           Fill="Transparent" SnapsToDevicePixels="True" Opacity="0.92" />
                                     <Path Data="{Binding ArrowPath}" Fill="{DynamicResource DgBrush.DiagramArrowFill}" Stroke="{DynamicResource DgBrush.DiagramArrowStroke}" StrokeThickness="0.35"
                                           StrokeLineJoin="Miter" SnapsToDevicePixels="True" />
-                                    <Border Canvas.Left="{Binding LabelX}" Canvas.Top="{Binding LabelY}"
-                                            Background="{DynamicResource DgBrush.DiagramLabelBg}" BorderBrush="{DynamicResource DgBrush.Border}" BorderThickness="1"
-                                            CornerRadius="3" Padding="4,2">
-                                        <TextBlock Text="{Binding Label}" FontSize="9" Foreground="{DynamicResource DgBrush.TextPrimary}"
-                                                   TextWrapping="Wrap" MaxWidth="200" />
-                                    </Border>
                                 </Canvas>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -121,7 +118,12 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Width="196" Height="64" CornerRadius="8" BorderThickness="1.5" Padding="8,6,8,6"
-                                        Background="{DynamicResource DgBrush.DiagramNodeFill}" SnapsToDevicePixels="True" MouseLeftButtonDown="DiagramNode_MouseDown">
+                                        Background="{DynamicResource DgBrush.DiagramNodeFill}" SnapsToDevicePixels="True"
+                                        Cursor="SizeAll"
+                                        MouseLeftButtonDown="DiagramNode_MouseDown"
+                                        MouseMove="DiagramNode_MouseMove"
+                                        MouseLeftButtonUp="DiagramNode_MouseUp"
+                                        LostMouseCapture="DiagramNode_LostCapture">
                                     <Border.Style>
                                         <Style TargetType="Border">
                                             <Setter Property="BorderBrush" Value="{DynamicResource DgBrush.DiagramNodeBorder}" />
@@ -166,6 +168,41 @@
                                         </StackPanel>
                                     </Grid>
                                 </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <ItemsControl ItemsSource="{Binding DiagramLines}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style TargetType="ContentPresenter">
+                                <Setter Property="Canvas.Left" Value="0" />
+                                <Setter Property="Canvas.Top" Value="0" />
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Canvas>
+                                    <Border Canvas.Left="{Binding LabelDrawLeft}" Canvas.Top="{Binding LabelDrawTop}"
+                                            Background="{DynamicResource DgBrush.DiagramLabelBg}" BorderBrush="{DynamicResource DgBrush.Border}" BorderThickness="1"
+                                            CornerRadius="3" Padding="4,2">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Label}" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding Label}" FontSize="9" Foreground="{DynamicResource DgBrush.TextPrimary}"
+                                                   TextWrapping="Wrap" MaxWidth="200" />
+                                    </Border>
+                                </Canvas>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

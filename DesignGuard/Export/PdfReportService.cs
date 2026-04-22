@@ -164,8 +164,12 @@ public sealed class PdfReportService
                         col.Item().Section(Sec.ArchDiagram).Column(s =>
                         {
                             s.Spacing(10);
-                            s.Item().Element(SectionTitle("Architectuurdiagram (export)"));
-                            s.Item().Image(diagramPng).FitArea();
+                            s.Item().Element(SectionTitle("Architectuurdiagram"));
+                            s.Item().Text(
+                                    "Zelfde opbouw als het canvas onder Ontwerp: componenten, datastromen met labels, trust boundaries, " +
+                                    "entry-streep (groen) en datagevoeligheid (oranje streep + label). Gerenderd uit het model bij export.")
+                                .FontSize(9.5f).LineHeight(1.3f).FontColor(PdfPalette.Muted);
+                            s.Item().PaddingTop(4).MinHeight(280).Image(diagramPng).FitArea();
                         });
                     }
 

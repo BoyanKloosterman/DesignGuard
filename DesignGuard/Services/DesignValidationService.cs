@@ -43,7 +43,7 @@ public sealed class DesignValidationService
         }
 
         if (project.InternetExposed && project.Components.Count > 0 &&
-            !project.Components.Any(c => c.IsEntryPoint) && project.EntryPoints.Count == 0)
+            !project.Components.Any(c => c.IsEntryPoint))
         {
             list.Add(new DesignValidationFinding(DesignValidationSeverity.Warning, "ENTRY-MISS",
                 "Internetblootstelling gemarkeerd, maar geen entry points en geen component als entry — overweeg expliciete entry(s)."));

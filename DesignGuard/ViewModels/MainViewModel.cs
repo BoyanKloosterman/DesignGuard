@@ -309,8 +309,6 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private ObservableCollection<ControlRowViewModel> _controls = new();
 
-    [ObservableProperty] private ObservableCollection<EntryPointRowViewModel> _entryPoints = new();
-
     [ObservableProperty] private ObservableCollection<SensitiveDataRowViewModel> _sensitiveDataRows = new();
 
     [ObservableProperty] private ObservableCollection<ReviewItemRowViewModel> _reviewItems = new();

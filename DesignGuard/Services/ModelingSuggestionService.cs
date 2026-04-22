@@ -65,12 +65,6 @@ public sealed class ModelingSuggestionService
                 "Koppel opslaglocatie, toegang en encryptie-eisen aan deze datasets.",
                 "Assets of gevoelige data categorie wijzen op PII.");
 
-        if (project.EntryPoints.Count == 0 &&
-            project.Components.Any(c => c.IsEntryPoint))
-            Add("s-entrypoint-model", "Entry points documenteren",
-                "Overweeg expliciete entry points (naast component-vlag) voor review en export.",
-                "Er zijn component-entry points maar geen aparte entry point records.");
-
         return list;
     }
 }

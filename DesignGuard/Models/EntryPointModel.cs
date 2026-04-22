@@ -1,6 +1,6 @@
 namespace DesignGuard.Models;
 
-/// <summary>Ingang naar het systeem (los van component-entry vlag; kan ook abstract).</summary>
+/// <summary>Ingang afgeleid van componenten met Entry-vlag (opslag/export; niet meer apart in UI).</summary>
 public sealed class EntryPointModel
 {
     public int Id { get; set; }

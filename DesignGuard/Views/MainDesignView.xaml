@@ -109,6 +109,8 @@
             </GroupBox>
             <GroupBox Header="Componenten" Margin="0,8,0,0">
                 <StackPanel Margin="8">
+                    <TextBlock Margin="0,0,0,6" Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"
+                               Text="Entry: vink aan voor ingangen (geen aparte entry-lijst meer)." />
                     <Button Content="Component toevoegen" HorizontalAlignment="Left" Command="{Binding AddComponentCommand}" Margin="0,0,0,8" />
                     <DataGrid ItemsSource="{Binding Components}" SelectedItem="{Binding SelectedComponent}" AutoGenerateColumns="False"
                               CanUserAddRows="False" HeadersVisibility="Column" Height="200">
@@ -123,15 +125,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Classificatie" Width="118">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <ComboBox IsEditable="True" StaysOpenOnEdit="False"
-                                                  ItemsSource="{Binding DataContext.PresetAssetClassifications, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                  Text="{Binding AssetClassification, UpdateSourceTrigger=PropertyChanged}" />
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
+                            <!-- Classificatie alleen bij Assets (geen dubbele invoer met componenten). -->
                             <DataGridCheckBoxColumn Header="Entry" Binding="{Binding IsEntryPoint}" Width="50" />
                             <DataGridTextColumn Header="Boundary (naam)" Binding="{Binding TrustBoundaryName, UpdateSourceTrigger=PropertyChanged}" Width="110" />
                             <DataGridTemplateColumn Header="Data" Width="118">
@@ -215,7 +209,7 @@
             <GroupBox Header="Assets" Margin="0,8,0,0">
                 <StackPanel Margin="8">
                     <Button Content="Asset toevoegen" Command="{Binding AddAssetCommand}" HorizontalAlignment="Left" Margin="0,0,0,8" />
-                    <DataGrid ItemsSource="{Binding Assets}" AutoGenerateColumns="False" CanUserAddRows="False" Height="120">
+                    <DataGrid ItemsSource="{Binding Assets}" AutoGenerateColumns="False" CanUserAddRows="False" Height="140">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                             <DataGridTemplateColumn Header="Classificatie" Width="118">
@@ -236,32 +230,6 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Component" Width="140" MinWidth="100">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                  SelectedItem="{Binding RelatedComponent, UpdateSourceTrigger=PropertyChanged}"
-                                                  DisplayMemberPath="Name" />
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Width="70">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Button Content="Verwijder" Command="{Binding DataContext.RemoveAssetCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" />
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </StackPanel>
-            </GroupBox>
-            <GroupBox Header="Ingangen (entry points)" Margin="0,8,0,0">
-                <StackPanel Margin="8">
-                    <Button Content="Ingang toevoegen" Command="{Binding AddEntryPointRowCommand}" HorizontalAlignment="Left" Margin="0,0,0,8" />
-                    <DataGrid ItemsSource="{Binding EntryPoints}" AutoGenerateColumns="False" CanUserAddRows="False" Height="100">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                             <DataGridTemplateColumn Header="Component" Width="160" MinWidth="120">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
@@ -271,11 +239,13 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Notities" Binding="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                            <DataGridTextColumn Header="Meer componenten (id's)"
+                                                Binding="{Binding ExtraRelatedComponentIds, UpdateSourceTrigger=PropertyChanged}"
+                                                Width="150" MinWidth="100" />
                             <DataGridTemplateColumn Width="70">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Button Content="Verwijder" Command="{Binding DataContext.RemoveEntryPointRowCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" />
+                                        <Button Content="Verwijder" Command="{Binding DataContext.RemoveAssetCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>

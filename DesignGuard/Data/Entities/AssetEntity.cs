@@ -11,4 +11,5 @@ public sealed class AssetEntity
     public string Sensitivity { get; set; } = "None";
     public string Notes { get; set; } = "";
     public int RelatedComponentId { get; set; }
+    public string RelatedComponentIdsJson { get; set; } = "[]";
 }

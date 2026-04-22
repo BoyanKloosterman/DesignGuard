@@ -107,9 +107,21 @@ public sealed class ExportService
         {
             sb.AppendLine();
             sb.AppendLine("## Assets");
+            var compById = project.Components.ToDictionary(c => c.Id, c => c.Name);
             foreach (var a in project.Assets)
+            {
+                a.NormalizeRelatedComponents();
+                var compPart = "";
+                if (a.RelatedComponentIds.Count > 0)
+                {
+                    var names = a.RelatedComponentIds.Select(id =>
+                        compById.TryGetValue(id, out var n) ? n : $"#{id}");
+                    compPart = $" — componenten: {string.Join(", ", names)}";
+                }
+
                 sb.AppendLine(
-                    $"- **{a.Name}** ({a.Classification}, {a.Sensitivity}): {a.Description} {a.Notes}");
+                    $"- **{a.Name}** ({a.Classification}, {a.Sensitivity}){compPart}: {a.Description} {a.Notes}");
+            }
         }
 
         if (project.DesignNotes.Count > 0)
@@ -424,8 +436,21 @@ public sealed class ExportService
         sb.AppendLine("</ul><div class=\"page-break\"></div>");
 
         sb.AppendLine("<h2>Assets en gevoelige data</h2><h3>Assets</h3><ul>");
+        var compByIdHtml = project.Components.ToDictionary(c => c.Id, c => c.Name);
         foreach (var a in project.Assets)
-            sb.AppendLine($"<li>{Esc(a.Name)} ({a.Classification}, {a.Sensitivity})</li>");
+        {
+            a.NormalizeRelatedComponents();
+            var compPart = "";
+            if (a.RelatedComponentIds.Count > 0)
+            {
+                var names = a.RelatedComponentIds.Select(id =>
+                    compByIdHtml.TryGetValue(id, out var n) ? Esc(n) : Esc($"#{id}"));
+                compPart = $" — {string.Join(", ", names)}";
+            }
+
+            sb.AppendLine($"<li>{Esc(a.Name)} ({a.Classification}, {a.Sensitivity}){compPart}</li>");
+        }
+
         sb.AppendLine("</ul>");
 
         sb.AppendLine("<h2>Threat model</h2>");

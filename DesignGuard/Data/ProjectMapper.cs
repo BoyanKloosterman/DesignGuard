@@ -86,19 +86,28 @@ internal static class ProjectMapper
                 Name = r.Name,
                 Description = r.Description
             }).ToList(),
-            Assets = e.Assets.Select(a => new AssetModel
+            Assets = e.Assets.Select(a =>
             {
-                Id = a.Id,
-                Name = a.Name,
-                Description = a.Description,
-                Classification = string.IsNullOrWhiteSpace(a.Classification)
-                    ? nameof(AssetClassification.Unspecified)
-                    : a.Classification,
-                Sensitivity = string.IsNullOrWhiteSpace(a.Sensitivity)
-                    ? nameof(DataSensitivity.None)
-                    : a.Sensitivity,
-                Notes = a.Notes,
-                RelatedComponentId = a.RelatedComponentId
+                var ids = JsonBlobs.IntList(a.RelatedComponentIdsJson);
+                if (ids.Count == 0 && a.RelatedComponentId != 0)
+                    ids = new List<int> { a.RelatedComponentId };
+                var m = new AssetModel
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    Description = a.Description,
+                    Classification = string.IsNullOrWhiteSpace(a.Classification)
+                        ? nameof(AssetClassification.Unspecified)
+                        : a.Classification,
+                    Sensitivity = string.IsNullOrWhiteSpace(a.Sensitivity)
+                        ? nameof(DataSensitivity.None)
+                        : a.Sensitivity,
+                    Notes = a.Notes,
+                    RelatedComponentIds = ids,
+                    RelatedComponentId = ids.Count > 0 ? ids[0] : 0
+                };
+                m.NormalizeRelatedComponents();
+                return m;
             }).ToList(),
             DesignNotes = e.DesignNotes.Select(n => new DesignNoteModel
             {

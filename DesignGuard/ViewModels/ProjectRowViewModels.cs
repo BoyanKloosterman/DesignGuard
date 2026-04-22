@@ -149,6 +149,9 @@ public partial class AssetRowViewModel : ObservableObject
 
     [ObservableProperty] private ComponentRowViewModel? _relatedComponent;
 
+    /// <summary>Extra component-id's (komma of puntkomma), zelfde patroon als bij controls.</summary>
+    [ObservableProperty] private string _extraRelatedComponentIds = "";
+
     partial void OnRelatedComponentChanged(ComponentRowViewModel? value) =>
         RelatedComponentId = value?.Id ?? 0;
 }
@@ -246,26 +249,6 @@ public partial class ControlRowViewModel : ObservableObject
         if (item == null) return;
         LinkedRequirementChips.Remove(item);
     }
-}
-
-public partial class EntryPointRowViewModel : ObservableObject
-{
-    [ObservableProperty] private int _id;
-
-    [ObservableProperty] private string _name = "";
-
-    [ObservableProperty] private string _description = "";
-
-    [ObservableProperty] private int _relatedComponentId;
-
-    [ObservableProperty] private ComponentRowViewModel? _relatedComponent;
-
-    partial void OnRelatedComponentChanged(ComponentRowViewModel? value) =>
-        RelatedComponentId = value?.Id ?? 0;
-
-    [ObservableProperty] private string _notes = "";
-
-    [ObservableProperty] private string _exposureNotes = "";
 }
 
 public partial class SensitiveDataRowViewModel : ObservableObject

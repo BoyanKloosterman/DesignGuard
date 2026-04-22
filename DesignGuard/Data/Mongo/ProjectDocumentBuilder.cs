@@ -112,12 +112,14 @@ internal static class ProjectDocumentBuilder
 
         foreach (var a in m.Assets)
         {
-            var related = 0;
-            if (a.RelatedComponentId != 0)
+            a.NormalizeRelatedComponents();
+            var remapped = new List<int>();
+            foreach (var oldId in a.RelatedComponentIds)
             {
-                var compName = m.Components.FirstOrDefault(c => c.Id == a.RelatedComponentId)?.Name;
-                if (compName != null && nameToCompId.TryGetValue(compName, out var cid))
-                    related = cid;
+                if (oldId == 0) continue;
+                var compName = m.Components.FirstOrDefault(c => c.Id == oldId)?.Name;
+                if (compName != null && nameToCompId.TryGetValue(compName, out var cid) && !remapped.Contains(cid))
+                    remapped.Add(cid);
             }
 
             doc.Assets.Add(new AssetDoc
@@ -131,7 +133,8 @@ internal static class ProjectDocumentBuilder
                     ? nameof(DataSensitivity.None)
                     : a.Sensitivity,
                 Notes = a.Notes,
-                RelatedComponentId = related
+                RelatedComponentId = remapped.Count > 0 ? remapped[0] : 0,
+                RelatedComponentIdsJson = JsonBlobs.Serialize(remapped)
             });
         }
 

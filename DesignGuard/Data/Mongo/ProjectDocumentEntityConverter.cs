@@ -95,7 +95,10 @@ internal static class ProjectDocumentEntityConverter
                 Classification = a.Classification,
                 Sensitivity = a.Sensitivity,
                 Notes = a.Notes,
-                RelatedComponentId = a.RelatedComponentId
+                RelatedComponentId = a.RelatedComponentId,
+                RelatedComponentIdsJson = string.IsNullOrWhiteSpace(a.RelatedComponentIdsJson)
+                    ? "[]"
+                    : a.RelatedComponentIdsJson
             }).ToList(),
             DesignNotes = d.DesignNotes.Select(n => new DesignNoteEntity
             {

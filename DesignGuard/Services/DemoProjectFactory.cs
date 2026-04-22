@@ -246,34 +246,6 @@ public static class DemoProjectFactory
             Notes = "Niet alle uploads zijn publiek."
         });
 
-        p.EntryPoints.Add(new EntryPointModel
-        {
-            Id = 1,
-            Name = "Publieke shop (HTTPS)",
-            Description = "Hoofd-URL storefront.",
-            RelatedComponentId = 1,
-            ExposureNotes = "Internet-breed; bot-verkeer mogelijk.",
-            Notes = "WAF-regels: basis-set actief, finetuning open."
-        });
-        p.EntryPoints.Add(new EntryPointModel
-        {
-            Id = 2,
-            Name = "Admin-portaal (HTTPS)",
-            Description = "Beheerderslogin.",
-            RelatedComponentId = 2,
-            ExposureNotes = "Lager volume, hoger impact bij compromise.",
-            Notes = "IP-allowlist overwogen; nog niet besloten."
-        });
-        p.EntryPoints.Add(new EntryPointModel
-        {
-            Id = 3,
-            Name = "PSP webhooks",
-            Description = "Inbound callbacks op gateway-pad.",
-            RelatedComponentId = 3,
-            ExposureNotes = "Moet signed + idempotent zijn.",
-            Notes = "Zie open eis HMAC + replay-test."
-        });
-
         p.SensitiveDataItems.Add(new SensitiveDataModel
         {
             Id = 1,

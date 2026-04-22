@@ -104,7 +104,6 @@ public partial class MainViewModel
         Assets.Clear();
         DesignNotes.Clear();
         Controls.Clear();
-        EntryPoints.Clear();
         SensitiveDataRows.Clear();
         ReviewItems.Clear();
         Snapshots.Clear();
@@ -214,6 +213,8 @@ public partial class MainViewModel
         Assets.Clear();
         foreach (var a in p.Assets)
         {
+            a.NormalizeRelatedComponents();
+            var ids = a.RelatedComponentIds;
             Assets.Add(new AssetRowViewModel
             {
                 Id = a.Id,
@@ -222,7 +223,8 @@ public partial class MainViewModel
                 Classification = a.Classification,
                 Sensitivity = a.Sensitivity,
                 Notes = a.Notes,
-                RelatedComponent = Components.FirstOrDefault(c => c.Id == a.RelatedComponentId)
+                RelatedComponent = ids.Count > 0 ? Components.FirstOrDefault(c => c.Id == ids[0]) : null,
+                ExtraRelatedComponentIds = ids.Count > 1 ? string.Join(", ", ids.Skip(1)) : ""
             });
         }
 
@@ -267,18 +269,13 @@ public partial class MainViewModel
         foreach (var row in Controls)
             row.RebuildLinkedRequirementChips(p.Requirements);
 
-        EntryPoints.Clear();
+        // Oude projecten: entry-alleen-in-lijst → zelfde component de Entry-vlag geven.
         foreach (var ep in p.EntryPoints)
         {
-            EntryPoints.Add(new EntryPointRowViewModel
-            {
-                Id = ep.Id,
-                Name = ep.Name,
-                Description = ep.Description,
-                RelatedComponent = Components.FirstOrDefault(c => c.Id == ep.RelatedComponentId),
-                Notes = ep.Notes,
-                ExposureNotes = ep.ExposureNotes
-            });
+            if (ep.RelatedComponentId == 0) continue;
+            var row = Components.FirstOrDefault(c => c.Id == ep.RelatedComponentId);
+            if (row != null)
+                row.IsEntryPoint = true;
         }
 
         SensitiveDataRows.Clear();
@@ -403,19 +400,26 @@ public partial class MainViewModel
             Description = r.Description
         }).ToList();
 
-        var assetList = Assets.Select(a => new AssetModel
+        var assetList = Assets.Select(a =>
         {
-            Id = a.Id,
-            Name = a.Name,
-            Description = a.Description,
-            Classification = string.IsNullOrWhiteSpace(a.Classification)
-                ? nameof(AssetClassification.Unspecified)
-                : a.Classification.Trim(),
-            Sensitivity = string.IsNullOrWhiteSpace(a.Sensitivity)
-                ? nameof(DataSensitivity.None)
-                : a.Sensitivity.Trim(),
-            Notes = a.Notes,
-            RelatedComponentId = a.RelatedComponent?.Id ?? a.RelatedComponentId
+            var linkIds = ComposeLinkedComponentIds(a.RelatedComponent, a.ExtraRelatedComponentIds);
+            var m = new AssetModel
+            {
+                Id = a.Id,
+                Name = a.Name,
+                Description = a.Description,
+                Classification = string.IsNullOrWhiteSpace(a.Classification)
+                    ? nameof(AssetClassification.Unspecified)
+                    : a.Classification.Trim(),
+                Sensitivity = string.IsNullOrWhiteSpace(a.Sensitivity)
+                    ? nameof(DataSensitivity.None)
+                    : a.Sensitivity.Trim(),
+                Notes = a.Notes,
+                RelatedComponentIds = linkIds,
+                RelatedComponentId = linkIds.Count > 0 ? linkIds[0] : 0
+            };
+            m.NormalizeRelatedComponents();
+            return m;
         }).ToList();
 
         var notes = DesignNotes.Select(n => new DesignNoteModel
@@ -446,15 +450,17 @@ public partial class MainViewModel
             LinkedComponentIds = ComposeLinkedComponentIds(c.LinkedComponent, c.ExtraLinkedComponentIds)
         }).ToList();
 
-        var entryList = EntryPoints.Select(e => new EntryPointModel
-        {
-            Id = e.Id,
-            Name = e.Name,
-            Description = e.Description,
-            RelatedComponentId = e.RelatedComponent?.Id ?? e.RelatedComponentId,
-            Notes = e.Notes,
-            ExposureNotes = e.ExposureNotes
-        }).ToList();
+        var entryList = Components
+            .Where(c => c.IsEntryPoint)
+            .Select(c => new EntryPointModel
+            {
+                Name = c.Name,
+                Description = c.Description ?? "",
+                RelatedComponentId = c.Id,
+                Notes = c.Notes ?? "",
+                ExposureNotes = ""
+            })
+            .ToList();
 
         var sensList = SensitiveDataRows.Select(s => new SensitiveDataModel
         {

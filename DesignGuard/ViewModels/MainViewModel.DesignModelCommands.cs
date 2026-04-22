@@ -1,5 +1,6 @@
 // Ontwerprijen, suggesties, control-bibliotheek, snapshots.
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.Input;
 using DesignGuard.Models;
@@ -78,15 +79,31 @@ public partial class MainViewModel
         Components.Remove(row);
         foreach (var f in DataFlows.Where(f => f.From == row || f.To == row).ToList())
             DataFlows.Remove(f);
-        foreach (var a in Assets.Where(a => a.RelatedComponent == row).ToList())
-            a.RelatedComponent = null;
-        foreach (var ep in EntryPoints.Where(ep => ep.RelatedComponent == row).ToList())
-            ep.RelatedComponent = null;
+        RemoveComponentFromAllAssetLinks(row);
         foreach (var s in SensitiveDataRows.Where(s => s.RelatedComponent == row).ToList())
             s.RelatedComponent = null;
         foreach (var c in Controls.Where(c => c.LinkedComponent == row).ToList())
             c.LinkedComponent = null;
         RefreshDiagram();
+    }
+
+    private void RemoveComponentFromAllAssetLinks(ComponentRowViewModel removed)
+    {
+        foreach (var a in Assets)
+        {
+            var ids = ComposeLinkedComponentIds(a.RelatedComponent, a.ExtraRelatedComponentIds);
+            if (!ids.Contains(removed.Id)) continue;
+            ids.Remove(removed.Id);
+            if (ids.Count == 0)
+            {
+                a.RelatedComponent = null;
+                a.ExtraRelatedComponentIds = "";
+                continue;
+            }
+
+            a.RelatedComponent = Components.FirstOrDefault(c => c.Id == ids[0]);
+            a.ExtraRelatedComponentIds = ids.Count > 1 ? string.Join(", ", ids.Skip(1)) : "";
+        }
     }
 
     [RelayCommand]
@@ -202,21 +219,6 @@ public partial class MainViewModel
             IsBusy = false;
             BusyMessage = "";
         }
-    }
-
-    [RelayCommand]
-    private void AddEntryPointRow()
-    {
-        EntryPoints.Add(new EntryPointRowViewModel { Name = "Ingang" });
-        RefreshSuggestions();
-    }
-
-    [RelayCommand]
-    private void RemoveEntryPointRow(EntryPointRowViewModel? row)
-    {
-        if (row == null) return;
-        EntryPoints.Remove(row);
-        RefreshSuggestions();
     }
 
     [RelayCommand]

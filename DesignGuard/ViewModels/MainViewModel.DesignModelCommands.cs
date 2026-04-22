@@ -25,7 +25,9 @@ public partial class MainViewModel
     [RelayCommand]
     private void AddAsset()
     {
-        Assets.Add(new AssetRowViewModel { Name = "Asset" });
+        var row = new AssetRowViewModel { Name = "Asset" };
+        Assets.Add(row);
+        row.RebuildComponentPicks(Components);
     }
 
     [RelayCommand]
@@ -76,10 +78,10 @@ public partial class MainViewModel
     private void RemoveComponent(ComponentRowViewModel? row)
     {
         if (row == null) return;
+        RemoveComponentFromAllAssetLinks(row);
         Components.Remove(row);
         foreach (var f in DataFlows.Where(f => f.From == row || f.To == row).ToList())
             DataFlows.Remove(f);
-        RemoveComponentFromAllAssetLinks(row);
         foreach (var s in SensitiveDataRows.Where(s => s.RelatedComponent == row).ToList())
             s.RelatedComponent = null;
         foreach (var c in Controls.Where(c => c.LinkedComponent == row).ToList())
@@ -104,6 +106,8 @@ public partial class MainViewModel
             a.RelatedComponent = Components.FirstOrDefault(c => c.Id == ids[0]);
             a.ExtraRelatedComponentIds = ids.Count > 1 ? string.Join(", ", ids.Skip(1)) : "";
         }
+
+        RefreshAssetComponentPicks();
     }
 
     [RelayCommand]

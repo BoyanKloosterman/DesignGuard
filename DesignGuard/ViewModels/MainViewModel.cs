@@ -563,6 +563,13 @@ public partial class MainViewModel : ObservableObject
         // Reset levert geen OldItems: handlers loskoppelen gebeurt vóór Clear() in Project.cs.
         if (e.Action == NotifyCollectionChangedAction.Reset)
             RefreshComponentTagSuggestions();
+        RefreshAssetComponentPicks();
+    }
+
+    private void RefreshAssetComponentPicks()
+    {
+        foreach (var a in Assets)
+            a.RebuildComponentPicks(Components);
     }
 
     private void ComponentRowTagPropertyChanged(object? sender, PropertyChangedEventArgs e)

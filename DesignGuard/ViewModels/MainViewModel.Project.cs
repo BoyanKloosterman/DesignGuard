@@ -228,6 +228,9 @@ public partial class MainViewModel
             });
         }
 
+        foreach (var a in Assets)
+            a.RebuildComponentPicks(Components);
+
         DesignNotes.Clear();
         foreach (var n in p.DesignNotes)
         {

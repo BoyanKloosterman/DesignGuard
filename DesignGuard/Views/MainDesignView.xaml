@@ -89,7 +89,8 @@
             <GroupBox Header="Trust boundaries" Margin="0,8,0,0">
                 <StackPanel Margin="8">
                     <Button Content="Toevoegen" HorizontalAlignment="Left" Command="{Binding AddTrustBoundaryCommand}" Margin="0,0,0,8" />
-                    <DataGrid ItemsSource="{Binding TrustBoundaries}" AutoGenerateColumns="False" CanUserAddRows="False" Height="120" HeadersVisibility="Column">
+                    <DataGrid ItemsSource="{Binding TrustBoundaries}" AutoGenerateColumns="False" CanUserAddRows="False" Height="120"
+                              HeadersVisibility="Column" RowHeaderWidth="0">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                             <DataGridTextColumn Header="Omschrijving" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
@@ -98,7 +99,7 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Button Content="Verwijder"
-                                                Command="{Binding DataContext.RemoveTrustBoundaryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                Command="{Binding DataContext.RemoveTrustBoundaryCommand, RelativeSource={RelativeSource AncestorType={x:Type views:MainDesignView}}}"
                                                 CommandParameter="{Binding}" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -113,14 +114,14 @@
                                Text="Entry: vink aan voor ingangen (geen aparte entry-lijst meer)." />
                     <Button Content="Component toevoegen" HorizontalAlignment="Left" Command="{Binding AddComponentCommand}" Margin="0,0,0,8" />
                     <DataGrid ItemsSource="{Binding Components}" SelectedItem="{Binding SelectedComponent}" AutoGenerateColumns="False"
-                              CanUserAddRows="False" HeadersVisibility="Column" Height="200">
+                              CanUserAddRows="False" HeadersVisibility="Column" RowHeaderWidth="0" Height="200">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                             <DataGridTemplateColumn Header="Tag" Width="118">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <ComboBox IsEditable="True" StaysOpenOnEdit="False"
-                                                  ItemsSource="{Binding DataContext.ComponentTagSuggestions, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  ItemsSource="{Binding DataContext.ComponentTagSuggestions, RelativeSource={RelativeSource AncestorType={x:Type views:MainDesignView}}}"
                                                   Text="{Binding Tag, UpdateSourceTrigger=PropertyChanged}" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -132,7 +133,7 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <ComboBox IsEditable="True" StaysOpenOnEdit="False"
-                                                  ItemsSource="{Binding DataContext.PresetDataSensitivityLabels, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  ItemsSource="{Binding DataContext.PresetDataSensitivityLabels, RelativeSource={RelativeSource AncestorType={x:Type views:MainDesignView}}}"
                                                   Text="{Binding DataSensitivity, UpdateSourceTrigger=PropertyChanged}" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -142,7 +143,7 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Button Content="Verwijder"
-                                                Command="{Binding DataContext.RemoveComponentCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                Command="{Binding DataContext.RemoveComponentCommand, RelativeSource={RelativeSource AncestorType={x:Type views:MainDesignView}}}"
                                                 CommandParameter="{Binding}" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -154,12 +155,13 @@
             <GroupBox Header="Datastromen" Margin="0,8,0,0">
                 <StackPanel Margin="8">
                     <Button Content="Stroom toevoegen" HorizontalAlignment="Left" Command="{Binding AddDataFlowCommand}" Margin="0,0,0,8" />
-                    <DataGrid ItemsSource="{Binding DataFlows}" AutoGenerateColumns="False" CanUserAddRows="False" Height="140">
+                    <DataGrid ItemsSource="{Binding DataFlows}" AutoGenerateColumns="False" CanUserAddRows="False" Height="140"
+                              HeadersVisibility="Column" RowHeaderWidth="0">
                         <DataGrid.Columns>
                             <DataGridTemplateColumn Header="Van" Width="*">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType={x:Type views:MainDesignView}}}"
                                                   SelectedItem="{Binding From, UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="Name" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -167,7 +169,7 @@
                             <DataGridTemplateColumn Header="Naar" Width="*">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType={x:Type views:MainDesignView}}}"
                                                   SelectedItem="{Binding To, UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="Name" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -177,7 +179,7 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Button Content="Verwijder"
-                                                Command="{Binding DataContext.RemoveDataFlowCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                Command="{Binding DataContext.RemoveDataFlowCommand, RelativeSource={RelativeSource AncestorType={x:Type views:MainDesignView}}}"
                                                 CommandParameter="{Binding}" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -189,7 +191,8 @@
             <GroupBox Header="Rollen" Margin="0,8,0,0">
                 <StackPanel Margin="8">
                     <Button Content="Rol toevoegen" HorizontalAlignment="Left" Command="{Binding AddRoleCommand}" Margin="0,0,0,8" />
-                    <DataGrid ItemsSource="{Binding Roles}" AutoGenerateColumns="False" CanUserAddRows="False" Height="100">
+                    <DataGrid ItemsSource="{Binding Roles}" AutoGenerateColumns="False" CanUserAddRows="False" Height="100"
+                              HeadersVisibility="Column" RowHeaderWidth="0">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                             <DataGridTextColumn Header="Omschrijving" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
@@ -197,7 +200,7 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Button Content="Verwijder"
-                                                Command="{Binding DataContext.RemoveRoleCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                Command="{Binding DataContext.RemoveRoleCommand, RelativeSource={RelativeSource AncestorType={x:Type views:MainDesignView}}}"
                                                 CommandParameter="{Binding}" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -209,14 +212,15 @@
             <GroupBox Header="Assets" Margin="0,8,0,0">
                 <StackPanel Margin="8">
                     <Button Content="Asset toevoegen" Command="{Binding AddAssetCommand}" HorizontalAlignment="Left" Margin="0,0,0,8" />
-                    <DataGrid ItemsSource="{Binding Assets}" AutoGenerateColumns="False" CanUserAddRows="False" Height="140">
+                    <DataGrid ItemsSource="{Binding Assets}" AutoGenerateColumns="False" CanUserAddRows="False" Height="140"
+                              HeadersVisibility="Column" RowHeaderWidth="0">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                             <DataGridTemplateColumn Header="Classificatie" Width="118">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <ComboBox IsEditable="True" StaysOpenOnEdit="False"
-                                                  ItemsSource="{Binding DataContext.PresetAssetClassifications, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  ItemsSource="{Binding DataContext.PresetAssetClassifications, RelativeSource={RelativeSource AncestorType={x:Type views:MainDesignView}}}"
                                                   Text="{Binding Classification, UpdateSourceTrigger=PropertyChanged}" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -225,27 +229,48 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <ComboBox IsEditable="True" StaysOpenOnEdit="False"
-                                                  ItemsSource="{Binding DataContext.PresetDataSensitivityLabels, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  ItemsSource="{Binding DataContext.PresetDataSensitivityLabels, RelativeSource={RelativeSource AncestorType={x:Type views:MainDesignView}}}"
                                                   Text="{Binding Sensitivity, UpdateSourceTrigger=PropertyChanged}" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Component" Width="160" MinWidth="120">
+                            <DataGridTemplateColumn Header="Componenten" Width="260" MinWidth="200">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                  SelectedItem="{Binding RelatedComponent, UpdateSourceTrigger=PropertyChanged}"
-                                                  DisplayMemberPath="Name" />
+                                        <Grid>
+                                            <ToggleButton x:Name="AssetCompPickToggle"
+                                                          Style="{StaticResource DgToggle.ComboLike}"
+                                                          HorizontalContentAlignment="Left"
+                                                          Content="{Binding LinkedComponentsDisplay}"
+                                                          ToolTip="{Binding LinkedComponentsDisplay}" />
+                                            <Popup IsOpen="{Binding IsChecked, ElementName=AssetCompPickToggle, Mode=TwoWay}"
+                                                   PlacementTarget="{Binding ElementName=AssetCompPickToggle}"
+                                                   Placement="Bottom" StaysOpen="False" Focusable="False">
+                                                <Border MinWidth="280" MaxHeight="260" Padding="6"
+                                                        Background="{DynamicResource DgBrush.InputBackground}"
+                                                        BorderBrush="{DynamicResource DgBrush.InputBorder}"
+                                                        BorderThickness="1" SnapsToDevicePixels="True">
+                                                    <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
+                                                        <ItemsControl ItemsSource="{Binding ComponentPicks}" Focusable="False">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <CheckBox Margin="0,4" Focusable="True"
+                                                                              Content="{Binding Component.Name}"
+                                                                              IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" />
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </ScrollViewer>
+                                                </Border>
+                                            </Popup>
+                                        </Grid>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Meer componenten (id's)"
-                                                Binding="{Binding ExtraRelatedComponentIds, UpdateSourceTrigger=PropertyChanged}"
-                                                Width="150" MinWidth="100" />
                             <DataGridTemplateColumn Width="70">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Button Content="Verwijder" Command="{Binding DataContext.RemoveAssetCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" />
+                                        <Button Content="Verwijder" Command="{Binding DataContext.RemoveAssetCommand, RelativeSource={RelativeSource AncestorType={x:Type views:MainDesignView}}}" CommandParameter="{Binding}" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -256,7 +281,8 @@
             <GroupBox Header="Gevoelige data (categorie)" Margin="0,8,0,0">
                 <StackPanel Margin="8">
                     <Button Content="Rij toevoegen" Command="{Binding AddSensitiveDataRowCommand}" HorizontalAlignment="Left" Margin="0,0,0,8" />
-                    <DataGrid ItemsSource="{Binding SensitiveDataRows}" AutoGenerateColumns="False" CanUserAddRows="False" Height="100">
+                    <DataGrid ItemsSource="{Binding SensitiveDataRows}" AutoGenerateColumns="False" CanUserAddRows="False" Height="100"
+                              HeadersVisibility="Column" RowHeaderWidth="0">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                             <DataGridTextColumn Header="Categorie" Binding="{Binding Category, UpdateSourceTrigger=PropertyChanged}" Width="90" />
@@ -264,7 +290,7 @@
                             <DataGridTemplateColumn Header="Component" Width="140" MinWidth="100">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        <ComboBox ItemsSource="{Binding DataContext.Components, RelativeSource={RelativeSource AncestorType={x:Type views:MainDesignView}}}"
                                                   SelectedItem="{Binding RelatedComponent, UpdateSourceTrigger=PropertyChanged}"
                                                   DisplayMemberPath="Name" />
                                     </DataTemplate>
@@ -273,7 +299,7 @@
                             <DataGridTemplateColumn Width="70">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Button Content="Verwijder" Command="{Binding DataContext.RemoveSensitiveDataRowCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" />
+                                        <Button Content="Verwijder" Command="{Binding DataContext.RemoveSensitiveDataRowCommand, RelativeSource={RelativeSource AncestorType={x:Type views:MainDesignView}}}" CommandParameter="{Binding}" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>

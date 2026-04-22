@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DesignGuard.Models;
@@ -129,6 +130,24 @@ public partial class TrustBoundaryRowViewModel : ObservableObject
     [ObservableProperty] private string _colorHint = "#4472C4";
 }
 
+public partial class AssetComponentPickItem : ObservableObject
+{
+    public ComponentRowViewModel Component { get; }
+
+    private readonly AssetRowViewModel _owner;
+
+    [ObservableProperty] private bool _isSelected;
+
+    public AssetComponentPickItem(AssetRowViewModel owner, ComponentRowViewModel component, bool isSelected)
+    {
+        _owner = owner;
+        Component = component;
+        _isSelected = isSelected;
+    }
+
+    partial void OnIsSelectedChanged(bool value) => _owner.OnComponentPickChanged();
+}
+
 public partial class AssetRowViewModel : ObservableObject
 {
     [ObservableProperty] private int _id;
@@ -152,8 +171,71 @@ public partial class AssetRowViewModel : ObservableObject
     /// <summary>Extra component-id's (komma of puntkomma), zelfde patroon als bij controls.</summary>
     [ObservableProperty] private string _extraRelatedComponentIds = "";
 
+    /// <summary>Tekst in de multi-select knop.</summary>
+    [ObservableProperty] private string _linkedComponentsDisplay = "(geen)";
+
+    public ObservableCollection<AssetComponentPickItem> ComponentPicks { get; } = new();
+
+    private bool _suppressPicksSync;
+
     partial void OnRelatedComponentChanged(ComponentRowViewModel? value) =>
         RelatedComponentId = value?.Id ?? 0;
+
+    public void RebuildComponentPicks(IEnumerable<ComponentRowViewModel> components)
+    {
+        _suppressPicksSync = true;
+        var selectedIds = new HashSet<int>(ComposeLinkedIds(RelatedComponent, ExtraRelatedComponentIds));
+        ComponentPicks.Clear();
+        foreach (var c in components.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+            ComponentPicks.Add(new AssetComponentPickItem(this, c, selectedIds.Contains(c.Id)));
+        _suppressPicksSync = false;
+        UpdateLinkedComponentsDisplay();
+    }
+
+    internal void OnComponentPickChanged()
+    {
+        if (_suppressPicksSync) return;
+        var ids = ComponentPicks.Where(p => p.IsSelected).Select(p => p.Component.Id).Where(id => id > 0).Distinct()
+            .OrderBy(id => id).ToList();
+        _suppressPicksSync = true;
+        if (ids.Count == 0)
+        {
+            RelatedComponent = null;
+            ExtraRelatedComponentIds = "";
+        }
+        else
+        {
+            RelatedComponent = ComponentPicks.First(p => p.IsSelected && p.Component.Id == ids[0]).Component;
+            ExtraRelatedComponentIds = ids.Count > 1 ? string.Join(", ", ids.Skip(1)) : "";
+        }
+
+        _suppressPicksSync = false;
+        UpdateLinkedComponentsDisplay();
+    }
+
+    private void UpdateLinkedComponentsDisplay()
+    {
+        var names = ComponentPicks.Where(p => p.IsSelected).Select(p => p.Component.Name)
+            .OrderBy(n => n, StringComparer.OrdinalIgnoreCase).ToList();
+        LinkedComponentsDisplay = names.Count == 0 ? "(geen)" : string.Join(", ", names);
+    }
+
+    private static List<int> ComposeLinkedIds(ComponentRowViewModel? primary, string? extraCsv)
+    {
+        var ids = new List<int>();
+        if (primary is { Id: > 0 })
+            ids.Add(primary.Id);
+        if (string.IsNullOrWhiteSpace(extraCsv))
+            return ids;
+        foreach (var part in extraCsv.Split(new[] { ',', ';' },
+                     StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (!int.TryParse(part, out var id) || id <= 0 || ids.Contains(id)) continue;
+            ids.Add(id);
+        }
+
+        return ids;
+    }
 }
 
 public partial class DesignNoteRowViewModel : ObservableObject

@@ -42,6 +42,15 @@ public sealed class MongoConnectionFactory : IDisposable
         }
     }
 
+    /// <summary>Na wijziging connection string in het lopende proces opnieuw client bouwen.</summary>
+    public void ResetCachedClient()
+    {
+        lock (_lock)
+        {
+            _client = null;
+        }
+    }
+
     private static MongoClient CreateClient(AppConfiguration cfg)
     {
         var cs = cfg.MongoConnectionString!;

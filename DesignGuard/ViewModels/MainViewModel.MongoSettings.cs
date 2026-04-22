@@ -1,10 +1,19 @@
 // MongoDB-instellingen en diagnose.
 using CommunityToolkit.Mvvm.Input;
+using DesignGuard.Configuration;
 
 namespace DesignGuard.ViewModels;
 
 public partial class MainViewModel
 {
+    private void RefreshMongoEnvEditorFromProcess()
+    {
+        MongoEnvRevealConnectionString = false;
+        MongoEnvConnectionString =
+            Environment.GetEnvironmentVariable("DESIGNGUARD_MONGODB_CONNECTION_STRING") ?? "";
+        MongoEnvDatabaseName = Environment.GetEnvironmentVariable("DESIGNGUARD_MONGODB_DATABASE") ?? "";
+    }
+
     private void RefreshMongoDiagnostics()
     {
         var s = _mongoDiagnostics.BuildSnapshot();
@@ -42,4 +51,31 @@ public partial class MainViewModel
         }
     }
 
+    [RelayCommand]
+    private async Task SaveMongoEnvToFileAsync()
+    {
+        var cs = (MongoEnvConnectionString ?? "").Trim();
+        var db = (MongoEnvDatabaseName ?? "").Trim();
+        if (string.IsNullOrEmpty(cs) || string.IsNullOrEmpty(db))
+        {
+            StatusMessage = "Vul connection string en databasenaam in.";
+            return;
+        }
+
+        try
+        {
+            await Task.Run(() => DevelopmentEnvFileWriter.SaveMongo(cs, db)).ConfigureAwait(true);
+            Environment.SetEnvironmentVariable("DESIGNGUARD_MONGODB_CONNECTION_STRING", cs);
+            Environment.SetEnvironmentVariable("DESIGNGUARD_MONGODB_DATABASE", db);
+            Environment.SetEnvironmentVariable("DESIGNGUARD_ENVIRONMENT", "Development");
+            _appConfiguration.Reload();
+            _mongoConnectionFactory.ResetCachedClient();
+            RefreshMongoDiagnostics();
+            StatusMessage = $"MongoDB-config opgeslagen ({DevelopmentEnvFileWriter.ResolvePathForWrite()}).";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Opslaan .env mislukt: {ex.Message}";
+        }
+    }
 }

@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:views="clr-namespace:DesignGuard.Views"
              mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="800">
     <ScrollViewer Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=10}"
@@ -60,6 +61,24 @@
             <TextBlock Text="Database / MongoDB" FontWeight="SemiBold" />
             <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="Gray" Margin="0,4,0,12"
                        Text="Projectdata staat in MongoDB. Configureer omgevingsvariabelen (of .env in Development) — zie CONFIGURATION.md en DEPLOYMENT.md." />
+            <TextBlock Text="Lokaal .env (Development)" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}" FontWeight="SemiBold" Margin="0,0,0,4" />
+            <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="Gray" Margin="0,0,0,8"
+                       Text="Schrijft naar hetzelfde .env-pad als bij start. Zet ook DESIGNGUARD_ENVIRONMENT=Development. Machine-omgeving overschrijft .env — zie CONFIGURATION.md. Na opslaan: Windows-bestandsrechten alleen jouw gebruiker (indien mogelijk)." />
+            <CheckBox IsChecked="{Binding MongoEnvRevealConnectionString}" Margin="0,0,0,6"
+                      Content="Connection string in platte tekst tonen (minder veilig)" FontSize="11"
+                      Foreground="{DynamicResource DgBrush.TextSecondary}" />
+            <TextBlock Text="Connection string" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" Margin="0,0,0,2" />
+            <Grid Margin="0,0,0,8">
+                <PasswordBox FontFamily="Consolas"
+                             Visibility="{Binding MongoEnvRevealConnectionString, Converter={StaticResource InverseBoolToVis}}"
+                             views:PasswordBoxHelper.BoundPassword="{Binding MongoEnvConnectionString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox Text="{Binding MongoEnvConnectionString, UpdateSourceTrigger=PropertyChanged}"
+                         FontFamily="Consolas" TextWrapping="Wrap" AcceptsReturn="False"
+                         Visibility="{Binding MongoEnvRevealConnectionString, Converter={StaticResource BoolToVis}}" />
+            </Grid>
+            <TextBlock Text="Databasenaam" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" Margin="0,0,0,2" />
+            <TextBox Text="{Binding MongoEnvDatabaseName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+            <Button Content="Opslaan in .env" Command="{Binding SaveMongoEnvToFileCommand}" HorizontalAlignment="Left" Margin="0,0,0,16" />
             <TextBlock FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}">
                 <Run Text="Omgeving: " /><Run Text="{Binding MongoDiagEnvironment, Mode=OneWay}" />
             </TextBlock>

@@ -13,7 +13,7 @@ public static class DevelopmentEnvFileLoader
 
     public static void TryApplyOptionalDotEnv()
     {
-        foreach (var candidate in GetCandidateEnvPaths())
+        foreach (var candidate in EnumerateCandidateDotEnvPaths())
         {
             if (!File.Exists(candidate)) continue;
             ApplyFileIfAllowed(candidate);
@@ -21,7 +21,8 @@ public static class DevelopmentEnvFileLoader
         }
     }
 
-    private static IEnumerable<string> GetCandidateEnvPaths()
+    /// <summary>Zelfde zoekvolgorde als bij inlezen — voor schrijven naar bestaand of nieuw .env naast de exe.</summary>
+    public static IEnumerable<string> EnumerateCandidateDotEnvPaths()
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);
         for (var i = 0; i < MaxWalkUpLevels && current != null; i++)

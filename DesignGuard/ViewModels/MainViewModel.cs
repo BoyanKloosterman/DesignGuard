@@ -42,6 +42,7 @@ public partial class MainViewModel : ObservableObject
     private readonly AppSecurityReviewService _appSecurityReview;
     private readonly IAppConfigurationService _appConfiguration;
     private readonly IMongoDiagnosticsService _mongoDiagnostics;
+    private readonly MongoConnectionFactory _mongoConnectionFactory;
     private readonly DesignValidationService _designValidation;
     private HashSet<string> _dismissedSuggestionKeys = new(StringComparer.Ordinal);
     private readonly DispatcherTimer _filterDebounceTimer;
@@ -68,6 +69,7 @@ public partial class MainViewModel : ObservableObject
         AppSecurityReviewService appSecurityReview,
         IAppConfigurationService appConfiguration,
         IMongoDiagnosticsService mongoDiagnostics,
+        MongoConnectionFactory mongoConnectionFactory,
         DesignValidationService designValidation)
     {
         _projects = projects;
@@ -89,6 +91,7 @@ public partial class MainViewModel : ObservableObject
         _appSecurityReview = appSecurityReview;
         _appConfiguration = appConfiguration;
         _mongoDiagnostics = mongoDiagnostics;
+        _mongoConnectionFactory = mongoConnectionFactory;
         _designValidation = designValidation;
         _suppressPreferencePersist = true;
         UiTheme = string.IsNullOrWhiteSpace(_userSettings.Current.Theme) ? "Light" : _userSettings.Current.Theme;
@@ -252,6 +255,12 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _mongoDiagPing = "";
 
     [ObservableProperty] private bool _mongoDiagFullyConfigured;
+
+    [ObservableProperty] private string _mongoEnvConnectionString = "";
+
+    [ObservableProperty] private string _mongoEnvDatabaseName = "";
+
+    [ObservableProperty] private bool _mongoEnvRevealConnectionString;
 
     [ObservableProperty] private int _currentProjectId;
 
@@ -509,6 +518,7 @@ public partial class MainViewModel : ObservableObject
         if (value == 10)
         {
             RefreshKnowledgePackRows();
+            RefreshMongoEnvEditorFromProcess();
             RefreshMongoDiagnostics();
         }
         if (value == 11) RefreshAppSecurityReview();

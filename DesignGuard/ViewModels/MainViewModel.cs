@@ -1,6 +1,7 @@
 // Kern: DI, state properties, navigatie-hooks (partial MainViewModel).
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Text.Json;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -124,7 +125,8 @@ public partial class MainViewModel : ObservableObject
         Suggestions = new ObservableCollection<ModelingSuggestion>();
         KnowledgePackRows = new ObservableCollection<KnowledgePackToggleRow>();
         AppSecurityReviewRows = new ObservableCollection<AppSecurityReviewRowViewModel>();
-        Components.CollectionChanged += (_, _) => RefreshComponentTagSuggestions();
+        Components.CollectionChanged += OnComponentsCollectionChanged;
+        RefreshComponentTagSuggestions();
         Controls.CollectionChanged += (_, _) => RefreshControlSourceTagSuggestions();
         ControlLibraryPickList.Add(new LibraryPickItem("", "Geen bibliotheek-item"));
         foreach (var lib in _controlLibrary.EnumerateLibraryDefinitions())
@@ -543,6 +545,49 @@ public partial class MainViewModel : ObservableObject
 
     partial void OnRequirementSortChanged(string value) => RefreshFilters();
 
+    private void OnComponentsCollectionChanged(object? _, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewItems != null)
+        {
+            foreach (ComponentRowViewModel c in e.NewItems)
+            {
+                c.PropertyChanged += ComponentRowTagPropertyChanged;
+                EnsureComponentTagSuggestion(c.Tag);
+            }
+        }
+
+        if (e.OldItems != null)
+        {
+            foreach (ComponentRowViewModel c in e.OldItems)
+                c.PropertyChanged -= ComponentRowTagPropertyChanged;
+        }
+
+        // Reset levert geen OldItems: handlers loskoppelen gebeurt vóór Clear() in Project.cs.
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+            RefreshComponentTagSuggestions();
+    }
+
+    private void ComponentRowTagPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ComponentRowViewModel.Tag) && sender is ComponentRowViewModel c)
+            EnsureComponentTagSuggestion(c.Tag);
+    }
+
+    /// <summary>Voegt één tag toe aan suggesties zonder ItemsSource te resetten (voorkomt leeggemaakte ComboBox-bindings).</summary>
+    private void EnsureComponentTagSuggestion(string? tag)
+    {
+        var t = tag?.Trim();
+        if (string.IsNullOrEmpty(t)) return;
+        foreach (var x in ComponentTagSuggestions)
+        {
+            if (string.Equals(x, t, StringComparison.OrdinalIgnoreCase))
+                return;
+        }
+
+        ComponentTagSuggestions.Add(t);
+    }
+
+    /// <summary>Volledige herbouw (alleen na project laden of na Components.Clear).</summary>
     private void RefreshComponentTagSuggestions()
     {
         ComponentTagSuggestions.Clear();
@@ -554,6 +599,12 @@ public partial class MainViewModel : ObservableObject
             var tag = c.Tag?.Trim();
             if (!string.IsNullOrEmpty(tag) && seen.Add(tag)) ComponentTagSuggestions.Add(tag);
         }
+    }
+
+    private void DetachComponentRowTagSuggestionHandlers()
+    {
+        foreach (var c in Components)
+            c.PropertyChanged -= ComponentRowTagPropertyChanged;
     }
 
     private void RefreshControlSourceTagSuggestions()

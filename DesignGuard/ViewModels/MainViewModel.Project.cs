@@ -96,6 +96,7 @@ public partial class MainViewModel
         EditorGovernanceTechnicalOwner = "";
         EditorGovernanceComplianceStakeholder = "";
         EditorGovernanceReviewCadence = "";
+        DetachComponentRowTagSuggestionHandlers();
         TrustBoundaries.Clear();
         Components.Clear();
         DataFlows.Clear();
@@ -163,6 +164,7 @@ public partial class MainViewModel
             });
         }
 
+        DetachComponentRowTagSuggestionHandlers();
         Components.Clear();
         foreach (var c in p.Components)
         {
@@ -342,7 +344,6 @@ public partial class MainViewModel
         RefreshFilters();
         UpdateDashboard();
         RefreshSuggestions();
-        RefreshComponentTagSuggestions();
         RefreshControlSourceTagSuggestions();
     }
 

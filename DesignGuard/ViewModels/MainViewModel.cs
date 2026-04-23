@@ -27,7 +27,6 @@ public partial class MainViewModel : ObservableObject
     private readonly IProjectRepository _projects;
     private readonly ThreatGenerationService _threatService;
     private readonly RequirementGenerationService _requirementService;
-    private readonly DiagramLayoutService _diagramLayout;
     private readonly ExportService _export;
     private readonly AnalysisMergeService _merge;
     private readonly TraceabilityService _traceability;
@@ -38,7 +37,7 @@ public partial class MainViewModel : ObservableObject
     private readonly KnowledgePackRemoteSyncService _packRemoteSync;
     private readonly UserSettingsService _userSettings;
     private readonly PdfReportService _pdfReport;
-    private readonly DiagramRasterizer _diagramRasterizer;
+    private readonly MermaidDiagramRasterizer _mermaidRasterizer;
     private readonly C4ModelRasterizer _c4Rasterizer;
     private readonly AppSecurityReviewService _appSecurityReview;
     private readonly IAppConfigurationService _appConfiguration;
@@ -53,7 +52,6 @@ public partial class MainViewModel : ObservableObject
         IProjectRepository projects,
         ThreatGenerationService threatService,
         RequirementGenerationService requirementService,
-        DiagramLayoutService diagramLayout,
         ExportService export,
         AnalysisMergeService merge,
         TraceabilityService traceability,
@@ -64,7 +62,7 @@ public partial class MainViewModel : ObservableObject
         KnowledgePackRemoteSyncService packRemoteSync,
         UserSettingsService userSettings,
         PdfReportService pdfReport,
-        DiagramRasterizer diagramRasterizer,
+        MermaidDiagramRasterizer mermaidRasterizer,
         C4ModelRasterizer c4Rasterizer,
         AppSecurityReviewService appSecurityReview,
         IAppConfigurationService appConfiguration,
@@ -74,7 +72,6 @@ public partial class MainViewModel : ObservableObject
         _projects = projects;
         _threatService = threatService;
         _requirementService = requirementService;
-        _diagramLayout = diagramLayout;
         _export = export;
         _merge = merge;
         _traceability = traceability;
@@ -85,7 +82,7 @@ public partial class MainViewModel : ObservableObject
         _packRemoteSync = packRemoteSync;
         _userSettings = userSettings;
         _pdfReport = pdfReport;
-        _diagramRasterizer = diagramRasterizer;
+        _mermaidRasterizer = mermaidRasterizer;
         _c4Rasterizer = c4Rasterizer;
         _appSecurityReview = appSecurityReview;
         _appConfiguration = appConfiguration;

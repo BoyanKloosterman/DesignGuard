@@ -33,17 +33,6 @@ public partial class ArchitectureDiagramPanel : UserControl
         Unloaded += OnUnloaded;
     }
 
-    public bool ShowThreatLinkCheckbox
-    {
-        get => (bool)GetValue(ShowThreatLinkCheckboxProperty);
-        set => SetValue(ShowThreatLinkCheckboxProperty, value);
-    }
-
-    // Kept for binding compatibility with caller views; heeft in Mermaid-modus geen effect.
-    public static readonly DependencyProperty ShowThreatLinkCheckboxProperty =
-        DependencyProperty.Register(nameof(ShowThreatLinkCheckbox), typeof(bool), typeof(ArchitectureDiagramPanel),
-            new PropertyMetadata(true));
-
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
         if (_webViewInitStarted) return;
@@ -69,8 +58,7 @@ public partial class ArchitectureDiagramPanel : UserControl
             PreviewWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
             PreviewWebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
 
-            var html = LoadEmbeddedHtml();
-            PreviewWebView.NavigateToString(html);
+            PreviewWebView.NavigateToString(MermaidViewerHtmlLoader.Load());
         }
         catch (Exception ex)
         {
@@ -160,9 +148,8 @@ public partial class ArchitectureDiagramPanel : UserControl
         // WebMessageAsJson bevat al JSON; parse en dispatch naar UI-thread.
         try
         {
-            using var doc = JsonDocument.Parse(e.WebMessageAsJson);
-            var root = doc.RootElement;
-            var type = root.TryGetProperty("type", out var t) ? t.GetString() : null;
+            if (!WebView2MessageJson.TryParse(e.WebMessageAsJson, out var type, out var message))
+                return;
             switch (type)
             {
                 case "ready":
@@ -177,9 +164,8 @@ public partial class ArchitectureDiagramPanel : UserControl
                         vmOk.MermaidSyntaxError = string.Empty;
                     break;
                 case "error":
-                    var message = root.TryGetProperty("message", out var m) ? m.GetString() ?? "" : "";
                     if (DataContext is MainViewModel vmErr)
-                        vmErr.MermaidSyntaxError = message;
+                        vmErr.MermaidSyntaxError = message ?? "";
                     break;
             }
         }
@@ -187,15 +173,5 @@ public partial class ArchitectureDiagramPanel : UserControl
         {
             // Ongevormde post-messages negeren
         }
-    }
-
-    private static string LoadEmbeddedHtml()
-    {
-        // Resource-uri verwijst naar Resources\MermaidViewer.html (zie csproj Resource entry).
-        var uri = new Uri("pack://application:,,,/Resources/MermaidViewer.html", UriKind.Absolute);
-        var info = Application.GetResourceStream(uri)
-            ?? throw new InvalidOperationException("MermaidViewer.html resource niet gevonden.");
-        using var reader = new StreamReader(info.Stream);
-        return reader.ReadToEnd();
     }
 }

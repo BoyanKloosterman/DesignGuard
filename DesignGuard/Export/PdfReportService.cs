@@ -121,7 +121,7 @@ public sealed class PdfReportService
                     AddTocLine(col, Sec.Summary, "Executive summary");
                     AddTocLine(col, Sec.SystemContext, "Systeemcontext");
                     if (diagramPng is { Length: > 0 })
-                        AddTocLine(col, Sec.ArchDiagram, "Architectuurdiagram (export)");
+                        AddTocLine(col, Sec.ArchDiagram, "Architectuurdiagram (Mermaid)");
                     AddTocLine(col, Sec.TrustBoundaries, "Trust boundaries");
                     if (c4OverviewPng is { Length: > 0 })
                         AddTocLine(col, Sec.C4Visual, "C4-overzicht (visualisatie)");
@@ -166,8 +166,8 @@ public sealed class PdfReportService
                             s.Spacing(10);
                             s.Item().Element(SectionTitle("Architectuurdiagram"));
                             s.Item().Text(
-                                    "Zelfde opbouw als het canvas onder Ontwerp: componenten, datastromen met labels, trust boundaries, " +
-                                    "entry-streep (groen) en datagevoeligheid (oranje streep + label). Gerenderd uit het model bij export.")
+                                    "Zelfde Mermaid-flowchart als onder Ontwerp (trust boundaries, componenten, datastromen; " +
+                                    "stijlen voor entry point en gevoelige data). Gerasterd uit de WebView2-preview bij PDF-export.")
                                 .FontSize(9.5f).LineHeight(1.3f).FontColor(PdfPalette.Muted);
                             s.Item().PaddingTop(4).MinHeight(280).Image(diagramPng).FitArea();
                         });

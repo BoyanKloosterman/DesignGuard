@@ -47,9 +47,8 @@ public partial class App : Application
         services.AddSingleton<KnowledgePackRemoteSyncService>();
         services.AddSingleton<ControlLibraryService>();
         services.AddSingleton<ModelingSuggestionService>();
-        services.AddSingleton<DiagramLayoutService>();
         services.AddSingleton<ExportService>();
-        services.AddSingleton<DiagramRasterizer>();
+        services.AddSingleton<MermaidDiagramRasterizer>();
         services.AddSingleton<C4ModelRasterizer>();
         services.AddSingleton<PdfReportService>();
         services.AddSingleton<AppSecurityReviewService>();

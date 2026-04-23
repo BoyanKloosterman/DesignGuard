@@ -10,21 +10,24 @@
         <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
             <TextBlock Text="C4-model" Style="{StaticResource DgText.Title}" />
             <TextBlock Margin="0,6,0,0" Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"
-                       Text="C4 is los van het architectuurdiagram op Ontwerp. Mermaid C4 (C1–C4) wordt uit de tabel gegenereerd. Personen: trefwoorden in naam/omschrijving; DB/queue uit tech. Koppel open dreigingen via exact dezelfde componentnaam als in het tabblad Threatmodel." />
+                       Text="C4 is los van het architectuurdiagram op Ontwerp. Mermaid C4 (C1–C4) wordt uit de tabel gegenereerd; relaties worden als Rel(van, naar, label) toegevoegd als beide knooppunten in dat banddiagram bestaan (id 0 = systeem in scope, alleen C1). Personen: trefwoorden in naam/omschrijving; DB/queue uit tech. Koppel open dreigingen via exact dezelfde componentnaam als in het tabblad Threatmodel." />
             <WrapPanel Margin="0,8,0,0">
                 <Button Content="Analyse vernieuwen" Command="{Binding RegenerateFromDesignCommand}" Style="{StaticResource DgButton.Toolbar}" Margin="0,0,8,8" />
                 <Button Content="C4-rij toevoegen" Command="{Binding AddC4ElementCommand}" Style="{StaticResource DgButton.Toolbar}" Margin="0,0,8,8" />
                 <Button Content="C4-rij verwijderen" Command="{Binding RemoveC4ElementCommand}" CommandParameter="{Binding SelectedC4Element}"
                         Style="{StaticResource DgButton.Toolbar}" Margin="0,0,8,8" />
+                <Button Content="Relatie toevoegen" Command="{Binding AddC4RelationCommand}" Style="{StaticResource DgButton.Toolbar}" Margin="0,0,8,8" />
+                <Button Content="Relatie verwijderen" Command="{Binding RemoveC4RelationCommand}" CommandParameter="{Binding SelectedC4Relation}"
+                        Style="{StaticResource DgButton.Toolbar}" Margin="0,0,8,8" />
             </WrapPanel>
         </StackPanel>
         <Grid>
             <Grid.RowDefinitions>
-                <!-- Preview groter dan tabel (was 2* / 3*) -->
-                <RowDefinition Height="4*" MinHeight="320" />
-                <RowDefinition Height="2*" MinHeight="140" />
+                <RowDefinition Height="3.2*" MinHeight="300" />
+                <RowDefinition Height="2*" MinHeight="120" />
+                <RowDefinition Height="1.4*" MinHeight="96" />
             </Grid.RowDefinitions>
-            <views:C4MermaidPanel Grid.Row="0" Margin="0,0,0,10" MinHeight="320" />
+            <views:C4MermaidPanel Grid.Row="0" Margin="0,0,0,10" MinHeight="280" />
             <DockPanel Grid.Row="1">
                 <TextBlock DockPanel.Dock="Top" Text="C4-elementen (tabel)" Style="{StaticResource DgText.SectionLabel}" Margin="0,0,0,6" />
                 <DataGrid x:Name="C4Grid" ItemsSource="{Binding C4Elements}" SelectedItem="{Binding SelectedC4Element}"
@@ -60,6 +63,39 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTextColumn Header="Open dreig." Binding="{Binding LinkedOpenThreatCount, Mode=OneWay}" IsReadOnly="True" Width="80" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+            <DockPanel Grid.Row="2">
+                <TextBlock DockPanel.Dock="Top" Text="C4-relaties (Mermaid Rel)" Style="{StaticResource DgText.SectionLabel}" Margin="0,8,0,6" />
+                <DataGrid x:Name="C4RelationsGrid" ItemsSource="{Binding C4Relations}" SelectedItem="{Binding SelectedC4Relation}"
+                          AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column"
+                          SelectionMode="Single" GridLinesVisibility="Horizontal"
+                          CellEditEnding="C4RelationsGrid_CellEditEnding">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="Van" Width="2*" MinWidth="180">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox ItemsSource="{Binding DataContext.C4RelationEndpointChoices, RelativeSource={RelativeSource AncestorType=Window}}"
+                                              SelectedItem="{Binding SelectedFromEndpoint, UpdateSourceTrigger=PropertyChanged}"
+                                              DisplayMemberPath="Label"
+                                              SelectionChanged="C4RelationEndpointCombo_SelectionChanged"
+                                              MinWidth="160" Margin="2" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Naar" Width="2*" MinWidth="180">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox ItemsSource="{Binding DataContext.C4RelationEndpointChoices, RelativeSource={RelativeSource AncestorType=Window}}"
+                                              SelectedItem="{Binding SelectedToEndpoint, UpdateSourceTrigger=PropertyChanged}"
+                                              DisplayMemberPath="Label"
+                                              SelectionChanged="C4RelationEndpointCombo_SelectionChanged"
+                                              MinWidth="160" Margin="2" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Label" Binding="{Binding Label, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                     </DataGrid.Columns>
                 </DataGrid>
             </DockPanel>

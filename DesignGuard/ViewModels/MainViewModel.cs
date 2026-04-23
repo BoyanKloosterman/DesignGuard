@@ -336,6 +336,12 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private C4ElementRowViewModel? _selectedC4Element;
 
+    [ObservableProperty] private ObservableCollection<C4RelationRowViewModel> _c4Relations = new();
+
+    [ObservableProperty] private ObservableCollection<C4RelationEndpointOption> _c4RelationEndpointChoices = new();
+
+    [ObservableProperty] private C4RelationRowViewModel? _selectedC4Relation;
+
     [ObservableProperty] private ObservableCollection<ModelingSuggestion> _suggestions = new();
 
     // Mermaid-modus: de architectuur wordt als Mermaid-code aangehouden en door de WebView2 gerenderd.

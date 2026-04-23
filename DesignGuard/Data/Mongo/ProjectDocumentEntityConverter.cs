@@ -67,6 +67,7 @@ internal static class ProjectDocumentEntityConverter
             GovernanceComplianceStakeholder = d.GovernanceComplianceStakeholder,
             GovernanceReviewCadence = d.GovernanceReviewCadence,
             C4ElementsJson = d.C4ElementsJson,
+            C4RelationsJson = string.IsNullOrWhiteSpace(d.C4RelationsJson) ? "[]" : d.C4RelationsJson,
             DismissedSuggestionKeysJson = d.DismissedSuggestionKeysJson,
             TrustBoundaries = boundaries,
             Components = components,

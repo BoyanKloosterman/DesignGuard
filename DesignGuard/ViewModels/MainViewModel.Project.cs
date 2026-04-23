@@ -109,6 +109,8 @@ public partial class MainViewModel
         Snapshots.Clear();
         C4Elements.Clear();
         SelectedC4Element = null;
+        C4Relations.Clear();
+        SelectedC4Relation = null;
         Suggestions.Clear();
         _dismissedSuggestionKeys.Clear();
         Threats.Clear();
@@ -339,6 +341,18 @@ public partial class MainViewModel
             });
         }
 
+        C4Relations.Clear();
+        foreach (var rel in p.C4Relations.OrderBy(r => r.Id))
+        {
+            C4Relations.Add(new C4RelationRowViewModel
+            {
+                Id = rel.Id,
+                FromElementId = rel.FromElementId,
+                ToElementId = rel.ToElementId,
+                Label = rel.Label
+            });
+        }
+
         Threats = new ObservableCollection<ThreatModel>(p.Threats);
         Requirements = new ObservableCollection<RequirementModel>(p.Requirements);
         RefreshC4ThreatLinkCounts();
@@ -515,6 +529,14 @@ public partial class MainViewModel
             ParentId = e.ParentId
         }).ToList();
 
+        var c4RelList = C4Relations.Select(r => new C4RelationModel
+        {
+            Id = r.Id,
+            FromElementId = r.FromElementId,
+            ToElementId = r.ToElementId,
+            Label = r.Label.Trim()
+        }).ToList();
+
         return new ProjectModel
         {
             Id = CurrentProjectId,
@@ -549,6 +571,7 @@ public partial class MainViewModel
             ReviewItems = revList,
             Snapshots = snapList,
             C4Elements = c4List,
+            C4Relations = c4RelList,
             Threats = Threats.ToList(),
             Requirements = Requirements.ToList(),
             DismissedSuggestionKeys = _dismissedSuggestionKeys.ToList()

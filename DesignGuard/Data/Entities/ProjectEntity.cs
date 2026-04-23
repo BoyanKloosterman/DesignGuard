@@ -32,6 +32,7 @@ public sealed class ProjectEntity
     public string GovernanceReviewCadence { get; set; } = "";
 
     public string C4ElementsJson { get; set; } = "[]";
+    public string C4RelationsJson { get; set; } = "[]";
 
     public List<TrustBoundaryEntity> TrustBoundaries { get; set; } = new();
     public List<ComponentEntity> Components { get; set; } = new();

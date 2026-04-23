@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -51,6 +52,7 @@ public sealed class C4MermaidDiagramBuilder
                 sb.AppendLine($"System_Ext({Alias(c)}, {Q(c.Name.Trim())}, {Q(TrimDesc(c.Description))})");
         }
 
+        AppendRelationStatements(sb, C4MermaidBand.Context, p);
         return sb.ToString();
     }
 
@@ -87,6 +89,7 @@ public sealed class C4MermaidDiagramBuilder
             sb.AppendLine($"  Container(PhCtr, {Q("(geen C2-rijen)")}, \"\", {Q("Voeg container-niveau toe in de tabel")})");
 
         sb.AppendLine("}");
+        AppendRelationStatements(sb, C4MermaidBand.Container, p);
         return sb.ToString();
     }
 
@@ -122,6 +125,7 @@ public sealed class C4MermaidDiagramBuilder
             sb.AppendLine("}");
         }
 
+        AppendRelationStatements(sb, C4MermaidBand.Component, p);
         return sb.ToString();
     }
 
@@ -156,7 +160,97 @@ public sealed class C4MermaidDiagramBuilder
             sb.AppendLine("}");
         }
 
+        AppendRelationStatements(sb, C4MermaidBand.Code, p);
         return sb.ToString();
+    }
+
+    /// <summary>Rel(...) alleen als beide eindpunten in dit diagram voorkomen (zelfde regels als elementen).</summary>
+    private static void AppendRelationStatements(StringBuilder sb, C4MermaidBand band, ProjectModel p)
+    {
+        var rels = p.C4Relations;
+        if (rels == null || rels.Count == 0) return;
+
+        var valid = CollectAliasesForBand(band, p);
+        if (valid.Count == 0) return;
+
+        foreach (var rel in rels.OrderBy(r => r.Id).ThenBy(r => r.Label, StringComparer.OrdinalIgnoreCase))
+        {
+            var a = ResolveRelationEndpointAlias(rel.FromElementId, band, p, valid);
+            var b = ResolveRelationEndpointAlias(rel.ToElementId, band, p, valid);
+            if (a == null || b == null || a == b) continue;
+
+            var lbl = string.IsNullOrWhiteSpace(rel.Label) ? " " : rel.Label.Trim();
+            sb.AppendLine($"Rel({a}, {b}, {Q(lbl)})");
+        }
+    }
+
+    private static HashSet<string> CollectAliasesForBand(C4MermaidBand band, ProjectModel p)
+    {
+        var set = new HashSet<string>();
+
+        switch (band)
+        {
+            case C4MermaidBand.Context:
+                set.Add("SysInScope");
+                foreach (var c in p.C4Elements.Where(e => e.Level == C4Level.Context && !string.IsNullOrWhiteSpace(e.Name)))
+                    set.Add(Alias(c));
+                break;
+            case C4MermaidBand.Container:
+                foreach (var c in p.C4Elements.Where(e =>
+                             e.Level == C4Level.Context && !string.IsNullOrWhiteSpace(e.Name)))
+                    set.Add(Alias(c));
+                foreach (var c in p.C4Elements.Where(e =>
+                             e.Level == C4Level.Container && !string.IsNullOrWhiteSpace(e.Name)))
+                    set.Add(Alias(c));
+                break;
+            case C4MermaidBand.Component:
+                var containers = p.C4Elements.Where(e => e.Level == C4Level.Container).ToList();
+                var components = p.C4Elements.Where(e => e.Level == C4Level.Component).ToList();
+                foreach (var cont in containers)
+                {
+                    if (string.IsNullOrWhiteSpace(cont.Name)) continue;
+                    var children = components.Where(x => x.ParentId == cont.Id && !string.IsNullOrWhiteSpace(x.Name))
+                        .ToList();
+                    if (children.Count == 0) continue;
+                    set.Add(Alias(cont));
+                    foreach (var ch in children)
+                        set.Add(Alias(ch));
+                }
+
+                break;
+            case C4MermaidBand.Code:
+                var comps = p.C4Elements.Where(e => e.Level == C4Level.Component).ToList();
+                var codes = p.C4Elements.Where(e => e.Level == C4Level.Code).ToList();
+                foreach (var comp in comps)
+                {
+                    if (string.IsNullOrWhiteSpace(comp.Name)) continue;
+                    var children = codes.Where(x => x.ParentId == comp.Id && !string.IsNullOrWhiteSpace(x.Name)).ToList();
+                    if (children.Count == 0) continue;
+                    set.Add(Alias(comp));
+                    foreach (var ch in children)
+                        set.Add(Alias(ch));
+                }
+
+                break;
+        }
+
+        return set;
+    }
+
+    private static string? ResolveRelationEndpointAlias(int elementId, C4MermaidBand band, ProjectModel p,
+        HashSet<string> valid)
+    {
+        if (elementId == 0)
+        {
+            if (band != C4MermaidBand.Context) return null;
+            return valid.Contains("SysInScope") ? "SysInScope" : null;
+        }
+
+        var el = p.C4Elements.FirstOrDefault(e => e.Id == elementId);
+        if (el == null || string.IsNullOrWhiteSpace(el.Name)) return null;
+
+        var a = Alias(el);
+        return valid.Contains(a) ? a : null;
     }
 
     private static void AppendContainerStatement(StringBuilder sb, C4ElementModel c, string indent)

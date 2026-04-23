@@ -36,4 +36,7 @@ internal static class JsonBlobs
 
     public static List<C4ElementModel> C4ElementList(string? json) =>
         Deserialize<List<C4ElementModel>>(json ?? "[]") ?? new List<C4ElementModel>();
+
+    public static List<C4RelationModel> C4RelationList(string? json) =>
+        Deserialize<List<C4RelationModel>>(json ?? "[]") ?? new List<C4RelationModel>();
 }

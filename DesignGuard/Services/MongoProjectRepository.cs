@@ -173,6 +173,8 @@ public sealed class MongoProjectRepository : IProjectRepository
         target.Snapshots.AddRange(fresh.Snapshots);
         target.C4Elements.Clear();
         target.C4Elements.AddRange(fresh.C4Elements);
+        target.C4Relations.Clear();
+        target.C4Relations.AddRange(fresh.C4Relations);
         target.DismissedSuggestionKeys.Clear();
         target.DismissedSuggestionKeys.AddRange(fresh.DismissedSuggestionKeys);
         target.Threats.Clear();

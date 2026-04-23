@@ -1,5 +1,6 @@
 // C4 threatmodel-tab (elementen + koppeling naar open dreigingen via componentnamen).
 using System.Collections.ObjectModel;
+using System.Linq;
 using CommunityToolkit.Mvvm.Input;
 using DesignGuard.Export;
 using DesignGuard.Models;
@@ -83,11 +84,28 @@ public partial class MainViewModel
     private void RefreshC4ThreatLinkCounts()
     {
         RefreshC4ParentPickLists();
+        RefreshC4RelationEndpointChoices();
         foreach (var row in C4Elements)
             row.LinkedOpenThreatCount = C4ExportPresentation.CountOpenThreatMatchesForComponentName(row.Name, Threats);
 
         SyncC4VisualBandCollections();
         RunRefreshC4MermaidDiagram();
+    }
+
+    /// <summary>Endpoint-keuzes voor C4-relaties; na wijziging C4-elementen.</summary>
+    private void RefreshC4RelationEndpointChoices()
+    {
+        C4RelationEndpointChoices.Clear();
+        C4RelationEndpointChoices.Add(new C4RelationEndpointOption(0, "Systeem in scope (C1)"));
+        foreach (var el in C4Elements.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+        {
+            var nm = string.IsNullOrWhiteSpace(el.Name) ? $"#{el.Id}" : el.Name.Trim();
+            C4RelationEndpointChoices.Add(new C4RelationEndpointOption(el.Id, $"{nm} (#{el.Id}) — {el.LevelLabel}"));
+        }
+
+        var snap = C4RelationEndpointChoices.ToList();
+        foreach (var r in C4Relations)
+            r.SyncEndpointSelections(snap);
     }
 
     /// <summary>Ouder-comboboxen: geldige ouders per C4-niveau.</summary>
@@ -124,9 +142,45 @@ public partial class MainViewModel
     private void RemoveC4Element(C4ElementRowViewModel? row)
     {
         if (row == null) return;
+        foreach (var rel in C4Relations.Where(r => r.FromElementId == row.Id || r.ToElementId == row.Id).ToList())
+        {
+            C4Relations.Remove(rel);
+            if (SelectedC4Relation == rel)
+                SelectedC4Relation = null;
+        }
+
         C4Elements.Remove(row);
         if (SelectedC4Element == row)
             SelectedC4Element = null;
         RefreshC4ThreatLinkCounts();
+    }
+
+    [RelayCommand]
+    private void AddC4Relation()
+    {
+        RefreshC4RelationEndpointChoices();
+        var nextId = C4Relations.Count == 0 ? 1 : C4Relations.Max(x => x.Id) + 1;
+        var toId = C4Elements.FirstOrDefault(e => e.Id > 0)?.Id ?? 0;
+        var row = new C4RelationRowViewModel
+        {
+            Id = nextId,
+            FromElementId = 0,
+            ToElementId = toId,
+            Label = ""
+        };
+        row.SyncEndpointSelections(C4RelationEndpointChoices.ToList());
+        C4Relations.Add(row);
+        SelectedC4Relation = row;
+        RefreshC4AfterGridEdit();
+    }
+
+    [RelayCommand]
+    private void RemoveC4Relation(C4RelationRowViewModel? row)
+    {
+        if (row == null) return;
+        C4Relations.Remove(row);
+        if (SelectedC4Relation == row)
+            SelectedC4Relation = null;
+        RefreshC4AfterGridEdit();
     }
 }

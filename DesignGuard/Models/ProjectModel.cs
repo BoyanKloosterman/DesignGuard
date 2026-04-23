@@ -62,4 +62,7 @@ public sealed class ProjectModel
 
     /// <summary>C4-elementen voor threatmodel-tab (los van architectuurdiagram).</summary>
     public List<C4ElementModel> C4Elements { get; set; } = new();
+
+    /// <summary>C4-relaties (Mermaid Rel) tussen elementen; id 0 = systeem in scope op C1.</summary>
+    public List<C4RelationModel> C4Relations { get; set; } = new();
 }

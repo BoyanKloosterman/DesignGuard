@@ -548,6 +548,192 @@ public static class DemoProjectFactory
             SourceTags = new List<string> { "demo", "ops" }
         });
 
+        AddDemoC4Model(p);
         return p;
+    }
+
+    /// <summary>C4-demo: zelfde namen als Components waar dreigingen op koppelen (Shop SPA, Redis (sessies), …).</summary>
+    private static void AddDemoC4Model(ProjectModel p)
+    {
+        p.C4Elements.Add(new C4ElementModel
+        {
+            Id = 1,
+            Level = C4Level.Context,
+            Name = "Klant",
+            Description = "Eindgebruiker storefront en checkout.",
+            Technology = ""
+        });
+        p.C4Elements.Add(new C4ElementModel
+        {
+            Id = 2,
+            Level = C4Level.Context,
+            Name = "Shop-beheerder",
+            Description = "Interne beheerder catalogus en orders.",
+            Technology = ""
+        });
+        p.C4Elements.Add(new C4ElementModel
+        {
+            Id = 3,
+            Level = C4Level.Context,
+            Name = "PSP (Stripe)",
+            Description = "Externe betaalprovider en webhooks.",
+            Technology = ""
+        });
+        p.C4Elements.Add(new C4ElementModel
+        {
+            Id = 4,
+            Level = C4Level.Context,
+            Name = "E-mailprovider",
+            Description = "Transactionele mail SaaS.",
+            Technology = ""
+        });
+
+        p.C4Elements.Add(new C4ElementModel
+        {
+            Id = 5,
+            Level = C4Level.Container,
+            Name = "Shop SPA",
+            Description = "React storefront.",
+            Technology = "React",
+            ParentId = 1
+        });
+        p.C4Elements.Add(new C4ElementModel
+        {
+            Id = 6,
+            Level = C4Level.Container,
+            Name = "Admin SPA",
+            Description = "Beheerpaneel.",
+            Technology = "React",
+            ParentId = 2
+        });
+        p.C4Elements.Add(new C4ElementModel
+        {
+            Id = 7,
+            Level = C4Level.Container,
+            Name = "API-gateway",
+            Description = "TLS, routing, authz.",
+            Technology = "Gateway",
+            ParentId = null
+        });
+        p.C4Elements.Add(new C4ElementModel
+        {
+            Id = 8,
+            Level = C4Level.Container,
+            Name = "Shop-service",
+            Description = "Orders, checkout, integraties.",
+            Technology = ".NET",
+            ParentId = null
+        });
+        p.C4Elements.Add(new C4ElementModel
+        {
+            Id = 9,
+            Level = C4Level.Container,
+            Name = "Admin-service",
+            Description = "Beheer-API en rapportages.",
+            Technology = ".NET",
+            ParentId = null
+        });
+        p.C4Elements.Add(new C4ElementModel
+        {
+            Id = 10,
+            Level = C4Level.Container,
+            Name = "PostgreSQL",
+            Description = "Orders en klantdata.",
+            Technology = "PostgreSQL",
+            ParentId = null
+        });
+        p.C4Elements.Add(new C4ElementModel
+        {
+            Id = 11,
+            Level = C4Level.Container,
+            Name = "Redis (sessies)",
+            Description = "Sessies en winkelmand.",
+            Technology = "Redis",
+            ParentId = null
+        });
+        p.C4Elements.Add(new C4ElementModel
+        {
+            Id = 12,
+            Level = C4Level.Container,
+            Name = "Object storage (S3)",
+            Description = "Uploads en factuur-PDF.",
+            Technology = "S3",
+            ParentId = null
+        });
+
+        p.C4Elements.Add(new C4ElementModel
+        {
+            Id = 13,
+            Level = C4Level.Component,
+            Name = "Checkout API",
+            Description = "Checkout en PSP-callbacks.",
+            Technology = "REST",
+            ParentId = 8
+        });
+        p.C4Elements.Add(new C4ElementModel
+        {
+            Id = 14,
+            Level = C4Level.Component,
+            Name = "Catalogus API",
+            Description = "Producten en prijzen.",
+            Technology = "REST",
+            ParentId = 8
+        });
+        p.C4Elements.Add(new C4ElementModel
+        {
+            Id = 15,
+            Level = C4Level.Component,
+            Name = "Beheer API",
+            Description = "Bulk en rapportage.",
+            Technology = "REST",
+            ParentId = 9
+        });
+
+        p.C4Elements.Add(new C4ElementModel
+        {
+            Id = 16,
+            Level = C4Level.Code,
+            Name = "WebhookController",
+            Description = "Inbound PSP-webhooks.",
+            Technology = "ASP.NET",
+            ParentId = 13
+        });
+        p.C4Elements.Add(new C4ElementModel
+        {
+            Id = 17,
+            Level = C4Level.Code,
+            Name = "OrderService",
+            Description = "Orderdomänlogica.",
+            Technology = "C#",
+            ParentId = 13
+        });
+
+        void Rel(int id, int from, int to, string label) =>
+            p.C4Relations.Add(new C4RelationModel { Id = id, FromElementId = from, ToElementId = to, Label = label });
+
+        var n = 1;
+        Rel(n++, 1, 0, "Gebruikt storefront en checkout");
+        Rel(n++, 2, 0, "Beheert via admin");
+        Rel(n++, 0, 3, "Betaling en webhooks");
+        Rel(n++, 0, 4, "Orderbevestiging en resets");
+
+        Rel(n++, 1, 5, "HTTPS");
+        Rel(n++, 2, 6, "HTTPS");
+        Rel(n++, 5, 7, "API-aanroepen");
+        Rel(n++, 6, 7, "API-aanroepen");
+        Rel(n++, 7, 8, "Routeert naar shop");
+        Rel(n++, 7, 9, "Routeert naar admin");
+        Rel(n++, 8, 10, "SQL orders en PII");
+        Rel(n++, 9, 10, "SQL beheerdata");
+        Rel(n++, 8, 11, "Sessies en mand");
+        Rel(n++, 8, 12, "Uploads en facturen");
+        Rel(n++, 8, 3, "Betaling");
+        Rel(n++, 8, 4, "Mail");
+
+        Rel(n++, 13, 14, "Catalogus en prijzen");
+        Rel(n++, 13, 8, "Onderdeel van shop-service");
+        Rel(n++, 15, 9, "Onderdeel van admin-service");
+
+        Rel(n++, 16, 17, "Webhook naar orderlogica");
     }
 }

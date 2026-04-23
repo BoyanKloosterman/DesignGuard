@@ -44,6 +44,7 @@ internal static class ProjectMapper
             GovernanceComplianceStakeholder = e.GovernanceComplianceStakeholder,
             GovernanceReviewCadence = e.GovernanceReviewCadence,
             C4Elements = JsonBlobs.C4ElementList(e.C4ElementsJson),
+            C4Relations = JsonBlobs.C4RelationList(e.C4RelationsJson),
             DismissedSuggestionKeys = JsonBlobs.StringList(e.DismissedSuggestionKeysJson),
             TrustBoundaries = e.TrustBoundaries.OrderBy(t => t.Id).Select(t => new TrustBoundaryModel
             {

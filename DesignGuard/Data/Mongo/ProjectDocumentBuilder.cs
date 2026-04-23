@@ -35,6 +35,7 @@ internal static class ProjectDocumentBuilder
             GovernanceComplianceStakeholder = m.GovernanceComplianceStakeholder,
             GovernanceReviewCadence = m.GovernanceReviewCadence,
             C4ElementsJson = JsonBlobs.Serialize(m.C4Elements),
+            C4RelationsJson = JsonBlobs.Serialize(m.C4Relations),
             DismissedSuggestionKeysJson = JsonBlobs.Serialize(m.DismissedSuggestionKeys)
         };
 

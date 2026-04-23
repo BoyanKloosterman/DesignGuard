@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using CommunityToolkit.Mvvm.Input;
+using DesignGuard.Export;
 using DesignGuard.Models;
 using DesignGuard.Security;
 using DesignGuard.Services;
@@ -257,8 +258,43 @@ public partial class MainViewModel
                 RefreshDiagram();
                 return await _mermaidRasterizer.RenderToPngAsync(MermaidCode ?? string.Empty).ConfigureAwait(true);
             }).Task.Unwrap().ConfigureAwait(true);
-            var c4Png = await disp.InvokeAsync(() => _c4Rasterizer.RenderPng(m, threats));
-            var pdf = await Task.Run(() => _pdfReport.BuildSecurityDesignReport(m, threats, reqs, pngB, c4Png))
+
+            IReadOnlyList<PdfC4MermaidBandImage> c4Mermaid;
+            if (m.C4Elements.Count == 0)
+            {
+                c4Mermaid = Array.Empty<PdfC4MermaidBandImage>();
+            }
+            else
+            {
+                var bands = new List<PdfC4MermaidBandImage>(4);
+                var bandRows = new (C4MermaidBand band, string caption)[]
+                {
+                    (C4MermaidBand.Context, "C1 - Context"),
+                    (C4MermaidBand.Container, "C2 - Containers"),
+                    (C4MermaidBand.Component, "C3 - Components"),
+                    (C4MermaidBand.Code, "C4 - Code")
+                };
+                foreach (var (band, caption) in bandRows)
+                {
+                    var code = _c4MermaidBuilder.Build(band, m);
+                    try
+                    {
+                        var png = await disp.InvokeAsync(async () =>
+                                await _mermaidRasterizer.RenderToPngAsync(code).ConfigureAwait(true))
+                            .Task.Unwrap()
+                            .ConfigureAwait(true);
+                        bands.Add(new PdfC4MermaidBandImage(caption, png));
+                    }
+                    catch
+                    {
+                        bands.Add(new PdfC4MermaidBandImage(caption, Array.Empty<byte>()));
+                    }
+                }
+
+                c4Mermaid = bands;
+            }
+
+            var pdf = await Task.Run(() => _pdfReport.BuildSecurityDesignReport(m, threats, reqs, pngB, c4Mermaid))
                 .ConfigureAwait(true);
 
             await File.WriteAllBytesAsync(path, pdf).ConfigureAwait(true);

@@ -1,3 +1,4 @@
+using System.Linq;
 using DesignGuard.Knowledge;
 using DesignGuard.Models;
 using QuestPDF.Fluent;
@@ -52,10 +53,11 @@ public sealed class PdfReportService
         IReadOnlyList<ThreatModel> threats,
         IReadOnlyList<RequirementModel> requirements,
         byte[]? diagramPng,
-        byte[]? c4OverviewPng)
+        IReadOnlyList<PdfC4MermaidBandImage>? c4MermaidBands)
     {
         _packs.Reload();
         var exportUtc = DateTime.UtcNow;
+        var hasC4Mermaid = c4MermaidBands?.Any(b => b.Png is { Length: > 0 }) == true;
         return Document.Create(container =>
         {
             container.Page(page =>
@@ -123,8 +125,8 @@ public sealed class PdfReportService
                     if (diagramPng is { Length: > 0 })
                         AddTocLine(col, Sec.ArchDiagram, "Architectuurdiagram (Mermaid)");
                     AddTocLine(col, Sec.TrustBoundaries, "Trust boundaries");
-                    if (c4OverviewPng is { Length: > 0 })
-                        AddTocLine(col, Sec.C4Visual, "C4-overzicht (visualisatie)");
+                    if (hasC4Mermaid)
+                        AddTocLine(col, Sec.C4Visual, "C4-diagrammen (Mermaid C1-C4)");
                     AddTocLine(col, Sec.C4Scope, "C4 threatmodel-scope");
                     AddTocLine(col, Sec.Threats, "Dreigingen (selectie)");
                     AddTocLine(col, Sec.Requirements, "Security-eisen (selectie)");
@@ -181,13 +183,22 @@ public sealed class PdfReportService
                             s.Item().Text($"• {b.Name}: {b.Description}");
                     });
 
-                    if (c4OverviewPng is { Length: > 0 })
+                    if (hasC4Mermaid)
                     {
                         col.Item().Section(Sec.C4Visual).Column(s =>
                         {
                             s.Spacing(10);
-                            s.Item().Element(SectionTitle("C4-overzicht (visualisatie)"));
-                            s.Item().Image(c4OverviewPng).FitArea();
+                            s.Item().Element(SectionTitle("C4-diagrammen (Mermaid)"));
+                            s.Item().Text(
+                                    "Zelfde Mermaid C4-weergave als op het tabblad C4-model (C1 context t/m C4-code), " +
+                                    "gerasterd via WebView2 bij PDF-export.")
+                                .FontSize(9.5f).LineHeight(1.3f).FontColor(PdfPalette.Muted);
+                            foreach (var band in c4MermaidBands!)
+                            {
+                                if (band.Png is not { Length: > 0 }) continue;
+                                s.Item().PaddingTop(6).Text(band.Caption).SemiBold().FontSize(11).FontColor(PdfPalette.Primary);
+                                s.Item().PaddingTop(4).MinHeight(220).Image(band.Png).FitArea();
+                            }
                         });
                     }
 

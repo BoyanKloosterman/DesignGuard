@@ -49,7 +49,6 @@ public partial class App : Application
         services.AddSingleton<ModelingSuggestionService>();
         services.AddSingleton<ExportService>();
         services.AddSingleton<MermaidDiagramRasterizer>();
-        services.AddSingleton<C4ModelRasterizer>();
         services.AddSingleton<PdfReportService>();
         services.AddSingleton<AppSecurityReviewService>();
         services.AddSingleton<AnalysisMergeService>();

@@ -33,7 +33,7 @@ public sealed class PdfReportServiceTests
                 new List<ThreatModel>(),
                 new List<RequirementModel>(),
                 diagramPng: null,
-                c4OverviewPng: null);
+                c4MermaidBands: null);
 
             Assert.NotNull(bytes);
             Assert.True(bytes.Length > 1500, "PDF zou substantieel moeten zijn.");

@@ -7,13 +7,13 @@ namespace DesignGuard.Services;
 /// <summary>Bouwt Mermaid flowchart-code uit een ProjectModel voor live preview in WebView2.</summary>
 public sealed class MermaidDiagramBuilder
 {
-    /// <summary>Genereert een flowchart LR met subgraphs per trust boundary, componenten en data flows.</summary>
+    /// <summary>Genereert een flowchart TB (smaller op scherm/PDF dan LR) met subgraphs per trust boundary.</summary>
     public string Build(ProjectModel project)
     {
         ArgumentNullException.ThrowIfNull(project);
 
         var sb = new StringBuilder();
-        sb.AppendLine("flowchart LR");
+        sb.AppendLine("flowchart TB");
 
         // Algemene stijl-klassen voor entry points en gevoelige data-componenten
         sb.AppendLine("    classDef entry fill:#ecfdf5,stroke:#10b981,stroke-width:2px,color:#065f46;");
@@ -40,7 +40,7 @@ public sealed class MermaidDiagramBuilder
 
             var tbNodeId = "TB_" + tb.Id.ToString(CultureInfo.InvariantCulture);
             sb.Append("    subgraph ").Append(tbNodeId).Append('[').Append(EscapeLabel(tb.Name)).AppendLine("]");
-            sb.AppendLine("    direction LR");
+            sb.AppendLine("    direction TB");
             foreach (var c in members)
                 sb.AppendLine(BuildComponentLine(c));
             sb.AppendLine("    end");

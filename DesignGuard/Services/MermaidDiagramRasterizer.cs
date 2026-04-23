@@ -15,10 +15,11 @@ public sealed class MermaidDiagramRasterizer
         if (!Application.Current.Dispatcher.CheckAccess())
             throw new InvalidOperationException("MermaidDiagramRasterizer vereist de UI-thread.");
 
+        // Smalle viewport + latere SVG-schaal: past beter op PDF (A4) dan een brede LR-capture.
         var w = new Window
         {
-            Width = 1280,
-            Height = 960,
+            Width = 880,
+            Height = 1100,
             WindowStyle = WindowStyle.None,
             ShowInTaskbar = false,
             ShowActivated = false,
@@ -72,6 +73,16 @@ public sealed class MermaidDiagramRasterizer
             await webView.CoreWebView2.ExecuteScriptAsync(script).ConfigureAwait(true);
 
             await Task.Delay(200, cancellationToken).ConfigureAwait(true);
+
+            // SVG passend maken binnen het export-paneel (voorkomt extreem brede PNG).
+            await webView.CoreWebView2.ExecuteScriptAsync(
+                "(function(){var s=document.querySelector('#container svg'),c=document.getElementById('container');" +
+                "if(!s||!c)return;s.style.transform='';s.style.transformOrigin='top left';" +
+                "var pad=20,b;try{b=s.getBBox();}catch(e){return;}if(b.width<2||b.height<2)return;" +
+                "var cw=c.clientWidth-pad,ch=c.clientHeight-pad,sc=Math.min(1,cw/b.width,ch/b.height);" +
+                "if(sc<1)s.style.transform='scale('+sc+')';})();").ConfigureAwait(true);
+
+            await Task.Delay(80, cancellationToken).ConfigureAwait(true);
 
             await using var ms = new MemoryStream();
             await webView.CoreWebView2

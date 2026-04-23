@@ -43,7 +43,7 @@ public sealed class C4MermaidDiagramBuilder
         var scopeName = string.IsNullOrWhiteSpace(p.SystemName) ? p.Name : p.SystemName.Trim();
         if (string.IsNullOrWhiteSpace(scopeName)) scopeName = "Systeem";
         sb.AppendLine($"System(SysInScope, {Q(scopeName)}, {Q(TrimDesc(p.Description))})");
-        foreach (var c in ctx.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+        foreach (var c in ContextElementsOrderedForLayout(ctx))
         {
             if (string.IsNullOrWhiteSpace(c.Name)) continue;
             if (LooksLikePerson(c))
@@ -63,7 +63,7 @@ public sealed class C4MermaidDiagramBuilder
         var sb = new StringBuilder();
         sb.AppendLine("C4Container");
         sb.AppendLine("title C2 - Containers - " + EscapeTitle(p.Name));
-        foreach (var c in ctx.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+        foreach (var c in ContextElementsOrderedForLayout(ctx))
         {
             if (string.IsNullOrWhiteSpace(c.Name)) continue;
             if (LooksLikePerson(c))
@@ -77,7 +77,7 @@ public sealed class C4MermaidDiagramBuilder
         boundaryLabel += " - containers";
         sb.AppendLine($"System_Boundary(BndMain, {Q(boundaryLabel)}) {{");
         var emittedCtr = false;
-        foreach (var c in ctr.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+        foreach (var c in OrderedContainersForLayout(ctr))
         {
             if (string.IsNullOrWhiteSpace(c.Name)) continue;
             AppendContainerStatement(sb, c, "  ");
@@ -173,15 +173,125 @@ public sealed class C4MermaidDiagramBuilder
         var valid = CollectAliasesForBand(band, p);
         if (valid.Count == 0) return;
 
-        foreach (var rel in rels.OrderBy(r => r.Id).ThenBy(r => r.Label, StringComparer.OrdinalIgnoreCase))
+        var resolved = new List<(C4RelationModel rel, string a, string b)>();
+        foreach (var rel in rels)
         {
+            if (ShouldSkipRelationForMermaid11(rel, band, p)) continue;
             var a = ResolveRelationEndpointAlias(rel.FromElementId, band, p, valid);
             var b = ResolveRelationEndpointAlias(rel.ToElementId, band, p, valid);
             if (a == null || b == null || a == b) continue;
-
-            var lbl = string.IsNullOrWhiteSpace(rel.Label) ? " " : rel.Label.Trim();
-            sb.AppendLine($"Rel({a}, {b}, {Q(lbl)})");
+            resolved.Add((rel, a, b));
         }
+
+        if (resolved.Count == 0) return;
+
+        IEnumerable<(C4RelationModel rel, string a, string b)> ordered = band switch
+        {
+            C4MermaidBand.Container => resolved
+                .OrderBy(t => DiagramRelSortKey(t.rel.FromElementId, t.rel.ToElementId, band, p))
+                .ThenBy(t => t.rel.Id),
+            _ => resolved
+                .OrderBy(t => t.rel.Id)
+                .ThenBy(t => t.rel.Label, StringComparer.OrdinalIgnoreCase)
+        };
+
+        foreach (var (rel, a, b) in ordered)
+        {
+            var lbl = string.IsNullOrWhiteSpace(rel.Label) ? " " : rel.Label.Trim();
+            sb.AppendLine($"{RelKeyword(rel.LineKind)}({a}, {b}, {Q(lbl)})");
+        }
+    }
+
+    /// <summary>Alleen Rel: Rel_U/D/L/R triggert in Mermaid 11.14+ soms generieke parse-fouten bij C4.</summary>
+    private static string RelKeyword(C4MermaidRelLineKind _) => "Rel";
+
+    /// <summary>Geen Rel tussen parent-container en child-component/code: Mermaid 11 C4-parser faalt daar vaak op.</summary>
+    private static bool ShouldSkipRelationForMermaid11(C4RelationModel rel, C4MermaidBand band, ProjectModel p)
+    {
+        if (band is not (C4MermaidBand.Component or C4MermaidBand.Code)) return false;
+        if (rel.FromElementId == 0 || rel.ToElementId == 0) return false;
+        var a = p.C4Elements.FirstOrDefault(e => e.Id == rel.FromElementId);
+        var b = p.C4Elements.FirstOrDefault(e => e.Id == rel.ToElementId);
+        if (a == null || b == null) return false;
+
+        if (band == C4MermaidBand.Component)
+        {
+            if (a.Level == C4Level.Container && b.Level == C4Level.Component && b.ParentId == a.Id) return true;
+            if (b.Level == C4Level.Container && a.Level == C4Level.Component && a.ParentId == b.Id) return true;
+        }
+
+        if (band == C4MermaidBand.Code)
+        {
+            if (a.Level == C4Level.Component && b.Level == C4Level.Code && b.ParentId == a.Id) return true;
+            if (b.Level == C4Level.Component && a.Level == C4Level.Code && a.ParentId == b.Id) return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>Personen eerst, daarna externe systemen — stabielere rasterplaatsing.</summary>
+    private static IEnumerable<C4ElementModel> ContextElementsOrderedForLayout(IEnumerable<C4ElementModel> ctx) =>
+        ctx.Where(e => !string.IsNullOrWhiteSpace(e.Name))
+            .OrderBy(e => LooksLikePerson(e) ? 0 : 1)
+            .ThenBy(e => e.Name, StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>C2: volgorde rijen — SPA, gateway, cache, services, data — i.p.v. alfabetisch (minder spaghetti).</summary>
+    private static IEnumerable<C4ElementModel> OrderedContainersForLayout(List<C4ElementModel> ctr)
+    {
+        int Tier(C4ElementModel c)
+        {
+            var nm = c.Name;
+            if (nm.Contains("SPA", StringComparison.OrdinalIgnoreCase)) return 0;
+            if (nm.Contains("gateway", StringComparison.OrdinalIgnoreCase)) return 1;
+            if (nm.Contains("Redis", StringComparison.OrdinalIgnoreCase)) return 2;
+            if (nm.Contains("Shop-service", StringComparison.OrdinalIgnoreCase)) return 3;
+            if (nm.Contains("Admin-service", StringComparison.OrdinalIgnoreCase)) return 4;
+            var k = GuessContainerKind(c);
+            if (k == ContainerKind.Db) return 5;
+            if (k == ContainerKind.Queue) return 5;
+            return 6;
+        }
+
+        int SpaOrder(C4ElementModel c)
+        {
+            if (c.Name.Contains("Shop SPA", StringComparison.OrdinalIgnoreCase)) return 0;
+            if (c.Name.Contains("Admin SPA", StringComparison.OrdinalIgnoreCase)) return 1;
+            return 2;
+        }
+
+        return ctr
+            .Where(c => !string.IsNullOrWhiteSpace(c.Name))
+            .OrderBy(Tier)
+            .ThenBy(SpaOrder)
+            .ThenBy(c => c.Name, StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Relaties in laag-volgorde: actoren → frontends → gateway → services → data → extern.</summary>
+    private static int DiagramRelSortKey(int fromId, int toId, C4MermaidBand band, ProjectModel p)
+    {
+        if (band != C4MermaidBand.Container)
+            return 0;
+
+        var rf = EndpointRankForContainerDiagram(fromId, p);
+        var rt = EndpointRankForContainerDiagram(toId, p);
+        return rf * 32 + rt;
+    }
+
+    private static int EndpointRankForContainerDiagram(int elementId, ProjectModel p)
+    {
+        if (elementId == 0) return 20;
+        var el = p.C4Elements.FirstOrDefault(e => e.Id == elementId);
+        if (el == null) return 99;
+        if (el.Level == C4Level.Context)
+            return LooksLikePerson(el) ? 0 : 18;
+        if (el.Level != C4Level.Container) return 12;
+        if (el.Name.Contains("SPA", StringComparison.OrdinalIgnoreCase)) return 2;
+        if (el.Name.Contains("gateway", StringComparison.OrdinalIgnoreCase)) return 4;
+        if (el.Name.Contains("Redis", StringComparison.OrdinalIgnoreCase)) return 5;
+        if (el.Name.Contains("service", StringComparison.OrdinalIgnoreCase)) return 6;
+        var k = GuessContainerKind(el);
+        if (k is ContainerKind.Db or ContainerKind.Queue) return 10;
+        return 8;
     }
 
     private static HashSet<string> CollectAliasesForBand(C4MermaidBand band, ProjectModel p)
@@ -314,11 +424,16 @@ public sealed class C4MermaidDiagramBuilder
     private static string TrimDesc(string? s) =>
         string.IsNullOrWhiteSpace(s) ? " " : s.Trim();
 
+    /// <summary>Mermaid title-regel: lexer staat # ; en newline niet toe in het titel-deel.</summary>
     private static string EscapeTitle(string? name)
     {
         var t = string.IsNullOrWhiteSpace(name) ? "Project" : name.Trim();
         return t.Replace("\"", "'", StringComparison.Ordinal)
             .Replace("\u2014", "-", StringComparison.Ordinal)
-            .Replace("\u2013", "-", StringComparison.Ordinal);
+            .Replace("\u2013", "-", StringComparison.Ordinal)
+            .Replace("#", string.Empty, StringComparison.Ordinal)
+            .Replace(";", ",", StringComparison.Ordinal)
+            .Replace("\r", " ", StringComparison.Ordinal)
+            .Replace("\n", " ", StringComparison.Ordinal);
     }
 }

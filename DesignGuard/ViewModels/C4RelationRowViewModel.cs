@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using DesignGuard.Models;
 
 namespace DesignGuard.ViewModels;
 
@@ -18,6 +19,8 @@ public partial class C4RelationRowViewModel : ObservableObject
     [ObservableProperty] private int _toElementId;
 
     [ObservableProperty] private string _label = "";
+
+    [ObservableProperty] private C4MermaidRelLineKind _lineKind;
 
     [ObservableProperty] private C4RelationEndpointOption? _selectedFromEndpoint;
 

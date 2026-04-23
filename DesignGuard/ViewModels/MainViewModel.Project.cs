@@ -349,7 +349,8 @@ public partial class MainViewModel
                 Id = rel.Id,
                 FromElementId = rel.FromElementId,
                 ToElementId = rel.ToElementId,
-                Label = rel.Label
+                Label = rel.Label,
+                LineKind = rel.LineKind
             });
         }
 
@@ -534,7 +535,8 @@ public partial class MainViewModel
             Id = r.Id,
             FromElementId = r.FromElementId,
             ToElementId = r.ToElementId,
-            Label = r.Label.Trim()
+            Label = r.Label.Trim(),
+            LineKind = r.LineKind
         }).ToList();
 
         return new ProjectModel

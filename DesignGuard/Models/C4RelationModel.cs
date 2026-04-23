@@ -7,4 +7,7 @@ public sealed class C4RelationModel
     public int FromElementId { get; set; }
     public int ToElementId { get; set; }
     public string Label { get; set; } = "";
+
+    /// <summary>Standaard Rel; anders Rel_U / Rel_D / Rel_L / Rel_R in gegenereerde Mermaid.</summary>
+    public C4MermaidRelLineKind LineKind { get; set; }
 }

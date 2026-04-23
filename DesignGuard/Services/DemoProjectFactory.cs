@@ -708,8 +708,15 @@ public static class DemoProjectFactory
             ParentId = 13
         });
 
-        void Rel(int id, int from, int to, string label) =>
-            p.C4Relations.Add(new C4RelationModel { Id = id, FromElementId = from, ToElementId = to, Label = label });
+        void Rel(int id, int from, int to, string label, C4MermaidRelLineKind lineKind = C4MermaidRelLineKind.Default) =>
+            p.C4Relations.Add(new C4RelationModel
+            {
+                Id = id,
+                FromElementId = from,
+                ToElementId = to,
+                Label = label,
+                LineKind = lineKind
+            });
 
         var n = 1;
         Rel(n++, 1, 0, "Gebruikt storefront en checkout");
@@ -731,8 +738,6 @@ public static class DemoProjectFactory
         Rel(n++, 8, 4, "Mail");
 
         Rel(n++, 13, 14, "Catalogus en prijzen");
-        Rel(n++, 13, 8, "Onderdeel van shop-service");
-        Rel(n++, 15, 9, "Onderdeel van admin-service");
 
         Rel(n++, 16, 17, "Webhook naar orderlogica");
     }

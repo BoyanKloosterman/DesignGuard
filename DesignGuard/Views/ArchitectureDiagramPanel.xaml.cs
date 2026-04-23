@@ -1,13 +1,37 @@
+using System.ComponentModel;
+using System.IO;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
+using DesignGuard.Services;
 using DesignGuard.ViewModels;
+using Microsoft.Web.WebView2.Core;
 
 namespace DesignGuard.Views;
 
+/// <summary>UserControl met Mermaid-editor links en live WebView2-preview rechts.</summary>
 public partial class ArchitectureDiagramPanel : UserControl
 {
-    public ArchitectureDiagramPanel() => InitializeComponent();
+    // Debouncer: voorkomt een render bij elke toetsaanslag; render pas na korte pauze.
+    private readonly DispatcherDebouncer _renderDebounce = new(TimeSpan.FromMilliseconds(300));
+
+    // JavaScript-runtime pas klaar zodra de HTML-shell de 'ready'-boodschap post.
+    private bool _webViewReady;
+    private bool _webViewInitStarted;
+
+    // Laatst bekende code; klaargezet totdat de WebView klaar is om te renderen.
+    private string _pendingCode = string.Empty;
+
+    // Houdt de DataContext-property-changed aan de lijn voor subscribe/unsubscribe
+    private INotifyPropertyChanged? _subscribedVm;
+
+    public ArchitectureDiagramPanel()
+    {
+        InitializeComponent();
+        DataContextChanged += OnDataContextChanged;
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
+    }
 
     public bool ShowThreatLinkCheckbox
     {
@@ -15,62 +39,163 @@ public partial class ArchitectureDiagramPanel : UserControl
         set => SetValue(ShowThreatLinkCheckboxProperty, value);
     }
 
+    // Kept for binding compatibility with caller views; heeft in Mermaid-modus geen effect.
     public static readonly DependencyProperty ShowThreatLinkCheckboxProperty =
         DependencyProperty.Register(nameof(ShowThreatLinkCheckbox), typeof(bool), typeof(ArchitectureDiagramPanel),
             new PropertyMetadata(true));
 
-    // Actieve drag-state: welk Border wordt gesleept, onder welke muispositie startte het, en de ID
-    private Border? _draggedBorder;
-    private int _draggedComponentId;
-    private Point _dragOffsetInNode;
-    private bool _didMove;
-
-    private void DiagramNode_MouseDown(object sender, MouseButtonEventArgs e)
+    private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        if (DataContext is not MainViewModel vm || sender is not Border b || b.Tag is not int cid)
-            return;
-        vm.SelectComponentFromDiagramCommand.Execute(cid);
-        // Offset tussen cursor en linkerbovenhoek van de node onthouden: de node blijft
-        // onder dezelfde plek van de cursor plakken, anders "springt" hij bij start drag.
-        _dragOffsetInNode = e.GetPosition(b);
-        _draggedBorder = b;
-        _draggedComponentId = cid;
-        _didMove = false;
-        b.CaptureMouse();
-        e.Handled = true;
-    }
+        if (_webViewInitStarted) return;
+        _webViewInitStarted = true;
 
-    private void DiagramNode_MouseMove(object sender, MouseEventArgs e)
-    {
-        if (_draggedBorder == null || e.LeftButton != MouseButtonState.Pressed) return;
-        if (DataContext is not MainViewModel vm) return;
-        // Cursor-positie omrekenen naar canvas-coördinaten van DiagramGrid (pre-zoom)
-        var posInGrid = e.GetPosition(DiagramGrid);
-        var newX = posInGrid.X - _dragOffsetInNode.X;
-        var newY = posInGrid.Y - _dragOffsetInNode.Y;
-        vm.UpdateDraggedNodePosition(_draggedComponentId, newX, newY);
-        _didMove = true;
-    }
-
-    private void DiagramNode_MouseUp(object sender, MouseButtonEventArgs e)
-    {
-        if (_draggedBorder == null) return;
-        // Alleen committen bij echt slepen; een simpele click op een node telt als selectie
-        if (_didMove && DataContext is MainViewModel vm &&
-            _draggedBorder.DataContext is DiagramNodeViewModel nvm)
+        try
         {
-            vm.CommitDraggedNodePosition(_draggedComponentId, nvm.X, nvm.Y);
+            // Expliciete user-data-folder in schrijfbare map: voorkomt E_ACCESSDENIED wanneer
+            // de app vanuit een read-only locatie draait (Program Files, publish-folder, etc.).
+            var userDataFolder = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "DesignGuard", "WebView2");
+            Directory.CreateDirectory(userDataFolder);
+
+            var env = await CoreWebView2Environment.CreateAsync(
+                browserExecutableFolder: null,
+                userDataFolder: userDataFolder);
+            await PreviewWebView.EnsureCoreWebView2Async(env);
+
+            PreviewWebView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
+            PreviewWebView.CoreWebView2.NavigationCompleted += OnNavigationCompleted;
+            // Rechts-klik menu, dev-tools etc. in normale app uitzetten
+            PreviewWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+            PreviewWebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
+
+            var html = LoadEmbeddedHtml();
+            PreviewWebView.NavigateToString(html);
         }
-        _draggedBorder.ReleaseMouseCapture();
-        _draggedBorder = null;
-        _didMove = false;
-        e.Handled = true;
+        catch (Exception ex)
+        {
+            // Falen van WebView2 mag de app niet crashen; toon fout in het foutvak.
+            if (DataContext is MainViewModel vm)
+                vm.MermaidSyntaxError = "WebView2 kon niet starten: " + ex.Message;
+        }
     }
 
-    private void DiagramNode_LostCapture(object sender, MouseEventArgs e)
+    private void OnUnloaded(object sender, RoutedEventArgs e)
     {
-        // Fallback als capture wordt afgenomen (andere dialoog, focus-verlies): drag-state opruimen
-        _draggedBorder = null;
-        _didMove = false;
+        UnsubscribeFromVm();
+        if (PreviewWebView?.CoreWebView2 != null)
+        {
+            PreviewWebView.CoreWebView2.WebMessageReceived -= OnWebMessageReceived;
+            PreviewWebView.CoreWebView2.NavigationCompleted -= OnNavigationCompleted;
+        }
+    }
+
+    private void OnNavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+    {
+        // Vangnet: ook direct na navigatie een render triggeren zodat de eerste paint niet afhangt
+        // van volgorde van ready-message vs VM-binding.
+        _webViewReady = true;
+        var current = (DataContext as MainViewModel)?.MermaidCode ?? _pendingCode;
+        _pendingCode = current ?? string.Empty;
+        _ = RenderAsync(_pendingCode);
+    }
+
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        UnsubscribeFromVm();
+        if (DataContext is INotifyPropertyChanged npc)
+        {
+            _subscribedVm = npc;
+            npc.PropertyChanged += OnVmPropertyChanged;
+        }
+        // Direct na binding een eerste render-trigger zetten
+        if (DataContext is MainViewModel vm)
+            ScheduleRender(vm.MermaidCode);
+    }
+
+    private void UnsubscribeFromVm()
+    {
+        if (_subscribedVm != null)
+        {
+            _subscribedVm.PropertyChanged -= OnVmPropertyChanged;
+            _subscribedVm = null;
+        }
+    }
+
+    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(MainViewModel.MermaidCode)) return;
+        if (DataContext is not MainViewModel vm) return;
+        ScheduleRender(vm.MermaidCode);
+    }
+
+    private void ScheduleRender(string code)
+    {
+        _pendingCode = code ?? string.Empty;
+        _renderDebounce.Trigger(() =>
+        {
+            if (_webViewReady)
+                _ = RenderAsync(_pendingCode);
+        });
+    }
+
+    private async System.Threading.Tasks.Task RenderAsync(string code)
+    {
+        if (PreviewWebView.CoreWebView2 == null) return;
+        // Mermaid-code via JSON veilig naar JavaScript tillen (escapet quotes/newlines).
+        var jsArg = JsonSerializer.Serialize(code ?? string.Empty);
+        try
+        {
+            await PreviewWebView.CoreWebView2.ExecuteScriptAsync("window.renderMermaid(" + jsArg + ")");
+        }
+        catch (Exception ex)
+        {
+            if (DataContext is MainViewModel vm)
+                vm.MermaidSyntaxError = "Render mislukt: " + ex.Message;
+        }
+    }
+
+    private void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+    {
+        // WebMessageAsJson bevat al JSON; parse en dispatch naar UI-thread.
+        try
+        {
+            using var doc = JsonDocument.Parse(e.WebMessageAsJson);
+            var root = doc.RootElement;
+            var type = root.TryGetProperty("type", out var t) ? t.GetString() : null;
+            switch (type)
+            {
+                case "ready":
+                    _webViewReady = true;
+                    // Lees de meest recente MermaidCode direct uit de VM, niet uit een oude _pendingCode.
+                    var currentCode = (DataContext as MainViewModel)?.MermaidCode ?? _pendingCode;
+                    _pendingCode = currentCode ?? string.Empty;
+                    _ = RenderAsync(_pendingCode);
+                    break;
+                case "ok":
+                    if (DataContext is MainViewModel vmOk)
+                        vmOk.MermaidSyntaxError = string.Empty;
+                    break;
+                case "error":
+                    var message = root.TryGetProperty("message", out var m) ? m.GetString() ?? "" : "";
+                    if (DataContext is MainViewModel vmErr)
+                        vmErr.MermaidSyntaxError = message;
+                    break;
+            }
+        }
+        catch
+        {
+            // Ongevormde post-messages negeren
+        }
+    }
+
+    private static string LoadEmbeddedHtml()
+    {
+        // Resource-uri verwijst naar Resources\MermaidViewer.html (zie csproj Resource entry).
+        var uri = new Uri("pack://application:,,,/Resources/MermaidViewer.html", UriKind.Absolute);
+        var info = Application.GetResourceStream(uri)
+            ?? throw new InvalidOperationException("MermaidViewer.html resource niet gevonden.");
+        using var reader = new StreamReader(info.Stream);
+        return reader.ReadToEnd();
     }
 }

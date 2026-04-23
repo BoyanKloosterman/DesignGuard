@@ -113,9 +113,8 @@ public partial class MainViewModel
         _dismissedSuggestionKeys.Clear();
         Threats.Clear();
         Requirements.Clear();
-        DiagramNodes.Clear();
-        DiagramLines.Clear();
-        DiagramTrustOverlays.Clear();
+        MermaidCode = string.Empty;
+        MermaidSyntaxError = string.Empty;
         ExportPreview = "";
         SelectedThreat = null;
         SelectedRequirement = null;
@@ -345,6 +344,8 @@ public partial class MainViewModel
         UpdateDashboard();
         RefreshSuggestions();
         RefreshControlSourceTagSuggestions();
+        // Initiële Mermaid-code bouwen zodat de preview meteen iets toont bij project laden
+        RefreshDiagram();
     }
 
     private ProjectModel BuildModelFromEditor()

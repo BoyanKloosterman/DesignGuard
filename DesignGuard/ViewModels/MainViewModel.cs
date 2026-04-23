@@ -329,11 +329,12 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private ObservableCollection<ModelingSuggestion> _suggestions = new();
 
-    [ObservableProperty] private ObservableCollection<DiagramNodeViewModel> _diagramNodes = new();
+    // Mermaid-modus: de architectuur wordt als Mermaid-code aangehouden en door de WebView2 gerenderd.
+    [ObservableProperty] private string _mermaidCode = string.Empty;
 
-    [ObservableProperty] private ObservableCollection<DiagramLineViewModel> _diagramLines = new();
+    [ObservableProperty] private string _mermaidSyntaxError = string.Empty;
 
-    [ObservableProperty] private ObservableCollection<TrustBoundaryOverlayViewModel> _diagramTrustOverlays = new();
+    [ObservableProperty] private bool _hasMermaidError;
 
     [ObservableProperty] private ObservableCollection<ThreatModel> _threats = new();
 
@@ -376,20 +377,6 @@ public partial class MainViewModel : ObservableObject
     private ComponentRowViewModel? _selectedComponent;
 
     [ObservableProperty] private string _exportPreview = "";
-
-    [ObservableProperty] private double _diagramZoom = 1.0;
-
-    [ObservableProperty] private double _diagramContentWidth = 920;
-
-    [ObservableProperty] private double _diagramContentHeight = 520;
-
-    [ObservableProperty] private bool _diagramShowGrid = true;
-
-    [ObservableProperty] private bool _diagramOverlayTrustBoundaries = true;
-
-    [ObservableProperty] private bool _diagramOverlaySensitiveData;
-
-    [ObservableProperty] private bool _diagramOverlayThreatLinks = true;
 
     [ObservableProperty] private ObservableCollection<KnowledgePackToggleRow> _knowledgePackRows = new();
 
@@ -514,13 +501,6 @@ public partial class MainViewModel : ObservableObject
         if (value == 11) RefreshAppSecurityReview();
         if (value is 0 or 1 or 3 or 4 or 5 or 6) RefreshSuggestions();
     }
-
-    partial void OnDiagramOverlayTrustBoundariesChanged(bool value) => RefreshDiagram();
-
-    partial void OnDiagramOverlaySensitiveDataChanged(bool value) => RefreshDiagram();
-
-    partial void OnDiagramOverlayThreatLinksChanged(bool value) => RefreshDiagram();
-
 
     partial void OnSelectedThreatChanged(ThreatModel? value)
     {

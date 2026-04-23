@@ -310,7 +310,7 @@
             <GroupBox Header="Architectuurdiagram" Margin="0,8,0,0">
                 <StackPanel Margin="8">
                     <TextBlock Margin="0,0,0,6" Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"
-                               Text="Tip: groene rand = ingang, oranje streep = gevoelige data. Diagram wordt top-down (Mermaid) opgebouwd — compacter op scherm en in PDF. Trust boundary = vertrouwensgrens (bijv. internet vs intern). Tab Threatmodel bevat C4 (context t/m code): houd namen synchroon voor koppeling met dreigingen." />
+                               Text="Tip: groene rand = ingang, oranje streep = gevoelige data. Diagram wordt top-down (Mermaid) opgebouwd — compacter op scherm en in PDF. Trust boundary = vertrouwensgrens (bijv. internet vs intern). Tab C4-model: houd namen synchroon met dreigingen (zelfde componentnaam)." />
                     <views:ArchitectureDiagramPanel />
                     <Button Content="Analyse vernieuwen (dreigingen/eisen)" HorizontalAlignment="Left" Margin="0,8,0,0" Command="{Binding RegenerateFromDesignCommand}" />
                 </StackPanel>

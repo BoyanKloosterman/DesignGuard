@@ -333,6 +333,25 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private bool _hasMermaidError;
 
+    [ObservableProperty] private C4MermaidBand _c4MermaidBand = C4MermaidBand.Context;
+
+    [ObservableProperty] private string _c4MermaidCode = string.Empty;
+
+    [ObservableProperty] private string _c4MermaidSyntaxError = string.Empty;
+
+    [ObservableProperty] private bool _hasC4MermaidError;
+
+    public ObservableCollection<C4MermaidBandOption> C4MermaidBandOptions { get; } = new(
+        new[]
+        {
+            new C4MermaidBandOption(C4MermaidBand.Context, "C1 — Context"),
+            new C4MermaidBandOption(C4MermaidBand.Container, "C2 — Containers"),
+            new C4MermaidBandOption(C4MermaidBand.Component, "C3 — Components"),
+            new C4MermaidBandOption(C4MermaidBand.Code, "C4 — Code")
+        });
+
+    private readonly C4MermaidDiagramBuilder _c4MermaidBuilder = new();
+
     [ObservableProperty] private ObservableCollection<ThreatModel> _threats = new();
 
     [ObservableProperty] private ObservableCollection<RequirementModel> _requirements = new();
@@ -482,21 +501,21 @@ public partial class MainViewModel : ObservableObject
     {
         if (value == 1) RefreshDiagram();
         if (value == 3) RefreshC4ThreatLinkCounts();
-        if (value is 2 or 4)
+        if (value is 2 or 4 or 5)
         {
             RefreshFilters();
             UpdateDashboard();
         }
 
-        if (value == 8) RefreshTraceability();
-        if (value == 9) RefreshExportPreview();
-        if (value == 10)
+        if (value == 9) RefreshTraceability();
+        if (value == 10) RefreshExportPreview();
+        if (value == 11)
         {
             RefreshKnowledgePackRows();
             RefreshMongoDiagnostics();
         }
-        if (value == 11) RefreshAppSecurityReview();
-        if (value is 0 or 1 or 3 or 4 or 5 or 6) RefreshSuggestions();
+        if (value == 12) RefreshAppSecurityReview();
+        if (value is 0 or 1 or 3 or 4 or 5 or 6 or 7) RefreshSuggestions();
     }
 
     partial void OnSelectedThreatChanged(ThreatModel? value)

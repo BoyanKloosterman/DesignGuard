@@ -5,92 +5,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="900">
-    <UserControl.Resources>
-        <!-- C4-kaart: klik selecteert dezelfde rij als het grid -->
-        <DataTemplate x:Key="DgC4CardTemplate">
-            <Button Padding="0" Background="Transparent" BorderThickness="0" Focusable="False" Cursor="Hand"
-                    Command="{Binding DataContext.SelectC4ElementCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                    CommandParameter="{Binding}">
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <ContentPresenter />
-                    </ControlTemplate>
-                </Button.Template>
-                <Border MinWidth="150" MaxWidth="260" Padding="10,8" Margin="0,0,10,10" CornerRadius="5"
-                        Background="#FFFFFF" BorderBrush="#BDC3C7" BorderThickness="1">
-                    <Border.Style>
-                        <Style TargetType="Border">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsC4VisualSelected}" Value="True">
-                                    <Setter Property="BorderBrush" Value="#2874A6" />
-                                    <Setter Property="BorderThickness" Value="2" />
-                                    <Setter Property="Background" Value="#EBF5FB" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Border.Style>
-                    <StackPanel>
-                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                        <TextBlock Text="{Binding Description}" FontSize="11" Foreground="#566573" TextWrapping="Wrap"
-                                   MaxHeight="40" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="{Binding Technology}" FontSize="10" Foreground="#7F8C8D" TextWrapping="Wrap"
-                                   Margin="0,4,0,0">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Visible" />
-                                    <Style.Triggers>
-                                        <Trigger Property="Text" Value="">
-                                            <Setter Property="Visibility" Value="Collapsed" />
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                        <TextBlock Text="{Binding ParentDisplayHint}" FontSize="10" Foreground="#6C3483"
-                                   TextWrapping="Wrap" Margin="0,4,0,0">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Visible" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding ParentDisplayHint}" Value="">
-                                            <Setter Property="Visibility" Value="Collapsed" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                        <Border CornerRadius="3" Background="#D35400" Padding="5,2" HorizontalAlignment="Left"
-                                Margin="0,6,0,0">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Visibility" Value="Visible" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding LinkedOpenThreatCount}" Value="0">
-                                            <Setter Property="Visibility" Value="Collapsed" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                            <TextBlock Foreground="White" FontSize="10" FontWeight="SemiBold">
-                                <Run Text="Open dreig.: " />
-                                <Run Text="{Binding LinkedOpenThreatCount, Mode=OneWay}" />
-                            </TextBlock>
-                        </Border>
-                    </StackPanel>
-                </Border>
-            </Button>
-        </DataTemplate>
-    </UserControl.Resources>
-    <DockPanel Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=3}">
+    <DockPanel Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=4}">
         <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
-            <TextBlock Text="Threatmodel (C1–C4)" Style="{StaticResource DgText.Title}" />
+            <TextBlock Text="Threatmodel" Style="{StaticResource DgText.Title}" />
             <TextBlock Margin="0,6,0,0" Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"
-                       Text="C4 hier is los van het architectuurcanvas op Ontwerp: het canvas toont je tekening; C4 structureert scope in lagen (C1–C4). Houd namen synchroon als je beide gebruikt voor review. Koppel open dreigingen door exact dezelfde naam in ‘getroffen componenten’ te zetten als bij het C4-element." />
+                       Text="Overzicht van gegenereerde dreigingen en koppeling met je ontwerp. Zet in ‘getroffen componenten’ exact dezelfde naam als bij C4 (tabblad C4-model) voor traceability. Werk het C4-model bij onder C4-model." />
             <WrapPanel Margin="0,8,0,0">
                 <Button Content="Analyse vernieuwen" Command="{Binding RegenerateFromDesignCommand}" Style="{StaticResource DgButton.Toolbar}" Margin="0,0,8,8" />
-                <Button Content="C4-rij toevoegen" Command="{Binding AddC4ElementCommand}" Style="{StaticResource DgButton.Toolbar}" Margin="0,0,8,8" />
-                <Button Content="C4-rij verwijderen" Command="{Binding RemoveC4ElementCommand}" CommandParameter="{Binding SelectedC4Element}"
-                        Style="{StaticResource DgButton.Toolbar}" Margin="0,0,8,8" />
             </WrapPanel>
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Zoek dreiging:" VerticalAlignment="Center" Margin="0,0,8,0" />
@@ -99,126 +20,24 @@
                 <ComboBox Width="120" ItemsSource="{Binding ThreatSortOptions}" SelectedItem="{Binding ThreatSort}" />
             </StackPanel>
         </StackPanel>
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300" MinWidth="220" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <DockPanel Grid.Column="0" Margin="0,0,12,0">
-                <TextBlock DockPanel.Dock="Top" Text="Dreigingen" Style="{StaticResource DgText.SectionLabel}" Margin="0,0,0,6" />
-                <ListBox ItemsSource="{Binding FilteredThreats}" SelectedItem="{Binding SelectedThreat}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Margin="4">
-                                <TextBlock Text="{Binding Title}" FontWeight="Bold" TextWrapping="Wrap" />
-                                <TextBlock FontSize="11" Foreground="Gray">
-                                    <Run Text="{Binding StrideCategory, Mode=OneWay}" />
-                                    <Run Text=" — " />
-                                    <Run Text="{Binding Severity, Mode=OneWay}" />
-                                    <Run Text=" — " />
-                                    <Run Text="{Binding Status, Mode=OneWay}" />
-                                </TextBlock>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </DockPanel>
-            <Grid Grid.Column="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="2*" MinHeight="180" />
-                    <RowDefinition Height="3*" MinHeight="200" />
-                </Grid.RowDefinitions>
-                <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
-                              Margin="0,0,0,10">
-                    <StackPanel>
-                        <TextBlock Text="C4-overzicht" Style="{StaticResource DgText.SectionLabel}" Margin="0,0,0,8" />
-                        <!-- C1 context -->
-                        <Border Background="#E8F4FC" BorderBrush="#3498DB" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,10">
-                            <StackPanel>
-                                <TextBlock Text="C1 — Context" FontWeight="SemiBold" Foreground="#1A5276" />
-                                <ItemsControl ItemsSource="{Binding C4VisualContext}" Margin="0,8,0,0"
-                                              ItemTemplate="{StaticResource DgC4CardTemplate}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Border>
-                        <!-- C2 containers -->
-                        <Border Background="#E9F7EF" BorderBrush="#27AE60" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,10">
-                            <StackPanel>
-                                <TextBlock Text="C2 — Containers" FontWeight="SemiBold" Foreground="#145A32" />
-                                <ItemsControl ItemsSource="{Binding C4VisualContainers}" Margin="0,8,0,0"
-                                              ItemTemplate="{StaticResource DgC4CardTemplate}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Border>
-                        <!-- C3 components -->
-                        <Border Background="#FEF9E7" BorderBrush="#F39C12" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,10">
-                            <StackPanel>
-                                <TextBlock Text="C3 — Components" FontWeight="SemiBold" Foreground="#7D6608" />
-                                <ItemsControl ItemsSource="{Binding C4VisualComponents}" Margin="0,8,0,0"
-                                              ItemTemplate="{StaticResource DgC4CardTemplate}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Border>
-                        <!-- C4 code -->
-                        <Border Background="#FDEDEC" BorderBrush="#E74C3C" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,4">
-                            <StackPanel>
-                                <TextBlock Text="C4 — Code" FontWeight="SemiBold" Foreground="#78281F" />
-                                <ItemsControl ItemsSource="{Binding C4VisualCode}" Margin="0,8,0,0"
-                                              ItemTemplate="{StaticResource DgC4CardTemplate}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </ScrollViewer>
-                <DockPanel Grid.Row="1">
-                    <TextBlock DockPanel.Dock="Top" Text="C4-elementen (tabel)" Style="{StaticResource DgText.SectionLabel}" Margin="0,0,0,6" />
-                    <DataGrid x:Name="C4Grid" ItemsSource="{Binding C4Elements}" SelectedItem="{Binding SelectedC4Element}"
-                              AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column"
-                              SelectionMode="Single" GridLinesVisibility="Horizontal"
-                              CellEditEnding="C4Grid_CellEditEnding">
-                        <DataGrid.Columns>
-                            <DataGridTemplateColumn Header="Niveau" Width="200">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding LevelLabel}" VerticalAlignment="Center" Margin="4,2" />
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                                <DataGridTemplateColumn.CellEditingTemplate>
-                                    <DataTemplate>
-                                        <ComboBox ItemsSource="{Binding DataContext.C4LevelChoices, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                  SelectedItem="{Binding Level, UpdateSourceTrigger=PropertyChanged}" />
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellEditingTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                            <DataGridTextColumn Header="Omschrijving" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
-                            <DataGridTextColumn Header="Tech / notitie" Binding="{Binding Technology, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                            <DataGridTextColumn Header="Parent id" Binding="{Binding ParentId, UpdateSourceTrigger=PropertyChanged}" Width="70" />
-                            <DataGridTextColumn Header="Open dreig." Binding="{Binding LinkedOpenThreatCount, Mode=OneWay}" IsReadOnly="True" Width="80" />
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </DockPanel>
-            </Grid>
-        </Grid>
+        <DockPanel Margin="0,8,0,0">
+            <TextBlock DockPanel.Dock="Top" Text="Dreigingen" Style="{StaticResource DgText.SectionLabel}" Margin="0,0,0,6" />
+            <ListBox ItemsSource="{Binding FilteredThreats}" SelectedItem="{Binding SelectedThreat}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="4">
+                            <TextBlock Text="{Binding Title}" FontWeight="Bold" TextWrapping="Wrap" />
+                            <TextBlock FontSize="11" Foreground="Gray">
+                                <Run Text="{Binding StrideCategory, Mode=OneWay}" />
+                                <Run Text=" — " />
+                                <Run Text="{Binding Severity, Mode=OneWay}" />
+                                <Run Text=" — " />
+                                <Run Text="{Binding Status, Mode=OneWay}" />
+                            </TextBlock>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </DockPanel>
     </DockPanel>
 </UserControl>

@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="500" d:DesignWidth="900">
-    <ScrollViewer Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=5}" VerticalScrollBarVisibility="Auto">
+    <ScrollViewer Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=6}" VerticalScrollBarVisibility="Auto">
         <StackPanel>
             <TextBlock Text="Controls / maatregelen" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,8" />
             <TextBlock TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,12"

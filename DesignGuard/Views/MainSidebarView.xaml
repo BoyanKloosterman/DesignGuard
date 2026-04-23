@@ -40,6 +40,7 @@
                     <ListBoxItem Content="Dashboard" />
                     <ListBoxItem Content="Ontwerp" />
                     <ListBoxItem Content="Dreigingen" />
+                    <ListBoxItem Content="C4-model" />
                     <ListBoxItem Content="Threatmodel" />
                     <ListBoxItem Content="Eisen" />
                     <ListBoxItem Content="Controls" />

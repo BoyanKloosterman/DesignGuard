@@ -27,6 +27,7 @@
                 <views:MainDashboardView />
                 <views:MainDesignView />
                 <views:MainThreatsView />
+                <views:MainC4View />
                 <views:MainThreatModelView />
                 <views:MainRequirementsView />
                 <views:MainControlsView />

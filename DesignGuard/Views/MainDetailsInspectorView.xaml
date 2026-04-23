@@ -11,7 +11,7 @@
             <Setter Property="Margin" Value="0,0,0,8" />
             <Setter Property="Grid.Row" Value="0" />
             <Style.Triggers>
-                <DataTrigger Binding="{Binding NavSection}" Value="4">
+                <DataTrigger Binding="{Binding NavSection}" Value="5">
                     <Setter Property="Grid.Row" Value="1" />
                 </DataTrigger>
             </Style.Triggers>
@@ -20,7 +20,7 @@
             <Setter Property="Margin" Value="0,0,0,8" />
             <Setter Property="Grid.Row" Value="1" />
             <Style.Triggers>
-                <DataTrigger Binding="{Binding NavSection}" Value="4">
+                <DataTrigger Binding="{Binding NavSection}" Value="5">
                     <Setter Property="Grid.Row" Value="0" />
                 </DataTrigger>
             </Style.Triggers>

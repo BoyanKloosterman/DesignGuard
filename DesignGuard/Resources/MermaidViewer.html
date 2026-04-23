@@ -42,12 +42,28 @@
             overflow: auto;
             height: calc(100% - 36px);
             box-sizing: border-box;
+            min-height: 280px;
         }
 
+        /* Flowchart: breedte begrenzen. C4 krijgt px-breedte via JS (anders extreem platte strip). */
         #container svg {
+            transform-origin: 0 0;
+        }
+
+        #container.flowchart-mode svg {
             max-width: 100%;
             height: auto;
-            transform-origin: 0 0;
+        }
+
+        /* C4: slepen = pannen (scroll verschuiven), minder scrollwiel nodig */
+        #container.c4-mode {
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #container.c4-mode.c4-dragging {
+            cursor: grabbing;
         }
 
         #err {
@@ -108,6 +124,52 @@
             }
         }
 
+        function isC4Diagram(code) {
+            return /^\s*C4(Context|Container|Component|Dynamic|Deployment)\b/m.test(code || '');
+        }
+
+        /** C4-SVG is vaak 10x+ breder dan hoog; max-width:100% maakt het onleesbaar plat. */
+        function sizeC4Svg() {
+            const svg = document.querySelector('#container svg');
+            const c = document.getElementById('container');
+            if (!svg || !c) return;
+            svg.style.maxWidth = 'none';
+            svg.style.width = '';
+            svg.style.height = '';
+            svg.style.transform = 'scale(1)';
+            svg.style.transformOrigin = '0 0';
+            let w = 0, h = 0;
+            const vb = svg.viewBox && svg.viewBox.baseVal;
+            if (vb && vb.width > 0 && vb.height > 0) {
+                w = vb.width;
+                h = vb.height;
+            } else {
+                const aw = parseFloat(svg.getAttribute('width'));
+                const ah = parseFloat(svg.getAttribute('height'));
+                if (aw > 0 && ah > 0) { w = aw; h = ah; }
+            }
+            if (w < 1 || h < 1) {
+                try {
+                    const b = svg.getBBox();
+                    if (b.width > 0 && b.height > 0) { w = b.width; h = b.height; }
+                } catch (e) { return; }
+            }
+            if (w < 1 || h < 1) return;
+            const pad = 20;
+            const cw = Math.max(200, c.clientWidth - pad);
+            const ch = Math.max(240, c.clientHeight - pad);
+            const minDisplayH = 280;
+            const maxScale = 4;
+            const fit = Math.min(cw / w, ch / h, maxScale);
+            const needForText = minDisplayH / h;
+            let scale = Math.max(fit, needForText);
+            if (!isFinite(scale) || scale < 0.02) scale = Math.min(1, cw / w);
+            scale = Math.min(scale, maxScale);
+            svg.style.width = (w * scale) + 'px';
+            svg.style.height = (h * scale) + 'px';
+            applyZoom();
+        }
+
         function applyZoom() {
             const svg = document.querySelector('#container svg');
             if (svg) svg.style.transform = 'scale(' + currentZoom + ')';
@@ -129,6 +191,8 @@
             const c = document.getElementById('container');
 
             if (!code || !code.trim()) {
+                c.classList.add('flowchart-mode');
+                c.classList.remove('c4-mode');
                 c.innerHTML = '<div id="placeholder">(leeg — typ Mermaid-code links)</div>';
                 err.style.display = 'none';
                 post({ type: 'ok' });
@@ -137,11 +201,25 @@
 
             try {
                 const id = 'mermaid-' + (++seq);
+                const c4 = isC4Diagram(code);
+                c.classList.toggle('flowchart-mode', !c4);
+                c.classList.toggle('c4-mode', c4);
                 // mermaid.parse gooit bij syntaxfouten, geeft een nette message.
                 await mermaid.parse(code);
                 const { svg } = await mermaid.render(id, code);
                 c.innerHTML = svg;
-                applyZoom();
+                if (c4) {
+                    requestAnimationFrame(function () { sizeC4Svg(); });
+                } else {
+                    const el = document.querySelector('#container svg');
+                    if (el) {
+                        el.style.width = '';
+                        el.style.height = '';
+                        el.style.maxWidth = '100%';
+                        el.style.height = 'auto';
+                    }
+                    applyZoom();
+                }
                 err.style.display = 'none';
                 post({ type: 'ok' });
             } catch (e) {
@@ -153,6 +231,65 @@
         }
 
         window.renderMermaid = renderMermaid;
+
+        // C4: sleep met muis of vinger om het diagram te verplaatsen (scroll-pan).
+        (function initC4DragPan() {
+            const el = document.getElementById('container');
+            let drag = false;
+            let startX = 0, startY = 0, scrollL = 0, scrollT = 0;
+
+            function endDrag() {
+                if (!drag) return;
+                drag = false;
+                el.classList.remove('c4-dragging');
+            }
+
+            el.addEventListener('mousedown', function (e) {
+                if (!el.classList.contains('c4-mode')) return;
+                if (e.button !== 0) return;
+                drag = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                scrollL = el.scrollLeft;
+                scrollT = el.scrollTop;
+                el.classList.add('c4-dragging');
+                e.preventDefault();
+            });
+
+            window.addEventListener('mousemove', function (e) {
+                if (!drag) return;
+                el.scrollLeft = scrollL - (e.clientX - startX);
+                el.scrollTop = scrollT - (e.clientY - startY);
+                e.preventDefault();
+            });
+
+            window.addEventListener('mouseup', endDrag);
+            window.addEventListener('blur', endDrag);
+
+            el.addEventListener('touchstart', function (e) {
+                if (!el.classList.contains('c4-mode')) return;
+                if (e.touches.length !== 1) return;
+                drag = true;
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                scrollL = el.scrollLeft;
+                scrollT = el.scrollTop;
+                el.classList.add('c4-dragging');
+            }, { passive: true });
+
+            el.addEventListener('touchmove', function (e) {
+                if (!drag || !el.classList.contains('c4-mode')) return;
+                if (e.touches.length !== 1) return;
+                const x = e.touches[0].clientX;
+                const y = e.touches[0].clientY;
+                el.scrollLeft = scrollL - (x - startX);
+                el.scrollTop = scrollT - (y - startY);
+                e.preventDefault();
+            }, { passive: false });
+
+            el.addEventListener('touchend', endDrag);
+            el.addEventListener('touchcancel', endDrag);
+        })();
 
         // Script draait synchroon na mermaid.min.js; direct klaar melden aan de host.
         post({ type: 'ready' });

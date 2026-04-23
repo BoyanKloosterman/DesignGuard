@@ -340,6 +340,7 @@ public partial class MainViewModel
 
         Threats = new ObservableCollection<ThreatModel>(p.Threats);
         Requirements = new ObservableCollection<RequirementModel>(p.Requirements);
+        RefreshC4ThreatLinkCounts();
         RefreshFilters();
         UpdateDashboard();
         RefreshSuggestions();

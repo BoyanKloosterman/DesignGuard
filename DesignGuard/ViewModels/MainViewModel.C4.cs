@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.Input;
 using DesignGuard.Export;
 using DesignGuard.Models;
+using DesignGuard.Services;
 
 namespace DesignGuard.ViewModels;
 
@@ -19,6 +20,31 @@ public partial class MainViewModel
 
     /// <summary>Na bewerken in het grid: dreigingstelling + visuele banden bijwerken.</summary>
     public void RefreshC4AfterGridEdit() => RefreshC4ThreatLinkCounts();
+
+    partial void OnC4MermaidBandChanged(C4MermaidBand value) => RunRefreshC4MermaidDiagram();
+
+    /// <summary>Zet C4MermaidCode vanuit de tabel (zelfde model als opslaan).</summary>
+    [RelayCommand]
+    private void RefreshC4MermaidDiagram() => RunRefreshC4MermaidDiagram();
+
+    private void RunRefreshC4MermaidDiagram()
+    {
+        try
+        {
+            var m = BuildModelFromEditor();
+            C4MermaidCode = _c4MermaidBuilder.Build(C4MermaidBand, m);
+            C4MermaidSyntaxError = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            C4MermaidSyntaxError = "C4-Mermaid: " + ex.Message;
+        }
+    }
+
+    partial void OnC4MermaidSyntaxErrorChanged(string value)
+    {
+        HasC4MermaidError = !string.IsNullOrWhiteSpace(value);
+    }
 
     private void SyncC4VisualBandCollections()
     {
@@ -60,6 +86,7 @@ public partial class MainViewModel
             row.LinkedOpenThreatCount = C4ExportPresentation.CountOpenThreatMatchesForComponentName(row.Name, Threats);
 
         SyncC4VisualBandCollections();
+        RunRefreshC4MermaidDiagram();
     }
 
     [RelayCommand]

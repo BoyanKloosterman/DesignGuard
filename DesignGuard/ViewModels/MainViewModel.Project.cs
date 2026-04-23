@@ -122,6 +122,7 @@ public partial class MainViewModel
         TraceabilityText = "";
         RefreshFilters();
         UpdateDashboard();
+        ClearPersistedEditorSnapshot();
     }
 
     private void ApplyModelToEditor(ProjectModel p)
@@ -347,6 +348,7 @@ public partial class MainViewModel
         RefreshControlSourceTagSuggestions();
         // Initiële Mermaid-code bouwen zodat de preview meteen iets toont bij project laden
         RefreshDiagram();
+        CapturePersistedEditorSnapshot();
     }
 
     private ProjectModel BuildModelFromEditor()
@@ -585,6 +587,7 @@ public partial class MainViewModel
         EditorSystemName = "Mijn systeem";
         NavSection = 1;
         StatusMessage = "Nieuw project — gebruik de wizard of vul het ontwerp in.";
+        CapturePersistedEditorSnapshot();
     }
 
     /// <summary>Dreigingen/eisen herberekenen op model (zelfde logica als handmatige ververs-knop).</summary>
@@ -688,6 +691,7 @@ public partial class MainViewModel
             CurrentProjectId = 0;
             NavSection = 1;
             StatusMessage = $"Sjabloon geladen: {t.Name}. Sla op om vast te leggen.";
+            CapturePersistedEditorSnapshot();
         }
         catch (Exception ex)
         {

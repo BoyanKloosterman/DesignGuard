@@ -48,7 +48,17 @@
                         <DataGridTextColumn Header="Naam" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="*" />
                         <DataGridTextColumn Header="Omschrijving" Binding="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
                         <DataGridTextColumn Header="Tech / notitie" Binding="{Binding Technology, UpdateSourceTrigger=PropertyChanged}" Width="*" />
-                        <DataGridTextColumn Header="Parent id" Binding="{Binding ParentId, UpdateSourceTrigger=PropertyChanged}" Width="70" />
+                        <DataGridTemplateColumn Header="Ouder" Width="240" MinWidth="160">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox ItemsSource="{Binding ParentPickOptions}"
+                                              SelectedItem="{Binding SelectedParentPick, UpdateSourceTrigger=PropertyChanged}"
+                                              DisplayMemberPath="Label"
+                                              SelectionChanged="C4ParentCombo_SelectionChanged"
+                                              MinWidth="140" Margin="2" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn Header="Open dreig." Binding="{Binding LinkedOpenThreatCount, Mode=OneWay}" IsReadOnly="True" Width="80" />
                     </DataGrid.Columns>
                 </DataGrid>

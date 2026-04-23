@@ -106,7 +106,8 @@ public sealed class PdfReportService
                     col.Item().PaddingTop(32).PaddingBottom(8).Column(cover =>
                     {
                         cover.Item().Text("DESIGNGUARD").FontSize(10).SemiBold().LetterSpacing(1.2f).FontColor(PdfPalette.Accent);
-                        cover.Item().PaddingTop(20).Text("Security-by-design rapport")
+                        cover.Item().PaddingTop(20).SemanticHeader1()
+                            .Text("Security-by-design rapport")
                             .FontSize(26).Bold().FontColor(PdfPalette.Primary);
                         cover.Item().PaddingTop(10).Text(project.Name).FontSize(17).SemiBold().FontColor(PdfPalette.Muted);
                         cover.Item().PaddingTop(6).Text($"Export (UTC): {exportUtc:yyyy-MM-dd HH:mm}")
@@ -120,7 +121,7 @@ public sealed class PdfReportService
 
                     col.Item().PageBreak();
 
-                    col.Item().Text("Inhoudsopgave").FontSize(18).Bold().FontColor(PdfPalette.Primary);
+                    col.Item().SemanticHeader1().Text("Inhoudsopgave").FontSize(18).Bold().FontColor(PdfPalette.Primary);
                     col.Item().PaddingTop(4).Text("Klik op een regel om naar het hoofdstuk te gaan.")
                         .FontSize(9.5f).FontColor(PdfPalette.Muted);
                     col.Item().PaddingTop(14);
@@ -146,7 +147,13 @@ public sealed class PdfReportService
                     }
                 });
             });
-        }).GeneratePdf();
+        })
+            .WithMetadata(new DocumentMetadata
+            {
+                Title = $"DesignGuard — {project.Name}",
+                Subject = "Security-by-design rapport"
+            })
+            .GeneratePdf();
     }
 
     private sealed record PdfChapterDef(
@@ -458,7 +465,7 @@ public sealed class PdfReportService
         container.PaddingTop(4).PaddingBottom(8).Column(c =>
         {
             c.Item().Text($"Hoofdstuk {chapterNumber}").FontSize(9).SemiBold().FontColor(PdfPalette.Muted);
-            c.Item().PaddingTop(2).Text(title).FontSize(15).Bold().FontColor(PdfPalette.Primary);
+            c.Item().PaddingTop(2).SemanticHeader1().Text(title).FontSize(15).Bold().FontColor(PdfPalette.Primary);
             c.Item().PaddingTop(8).LineHorizontal(2).LineColor(PdfPalette.Accent);
         });
     };
@@ -467,7 +474,7 @@ public sealed class PdfReportService
     {
         container.PaddingTop(10).PaddingBottom(6).Column(c =>
         {
-            c.Item().Text(title).FontSize(11.5f).SemiBold().FontColor(PdfPalette.Accent);
+            c.Item().SemanticHeader2().Text(title).FontSize(11.5f).SemiBold().FontColor(PdfPalette.Accent);
             c.Item().PaddingTop(3).LineHorizontal(1).LineColor(PdfPalette.Border);
         });
     };

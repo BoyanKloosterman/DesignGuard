@@ -58,4 +58,48 @@ public sealed class EditorListFilterTests
         Assert.Single(r);
         Assert.Equal(a, r[0]);
     }
+
+    [Fact]
+    public void FilterAndSortThreats_quickfilter_alleen_open()
+    {
+        var open = new ThreatModel { Title = "A", Status = ThreatStatus.Open };
+        var mit = new ThreatModel { Title = "B", Status = ThreatStatus.Mitigated };
+        var r = EditorListFilter.FilterAndSortThreats(new[] { mit, open }, null, "Severity",
+            EditorListFilter.QuickFilterAlleenOpen);
+        Assert.Single(r);
+        Assert.Equal(open, r[0]);
+    }
+
+    [Fact]
+    public void FilterAndSortThreats_quickfilter_alleen_hoog()
+    {
+        var low = new ThreatModel { Title = "L", Severity = SeverityEstimate.Low };
+        var high = new ThreatModel { Title = "H", Severity = SeverityEstimate.High };
+        var r = EditorListFilter.FilterAndSortThreats(new[] { low, high }, null, "Severity",
+            EditorListFilter.QuickFilterAlleenHoog);
+        Assert.Single(r);
+        Assert.Equal(high, r[0]);
+    }
+
+    [Fact]
+    public void FilterAndSortRequirements_quickfilter_alleen_open_status()
+    {
+        var open = new RequirementModel { Title = "a", Status = RequirementStatus.Proposed };
+        var done = new RequirementModel { Title = "b", Status = RequirementStatus.Implemented };
+        var r = EditorListFilter.FilterAndSortRequirements(new[] { done, open }, null, "Priority",
+            EditorListFilter.ReqQuickFilterAlleenOpen);
+        Assert.Single(r);
+        Assert.Equal(open, r[0]);
+    }
+
+    [Fact]
+    public void FilterAndSortRequirements_quickfilter_hoge_prioriteit()
+    {
+        var lo = new RequirementModel { Title = "x", Priority = RequirementPriority.Low };
+        var hi = new RequirementModel { Title = "y", Priority = RequirementPriority.High };
+        var r = EditorListFilter.FilterAndSortRequirements(new[] { lo, hi }, null, "Priority",
+            EditorListFilter.ReqQuickFilterAlleenHoogPrio);
+        Assert.Single(r);
+        Assert.Equal(hi, r[0]);
+    }
 }

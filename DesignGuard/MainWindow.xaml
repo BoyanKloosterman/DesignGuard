@@ -5,7 +5,7 @@
         xmlns:views="clr-namespace:DesignGuard.Views"
         mc:Ignorable="d"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        Title="DesignGuard v6 — Security-by-design werkbench"
+        Title="{Binding MainWindowTitle, Mode=OneWay}"
         Height="960" Width="1480"
         Background="{DynamicResource DgBrush.Window}"
         Foreground="{DynamicResource DgBrush.TextPrimary}"
@@ -13,6 +13,8 @@
     <DockPanel>
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBarItem Content="{Binding StatusMessage}" />
+            <Separator />
+            <StatusBarItem Content="{Binding PersistenceStatusHint, Mode=OneWay}" />
         </StatusBar>
         <Grid>
             <Grid.ColumnDefinitions>

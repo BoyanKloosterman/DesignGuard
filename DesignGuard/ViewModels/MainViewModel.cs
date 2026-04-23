@@ -107,6 +107,7 @@ public partial class MainViewModel : ObservableObject
             _filterDebounceTimer.Stop();
             RefreshFilters();
         };
+        InitializeDirtyTrackingTimer();
         SystemTypeOptions = Enum.GetNames(typeof(SystemType)).ToList();
         DeploymentContextOptions = Enum.GetNames(typeof(DeploymentContext)).ToList();
         ThreatStatusOptions = Enum.GetNames(typeof(ThreatStatus)).ToList();
@@ -192,6 +193,20 @@ public partial class MainViewModel : ObservableObject
     public IReadOnlyList<string> ThreatSortOptions { get; } = new[] { "Severity", "Status", "Category" };
 
     public IReadOnlyList<string> RequirementSortOptions { get; } = new[] { "Priority", "Status", "Category" };
+
+    public IReadOnlyList<string> ThreatQuickFilterOptions { get; } =
+    [
+        EditorListFilter.QuickFilterAlle,
+        EditorListFilter.QuickFilterAlleenOpen,
+        EditorListFilter.QuickFilterAlleenHoog
+    ];
+
+    public IReadOnlyList<string> RequirementQuickFilterOptions { get; } =
+    [
+        EditorListFilter.QuickFilterAlle,
+        EditorListFilter.ReqQuickFilterAlleenOpen,
+        EditorListFilter.ReqQuickFilterAlleenHoogPrio
+    ];
 
     public IReadOnlyList<string> PresetAssetClassifications { get; } =
         Enum.GetNames(typeof(AssetClassification));
@@ -365,6 +380,10 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private string _requirementSort = "Priority";
 
+    [ObservableProperty] private string _threatQuickFilter = EditorListFilter.QuickFilterAlle;
+
+    [ObservableProperty] private string _requirementQuickFilter = EditorListFilter.QuickFilterAlle;
+
     [ObservableProperty] private string _traceabilityText = "";
 
     [ObservableProperty] private int _openThreatCount;
@@ -419,6 +438,7 @@ public partial class MainViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(HasOpenProject));
         OnPropertyChanged(nameof(HasNoProject));
+        NotifyPersistenceDisplayChanged();
     }
 
     partial void OnDetailLevelChanged(string value)
@@ -535,6 +555,10 @@ public partial class MainViewModel : ObservableObject
     partial void OnThreatSortChanged(string value) => RefreshFilters();
 
     partial void OnRequirementSortChanged(string value) => RefreshFilters();
+
+    partial void OnThreatQuickFilterChanged(string value) => RefreshFilters();
+
+    partial void OnRequirementQuickFilterChanged(string value) => RefreshFilters();
 
     private void OnComponentsCollectionChanged(object? _, NotifyCollectionChangedEventArgs e)
     {

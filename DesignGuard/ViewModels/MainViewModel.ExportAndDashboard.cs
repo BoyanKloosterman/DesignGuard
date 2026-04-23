@@ -75,9 +75,10 @@ public partial class MainViewModel
     private void RefreshFilters()
     {
         FilteredThreats = new ObservableCollection<ThreatModel>(
-            EditorListFilter.FilterAndSortThreats(Threats, ThreatFilterText, ThreatSort));
+            EditorListFilter.FilterAndSortThreats(Threats, ThreatFilterText, ThreatSort, ThreatQuickFilter));
         FilteredRequirements = new ObservableCollection<RequirementModel>(
-            EditorListFilter.FilterAndSortRequirements(Requirements, RequirementFilterText, RequirementSort));
+            EditorListFilter.FilterAndSortRequirements(Requirements, RequirementFilterText, RequirementSort,
+                RequirementQuickFilter));
     }
 
     private void UpdateDashboard()

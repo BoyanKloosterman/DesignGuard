@@ -82,11 +82,20 @@ public partial class MainViewModel
 
     private void RefreshC4ThreatLinkCounts()
     {
+        RefreshC4ParentPickLists();
         foreach (var row in C4Elements)
             row.LinkedOpenThreatCount = C4ExportPresentation.CountOpenThreatMatchesForComponentName(row.Name, Threats);
 
         SyncC4VisualBandCollections();
         RunRefreshC4MermaidDiagram();
+    }
+
+    /// <summary>Ouder-comboboxen: geldige ouders per C4-niveau.</summary>
+    private void RefreshC4ParentPickLists()
+    {
+        var list = C4Elements.ToList();
+        foreach (var row in list)
+            row.RebuildParentPickOptions(list);
     }
 
     [RelayCommand]
@@ -108,7 +117,7 @@ public partial class MainViewModel
             Description = "",
             Technology = ""
         });
-        RefreshC4ThreatLinkCounts(); // telt + sync visuele banden
+        RefreshC4ThreatLinkCounts();
     }
 
     [RelayCommand]

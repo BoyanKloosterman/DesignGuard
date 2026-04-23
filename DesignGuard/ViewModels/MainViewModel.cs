@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using DesignGuard;
 using DesignGuard.Configuration;
 using DesignGuard.Data.Mongo;
 using DesignGuard.Export;
@@ -226,8 +227,8 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private ProjectSummaryItem? _selectedProjectSummary;
 
-    /// <summary>0 Dashboard, 1 Ontwerp, 2 Dreigingen, 3 Eisen, 4 Controls, 5 Beslissingen, 6 Review, 7 Traceability, 8 Export, 9 Instellingen (Mongo-diagnose), 10 App security review</summary>
-    [ObservableProperty] private int _navSection;
+    /// <summary>Actieve werkruimte-tab; volgorde = sidebar, zie <see cref="MainNavSection"/>.</summary>
+    [ObservableProperty] private MainNavSection _navSection;
 
     [ObservableProperty] private string _statusMessage = "DesignGuard v6 — klaar.";
 
@@ -520,30 +521,33 @@ public partial class MainViewModel : ObservableObject
         _ = LoadProjectAsync(value.Id);
     }
 
-    partial void OnNavSectionChanged(int value)
+    partial void OnNavSectionChanged(MainNavSection value)
     {
-        if (value == 1) RefreshDiagram();
-        if (value == 3) RefreshC4ThreatLinkCounts();
-        if (value is 2 or 4 or 5)
+        if (value == MainNavSection.Design) RefreshDiagram();
+        if (value == MainNavSection.C4Model) RefreshC4ThreatLinkCounts();
+        if (value is MainNavSection.Threats or MainNavSection.ThreatModel or MainNavSection.Requirements)
         {
             RefreshFilters();
             UpdateDashboard();
         }
 
-        if (value == 9) RefreshTraceability();
-        if (value == 10) RefreshExportPreview();
-        if (value == 11)
+        if (value == MainNavSection.Traceability) RefreshTraceability();
+        if (value == MainNavSection.Export) RefreshExportPreview();
+        if (value == MainNavSection.Settings)
         {
             RefreshKnowledgePackRows();
             RefreshMongoDiagnostics();
         }
-        if (value == 12) RefreshAppSecurityReview();
-        if (value is 0 or 1 or 3 or 4 or 5 or 6 or 7) RefreshSuggestions();
+        if (value == MainNavSection.AppSecurityReview) RefreshAppSecurityReview();
+        if (value is MainNavSection.Dashboard or MainNavSection.Design or MainNavSection.C4Model
+            or MainNavSection.ThreatModel or MainNavSection.Requirements or MainNavSection.Controls
+            or MainNavSection.Decisions or MainNavSection.Review)
+            RefreshSuggestions();
     }
 
     partial void OnSelectedThreatChanged(ThreatModel? value)
     {
-        if (NavSection == 1) RefreshDiagram();
+        if (NavSection == MainNavSection.Design) RefreshDiagram();
     }
 
     partial void OnThreatFilterTextChanged(string value)

@@ -3,15 +3,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:dg="clr-namespace:DesignGuard"
              mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="328">
     <UserControl.Resources>
-        <!-- Rij-volgorde: tab Eisen (NavSection 4) = eis boven dreiging; anders dreiging eerst. -->
+        <!-- Rij-volgorde: tab Eisen = eis boven dreiging; anders dreiging eerst. -->
         <Style x:Key="DetailThreatCardOrdered" TargetType="Border" BasedOn="{StaticResource DgCard}">
             <Setter Property="Margin" Value="0,0,0,8" />
             <Setter Property="Grid.Row" Value="0" />
             <Style.Triggers>
-                <DataTrigger Binding="{Binding NavSection}" Value="5">
+                <DataTrigger Binding="{Binding NavSection}" Value="{x:Static dg:MainNavSection.Requirements}">
                     <Setter Property="Grid.Row" Value="1" />
                 </DataTrigger>
             </Style.Triggers>
@@ -20,7 +21,7 @@
             <Setter Property="Margin" Value="0,0,0,8" />
             <Setter Property="Grid.Row" Value="1" />
             <Style.Triggers>
-                <DataTrigger Binding="{Binding NavSection}" Value="5">
+                <DataTrigger Binding="{Binding NavSection}" Value="{x:Static dg:MainNavSection.Requirements}">
                     <Setter Property="Grid.Row" Value="0" />
                 </DataTrigger>
             </Style.Triggers>

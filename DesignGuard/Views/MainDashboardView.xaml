@@ -3,9 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:dg="clr-namespace:DesignGuard"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="900">
-    <ScrollViewer Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=0}"
+    <ScrollViewer Visibility="{Binding NavSection, Converter={StaticResource NavSectionVis}, ConverterParameter={x:Static dg:MainNavSection.Dashboard}}"
                   VerticalScrollBarVisibility="Auto">
         <StackPanel>
             <TextBlock Text="Dashboard" Style="{StaticResource DgText.Title}" />

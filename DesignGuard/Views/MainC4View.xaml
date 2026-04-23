@@ -4,13 +4,16 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:views="clr-namespace:DesignGuard.Views"
+             xmlns:dg="clr-namespace:DesignGuard"
+             xmlns:ui="clr-namespace:DesignGuard.Ui"
              mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="900">
-    <DockPanel Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=3}">
+    <DockPanel Visibility="{Binding NavSection, Converter={StaticResource NavSectionVis}, ConverterParameter={x:Static dg:MainNavSection.C4Model}}">
         <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
             <TextBlock Text="C4-model" Style="{StaticResource DgText.Title}" />
             <TextBlock Margin="0,6,0,0" Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"
-                       Text="C4 is los van het architectuurdiagram op Ontwerp. Mermaid C4 (C1–C4) wordt uit de tabel gegenereerd; relaties worden als Rel(van, naar, label) toegevoegd als beide knooppunten in dat banddiagram bestaan (id 0 = systeem in scope, alleen C1). Personen: trefwoorden in naam/omschrijving; DB/queue uit tech. Koppel open dreigingen via exact dezelfde componentnaam als in het tabblad Threatmodel." />
+                       Text="{x:Static ui:UiHelpTexts.C4PanelSummary}"
+                       ToolTip="{x:Static ui:UiHelpTexts.C4TooltipBody}" />
             <WrapPanel Margin="0,8,0,0">
                 <Button Content="Analyse vernieuwen" Command="{Binding RegenerateFromDesignCommand}" Style="{StaticResource DgButton.Toolbar}" Margin="0,0,8,8" />
                 <Button Content="C4-rij toevoegen" Command="{Binding AddC4ElementCommand}" Style="{StaticResource DgButton.Toolbar}" Margin="0,0,8,8" />

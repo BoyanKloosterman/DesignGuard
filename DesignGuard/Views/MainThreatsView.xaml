@@ -3,9 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:dg="clr-namespace:DesignGuard"
              mc:Ignorable="d"
              d:DesignHeight="500" d:DesignWidth="800">
-    <DockPanel Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=2}">
+    <DockPanel Visibility="{Binding NavSection, Converter={StaticResource NavSectionVis}, ConverterParameter={x:Static dg:MainNavSection.Threats}}">
         <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
             <TextBlock Text="Dreigingen (threat model)" Style="{StaticResource DgText.Title}" />
             <TextBlock Margin="0,6,0,0" Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"

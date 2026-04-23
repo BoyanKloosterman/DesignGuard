@@ -4,10 +4,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:views="clr-namespace:DesignGuard.Views"
+             xmlns:dg="clr-namespace:DesignGuard"
+             xmlns:ui="clr-namespace:DesignGuard.Ui"
              mc:Ignorable="d"
              d:DesignHeight="900" d:DesignWidth="900">
     <ScrollViewer AutomationProperties.AutomationId="OntwerpDesignScroll"
-                  Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=1}"
+                  Visibility="{Binding NavSection, Converter={StaticResource NavSectionVis}, ConverterParameter={x:Static dg:MainNavSection.Design}}"
                   VerticalScrollBarVisibility="Auto">
         <StackPanel>
             <TextBlock Text="Systeemontwerp" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,12" />
@@ -310,7 +312,8 @@
             <GroupBox Header="Architectuurdiagram" Margin="0,8,0,0">
                 <StackPanel Margin="8">
                     <TextBlock Margin="0,0,0,6" Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"
-                               Text="Tip: groene rand = ingang, oranje streep = gevoelige data. Diagram wordt top-down (Mermaid) opgebouwd — compacter op scherm en in PDF. Trust boundary = vertrouwensgrens (bijv. internet vs intern). Tab C4-model: houd namen synchroon met dreigingen (zelfde componentnaam)." />
+                               Text="{x:Static ui:UiHelpTexts.DesignArchitectureDiagram}"
+                               ToolTip="{x:Static ui:UiHelpTexts.ThreatComponentNameMatch}" />
                     <views:ArchitectureDiagramPanel />
                     <Button Content="Analyse vernieuwen (dreigingen/eisen)" HorizontalAlignment="Left" Margin="0,8,0,0" Command="{Binding RegenerateFromDesignCommand}" />
                 </StackPanel>

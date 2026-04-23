@@ -1,6 +1,7 @@
 // Levenscyclus project: laden, opslaan, editor in/uit model, sjablonen.
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.Input;
+using DesignGuard;
 using DesignGuard.Models;
 using DesignGuard.Services;
 
@@ -610,7 +611,7 @@ public partial class MainViewModel
         ClearEditor();
         EditorProjectName = "Nieuw project";
         EditorSystemName = "Mijn systeem";
-        NavSection = 1;
+        NavSection = MainNavSection.Design;
         StatusMessage = "Nieuw project — gebruik de wizard of vul het ontwerp in.";
         CapturePersistedEditorSnapshot();
     }
@@ -714,7 +715,7 @@ public partial class MainViewModel
             ClearEditor();
             ApplyModelToEditor(t);
             CurrentProjectId = 0;
-            NavSection = 1;
+            NavSection = MainNavSection.Design;
             StatusMessage = $"Sjabloon geladen: {t.Name}. Sla op om vast te leggen.";
             CapturePersistedEditorSnapshot();
         }
@@ -747,7 +748,7 @@ public partial class MainViewModel
             UpdateDashboard();
             RefreshTraceability();
             RefreshSuggestions();
-            if (NavSection == 1)
+            if (NavSection == MainNavSection.Design)
                 RefreshDiagram();
             StatusMessage = "Analyse vernieuwd (samengevoegd met handmatige items).";
         }

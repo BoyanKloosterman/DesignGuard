@@ -3,13 +3,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:dg="clr-namespace:DesignGuard"
+             xmlns:ui="clr-namespace:DesignGuard.Ui"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="900">
-    <DockPanel Visibility="{Binding NavSection, Converter={StaticResource IntEqVis}, ConverterParameter=4}">
+    <DockPanel Visibility="{Binding NavSection, Converter={StaticResource NavSectionVis}, ConverterParameter={x:Static dg:MainNavSection.ThreatModel}}">
         <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
             <TextBlock Text="Threatmodel" Style="{StaticResource DgText.Title}" />
             <TextBlock Margin="0,6,0,0" Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"
-                       Text="Overzicht van gegenereerde dreigingen en koppeling met je ontwerp. Zet in ‘getroffen componenten’ exact dezelfde naam als bij C4 (tabblad C4-model) voor traceability. Werk het C4-model bij onder C4-model." />
+                       Text="Overzicht van gegenereerde dreigingen en koppeling met je ontwerp. Werk het C4-model bij op tab C4-model."
+                       ToolTip="{x:Static ui:UiHelpTexts.ThreatComponentNameMatch}" />
             <WrapPanel Margin="0,8,0,0">
                 <Button Content="Analyse vernieuwen" Command="{Binding RegenerateFromDesignCommand}" Style="{StaticResource DgButton.Toolbar}" Margin="0,0,8,8" />
             </WrapPanel>

@@ -3,7 +3,8 @@
                     xmlns:conv="clr-namespace:DesignGuard.Converters">
     <conv:NotNullToVisibilityConverter x:Key="NotNullToVisibility" />
     <BooleanToVisibilityConverter x:Key="BoolToVis" />
-    <conv:IntEqualsToVisibilityConverter x:Key="IntEqVis" />
+    <conv:NavSectionIndexConverter x:Key="NavSectionIndex" />
+    <conv:NavSectionEqualsToVisibilityConverter x:Key="NavSectionVis" />
     <conv:StringEqualsToVisibilityConverter x:Key="StrEqVis" />
     <conv:NullableUtcDateTimeConverter x:Key="UtcDateOrDash" />
 </ResourceDictionary>

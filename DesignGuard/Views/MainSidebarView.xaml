@@ -36,7 +36,7 @@
                         Command="{Binding EnsureDemoCommand}" Margin="0,0,0,12" />
                 <TextBlock Text="Werkruimte" Style="{StaticResource DgText.SectionLabel}" />
                 <ListBox Style="{StaticResource DgNavListBox}" MinHeight="220"
-                         SelectedIndex="{Binding NavSection, Mode=TwoWay}">
+                         SelectedIndex="{Binding NavSection, Mode=TwoWay, Converter={StaticResource NavSectionIndex}}">
                     <ListBoxItem Content="Dashboard" />
                     <ListBoxItem Content="Ontwerp" />
                     <ListBoxItem Content="Dreigingen" />

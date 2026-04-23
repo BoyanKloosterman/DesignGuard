@@ -73,8 +73,11 @@ public sealed class MermaidDiagramRasterizer
                 "document.getElementById('toolbar').style.display='none';").ConfigureAwait(true);
 
             var codeJson = JsonSerializer.Serialize(mermaidCode ?? string.Empty);
+            var renderArgs = IsC4Mermaid(mermaidCode)
+                ? codeJson + ", " + JsonSerializer.Serialize(new { exportFit = true })
+                : codeJson;
             var script =
-                "(async () => { await window.renderMermaid(" + codeJson + "); " +
+                "(async () => { await window.renderMermaid(" + renderArgs + "); " +
                 "var e = document.getElementById('err'); " +
                 "if (e && e.style.display === 'block') throw new Error(e.textContent || 'Mermaid'); })()";
 
@@ -82,10 +85,9 @@ public sealed class MermaidDiagramRasterizer
 
             await Task.Delay(200, cancellationToken).ConfigureAwait(true);
 
-            // C4: sizeC4Svg in de HTML zet breedte/hoogte; extra transform hier breekt dat af.
+            // C4-export: sizeC4SvgForExport in HTML (geen horizontale overflow). Flowchart: hier schalen.
             if (!IsC4Mermaid(mermaidCode))
             {
-                // Flowchart: SVG passend binnen export-paneel (voorkomt extreem brede PNG).
                 await webView.CoreWebView2.ExecuteScriptAsync(
                     "(function(){var s=document.querySelector('#container svg'),c=document.getElementById('container');" +
                     "if(!s||!c)return;s.style.transform='';s.style.transformOrigin='top left';" +
@@ -96,7 +98,7 @@ public sealed class MermaidDiagramRasterizer
                 await Task.Delay(80, cancellationToken).ConfigureAwait(true);
             }
             else
-                await Task.Delay(120, cancellationToken).ConfigureAwait(true);
+                await Task.Delay(100, cancellationToken).ConfigureAwait(true);
 
             await using var ms = new MemoryStream();
             await webView.CoreWebView2

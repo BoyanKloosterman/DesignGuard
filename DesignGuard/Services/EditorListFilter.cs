@@ -41,6 +41,43 @@ public static class EditorListFilter
         return tq.ToList();
     }
 
+    public const string FindingQuickFilterHerstest = "Herstest";
+
+    public static IReadOnlyList<PentestFindingModel> FilterAndSortFindings(
+        IEnumerable<PentestFindingModel> findings,
+        string? filterText,
+        string findingSort,
+        string? quickFilter = null)
+    {
+        IEnumerable<PentestFindingModel> q = findings;
+        if (!string.IsNullOrWhiteSpace(filterText))
+        {
+            var f = filterText.Trim();
+            q = q.Where(x =>
+                x.Title.Contains(f, StringComparison.OrdinalIgnoreCase) ||
+                x.Description.Contains(f, StringComparison.OrdinalIgnoreCase) ||
+                x.WstgCategory.Contains(f, StringComparison.OrdinalIgnoreCase) ||
+                x.WstgId.Contains(f, StringComparison.OrdinalIgnoreCase) ||
+                x.AffectedTarget.Contains(f, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (string.Equals(quickFilter, QuickFilterAlleenOpen, StringComparison.OrdinalIgnoreCase))
+            q = q.Where(x => x.Status is FindingStatus.Open or FindingStatus.Confirmed);
+        else if (string.Equals(quickFilter, QuickFilterAlleenHoog, StringComparison.OrdinalIgnoreCase))
+            q = q.Where(x => x.RiskLevel is RiskLevel.High or RiskLevel.Critical);
+        else if (string.Equals(quickFilter, FindingQuickFilterHerstest, StringComparison.OrdinalIgnoreCase))
+            q = q.Where(x => x.Status == FindingStatus.Retest);
+
+        q = findingSort switch
+        {
+            "Status" => q.OrderBy(x => x.Status).ThenBy(x => x.Title),
+            "Categorie" => q.OrderBy(x => x.WstgCategory).ThenBy(x => x.Title),
+            _ => q.OrderByDescending(x => x.RiskScore).ThenBy(x => x.Title)
+        };
+
+        return q.ToList();
+    }
+
     public const string ReqQuickFilterAlleenOpen = "Alleen open (niet afgerond)";
     public const string ReqQuickFilterAlleenHoogPrio = "Alleen hoge prioriteit";
 

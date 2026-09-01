@@ -47,8 +47,12 @@ public sealed class ProjectDocument
     public string AssessmentEnvironment { get; set; } = "";
     public string AssessmentAccounts { get; set; } = "";
     public string AssessmentLimitations { get; set; } = "";
+    public string AssessmentResidualNotes { get; set; } = "";
     public string CompletedPlaybookItemIdsJson { get; set; } = "[]";
     public string FindingsJson { get; set; } = "[]";
+    public string CoverageJson { get; set; } = "[]";
+    public string AttackSurfaceJson { get; set; } = "[]";
+    public string TestBlockersJson { get; set; } = "[]";
 
     public string C4ElementsJson { get; set; } = "[]";
     public string C4RelationsJson { get; set; } = "[]";

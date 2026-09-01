@@ -1,6 +1,7 @@
 using System.Linq;
 using DesignGuard.Knowledge;
 using DesignGuard.Models;
+using DesignGuard.Services;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -353,6 +354,12 @@ public sealed class PdfReportService
         s.Item().PaddingTop(6).Text("Pentest-bevindingen").SemiBold();
         foreach (var f in project.Findings.OrderByDescending(x => x.RiskScore).ThenBy(x => x.Title).Take(PdfThreatListMax))
             s.Item().Text($"{f.Title} — {f.RiskSummary} — {f.Status}");
+        var coverage = CoverageCatalog.Merge(project.CoverageItems);
+        s.Item().PaddingTop(6).Text(CoverageCatalog.Summary(coverage)).FontSize(9.5f).FontColor(PdfPalette.Muted);
+        foreach (var c in CoverageCatalog.NotTested(coverage))
+            s.Item().Text($"Niet getest: {c.Title} ({c.Status})");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentResidualNotes))
+            s.Item().Text($"Rest-risico: {project.AssessmentResidualNotes}");
     }
 
     private static void BuildThreatsBody(

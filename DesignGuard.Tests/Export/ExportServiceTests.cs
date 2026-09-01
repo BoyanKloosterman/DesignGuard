@@ -1,5 +1,6 @@
 using DesignGuard.Export;
 using DesignGuard.Models;
+using DesignGuard.Services;
 using Xunit;
 
 namespace DesignGuard.Tests.Export;
@@ -106,5 +107,37 @@ public sealed class ExportServiceTests
         Assert.Contains("Bevindingenregister", md);
         Assert.Contains("IDOR admin", md);
         Assert.Contains("K4 × I5 = 20 (Kritiek)", md);
+    }
+
+    [Fact]
+    public void ToMarkdown_bevat_niet_getest_en_rest_risico()
+    {
+        var p = new ProjectModel
+        {
+            Name = "P",
+            AssessmentResidualNotes = "IDOR open tot fix.",
+            CoverageItems = CoverageCatalog.Merge(null),
+            Findings =
+            [
+                new PentestFindingModel
+                {
+                    Title = "IDOR admin",
+                    Likelihood = 4,
+                    Impact = 5,
+                    Status = FindingStatus.Open
+                }
+            ]
+        };
+        p.CoverageItems.First(c => c.Id == "cov-api").Status = CoverageStatus.Blocked;
+        p.CoverageItems.First(c => c.Id == "cov-api").Notes = "WAF";
+        p.TestBlockers.Add(new TestBlockerModel { Title = "WAF", Reason = "rate-limit" });
+
+        var md = _sut.ToMarkdown(p, [], []);
+        Assert.Contains("## Testdekking", md);
+        Assert.Contains("## Niet getest", md);
+        Assert.Contains("WAF", md);
+        Assert.Contains("## Rest-risico", md);
+        Assert.Contains("IDOR open tot fix.", md);
+        Assert.Contains("IDOR admin", md);
     }
 }

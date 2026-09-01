@@ -1,5 +1,6 @@
 using DesignGuard.Data.Mongo.Documents;
 using DesignGuard.Models;
+using DesignGuard.Services;
 using ProjectMapperCore = DesignGuard.Data.ProjectMapper;
 
 namespace DesignGuard.Data.Mongo;
@@ -44,8 +45,12 @@ internal static class ProjectDocumentBuilder
             AssessmentEnvironment = m.AssessmentEnvironment,
             AssessmentAccounts = m.AssessmentAccounts,
             AssessmentLimitations = m.AssessmentLimitations,
+            AssessmentResidualNotes = m.AssessmentResidualNotes,
             CompletedPlaybookItemIdsJson = JsonBlobs.Serialize(m.CompletedPlaybookItemIds),
             FindingsJson = JsonBlobs.Serialize(m.Findings),
+            CoverageJson = JsonBlobs.Serialize(CoverageCatalog.Merge(m.CoverageItems)),
+            AttackSurfaceJson = JsonBlobs.Serialize(m.AttackSurface),
+            TestBlockersJson = JsonBlobs.Serialize(m.TestBlockers),
             C4ElementsJson = JsonBlobs.Serialize(m.C4Elements),
             C4RelationsJson = JsonBlobs.Serialize(m.C4Relations),
             DismissedSuggestionKeysJson = JsonBlobs.Serialize(m.DismissedSuggestionKeys)

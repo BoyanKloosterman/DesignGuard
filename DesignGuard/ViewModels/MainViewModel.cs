@@ -123,6 +123,7 @@ public partial class MainViewModel : ObservableObject
         DesignNoteKindOptions = Enum.GetNames(typeof(DesignNoteKind)).ToList();
         FilteredThreats = new ObservableCollection<ThreatModel>();
         FilteredRequirements = new ObservableCollection<RequirementModel>();
+        FilteredFindings = new ObservableCollection<PentestFindingModel>();
         Suggestions = new ObservableCollection<ModelingSuggestion>();
         KnowledgePackRows = new ObservableCollection<KnowledgePackToggleRow>();
         AppSecurityReviewRows = new ObservableCollection<AppSecurityReviewRowViewModel>();
@@ -172,6 +173,7 @@ public partial class MainViewModel : ObservableObject
             Items =
             [
                 new WorkspaceNavItem { Title = "Aanpak", Section = MainNavSection.Pentest },
+                new WorkspaceNavItem { Title = "Testdekking", Section = MainNavSection.PentestCoverage },
                 new WorkspaceNavItem { Title = "Bevindingen", Section = MainNavSection.PentestFindings },
                 new WorkspaceNavItem { Title = "Risicoanalyse", Section = MainNavSection.RiskAnalysis }
             ]
@@ -269,6 +271,21 @@ public partial class MainViewModel : ObservableObject
 
     public IReadOnlyList<FindingStatus> AllFindingStatuses { get; } =
         Enum.GetValues(typeof(FindingStatus)).Cast<FindingStatus>().ToArray();
+
+    public IReadOnlyList<CoverageStatus> AllCoverageStatuses { get; } =
+        Enum.GetValues(typeof(CoverageStatus)).Cast<CoverageStatus>().ToArray();
+
+    public IReadOnlyList<string> AttackSurfaceKindOptions { get; } = ["Host", "URL", "API", "Rol"];
+
+    public IReadOnlyList<string> FindingSortOptions { get; } = ["Risico", "Status", "Categorie"];
+
+    public IReadOnlyList<string> FindingQuickFilterOptions { get; } =
+    [
+        EditorListFilter.QuickFilterAlle,
+        EditorListFilter.QuickFilterAlleenOpen,
+        EditorListFilter.QuickFilterAlleenHoog,
+        EditorListFilter.FindingQuickFilterHerstest
+    ];
 
     public IReadOnlyList<string> WstgCategoryOptions { get; } =
     [
@@ -423,7 +440,15 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private string _editorAssessmentLimitations = "";
 
+    [ObservableProperty] private string _editorAssessmentResidualNotes = "";
+
     [ObservableProperty] private ObservableCollection<PentestFindingModel> _findings = new();
+
+    [ObservableProperty] private ObservableCollection<CoverageItemModel> _coverageItems = new();
+
+    [ObservableProperty] private ObservableCollection<AttackSurfaceItemModel> _attackSurface = new();
+
+    [ObservableProperty] private ObservableCollection<TestBlockerModel> _testBlockers = new();
 
     [ObservableProperty] private ObservableCollection<TrustBoundaryRowViewModel> _trustBoundaries = new();
 
@@ -499,6 +524,14 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private ObservableCollection<RequirementModel> _filteredRequirements = new();
 
+    [ObservableProperty] private ObservableCollection<PentestFindingModel> _filteredFindings = new();
+
+    [ObservableProperty] private string _findingFilterText = "";
+
+    [ObservableProperty] private string _findingSort = "Risico";
+
+    [ObservableProperty] private string _findingQuickFilter = EditorListFilter.QuickFilterAlle;
+
     [ObservableProperty] private string _threatFilterText = "";
 
     [ObservableProperty] private string _requirementFilterText = "";
@@ -522,6 +555,8 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private int _implementedRequirementCount;
 
     [ObservableProperty] private int _openFindingCount;
+
+    [ObservableProperty] private string _coverageSummaryText = "";
 
     [ObservableProperty] private string _validationSummaryText = "";
 
@@ -652,14 +687,16 @@ public partial class MainViewModel : ObservableObject
         SyncWorkspaceNavSelection();
         if (value == MainNavSection.Design) RefreshDiagram();
         if (value == MainNavSection.C4Model) RefreshC4ThreatLinkCounts();
-        if (value is MainNavSection.Threats or MainNavSection.ThreatModel or MainNavSection.Requirements)
+        if (value is MainNavSection.Threats or MainNavSection.ThreatModel or MainNavSection.Requirements
+            or MainNavSection.PentestFindings)
         {
             RefreshFilters();
             UpdateDashboard();
         }
 
         if (value == MainNavSection.RiskAnalysis) RefreshRiskAnalysis();
-        if (value is MainNavSection.Pentest or MainNavSection.PentestFindings) RefreshPlaybook();
+        if (value is MainNavSection.Pentest or MainNavSection.PentestFindings or MainNavSection.PentestCoverage)
+            RefreshPlaybook();
         if (value == MainNavSection.PentestFindings) RefreshRiskAnalysis();
         if (value == MainNavSection.Traceability) RefreshTraceability();
         if (value == MainNavSection.Export) RefreshExportPreview();
@@ -711,6 +748,16 @@ public partial class MainViewModel : ObservableObject
         _filterDebounceTimer.Stop();
         _filterDebounceTimer.Start();
     }
+
+    partial void OnFindingFilterTextChanged(string value)
+    {
+        _filterDebounceTimer.Stop();
+        _filterDebounceTimer.Start();
+    }
+
+    partial void OnFindingSortChanged(string value) => RefreshFilters();
+
+    partial void OnFindingQuickFilterChanged(string value) => RefreshFilters();
 
     partial void OnThreatSortChanged(string value) => RefreshFilters();
 

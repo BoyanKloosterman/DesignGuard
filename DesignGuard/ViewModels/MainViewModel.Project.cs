@@ -107,8 +107,12 @@ public partial class MainViewModel
         EditorAssessmentEnvironment = "";
         EditorAssessmentAccounts = "";
         EditorAssessmentLimitations = "";
+        EditorAssessmentResidualNotes = "";
         Findings.Clear();
         SelectedFinding = null;
+        CoverageItems = new ObservableCollection<CoverageItemModel>(CoverageCatalog.Defaults());
+        AttackSurface.Clear();
+        TestBlockers.Clear();
         _completedPlaybookItemIds.Clear();
         DetachComponentRowTagSuggestionHandlers();
         TrustBoundaries.Clear();
@@ -175,8 +179,12 @@ public partial class MainViewModel
         EditorAssessmentEnvironment = p.AssessmentEnvironment;
         EditorAssessmentAccounts = p.AssessmentAccounts;
         EditorAssessmentLimitations = p.AssessmentLimitations;
+        EditorAssessmentResidualNotes = p.AssessmentResidualNotes;
         Findings = new ObservableCollection<PentestFindingModel>(p.Findings);
         SelectedFinding = null;
+        CoverageItems = new ObservableCollection<CoverageItemModel>(CoverageCatalog.Merge(p.CoverageItems));
+        AttackSurface = new ObservableCollection<AttackSurfaceItemModel>(p.AttackSurface);
+        TestBlockers = new ObservableCollection<TestBlockerModel>(p.TestBlockers);
         _completedPlaybookItemIds = new HashSet<string>(p.CompletedPlaybookItemIds, StringComparer.Ordinal);
         _dismissedSuggestionKeys = new HashSet<string>(p.DismissedSuggestionKeys, StringComparer.Ordinal);
 
@@ -601,8 +609,12 @@ public partial class MainViewModel
             AssessmentEnvironment = EditorAssessmentEnvironment,
             AssessmentAccounts = EditorAssessmentAccounts,
             AssessmentLimitations = EditorAssessmentLimitations,
+            AssessmentResidualNotes = EditorAssessmentResidualNotes,
             CompletedPlaybookItemIds = _completedPlaybookItemIds.ToList(),
             Findings = Findings.ToList(),
+            CoverageItems = CoverageCatalog.Merge(CoverageItems),
+            AttackSurface = AttackSurface.ToList(),
+            TestBlockers = TestBlockers.ToList(),
             TrustBoundaries = tbList,
             Components = compList,
             DataFlows = flows,

@@ -1,5 +1,6 @@
 using DesignGuard.Data.Mongo;
 using DesignGuard.Models;
+using DesignGuard.Services;
 using Xunit;
 
 namespace DesignGuard.Tests.Data.Mongo;
@@ -78,6 +79,33 @@ public sealed class ThreatStatusAuditPersistenceTests
         Assert.Equal("th-1", f.LinkedThreatId);
         Assert.Equal("test", back.AssessmentEnvironment);
         Assert.Equal("geen DoS", back.AssessmentLimitations);
+    }
+
+    [Fact]
+    public void Coverage_surface_blocker_rondrit()
+    {
+        var m = new ProjectModel { Name = "P", SystemName = "S", AssessmentResidualNotes = "rest" };
+        m.CoverageItems = CoverageCatalog.Merge(null);
+        m.CoverageItems.First(c => c.Id == "cov-auth").Status = CoverageStatus.Tested;
+        m.CoverageItems.First(c => c.Id == "cov-auth").Notes = "ok";
+        m.AttackSurface.Add(new AttackSurfaceItemModel { Kind = "URL", Value = "https://t", Notes = "admin" });
+        m.TestBlockers.Add(new TestBlockerModel { Title = "WAF", Reason = "rate", CoverageThemeId = "cov-api" });
+
+        var doc = ProjectDocumentBuilder.Build(m, 8, DateTime.UtcNow);
+        Assert.Contains("cov-auth", doc.CoverageJson, StringComparison.Ordinal);
+        Assert.Contains("https://t", doc.AttackSurfaceJson, StringComparison.Ordinal);
+
+        var back = ProjectDocumentMapper.ToModel(doc);
+        Assert.Equal("rest", back.AssessmentResidualNotes);
+        Assert.Equal(8, back.CoverageItems.Count);
+        var auth = Assert.Single(back.CoverageItems, c => c.Id == "cov-auth");
+        Assert.Equal(CoverageStatus.Tested, auth.Status);
+        Assert.Equal("ok", auth.Notes);
+        var surf = Assert.Single(back.AttackSurface);
+        Assert.Equal("https://t", surf.Value);
+        var block = Assert.Single(back.TestBlockers);
+        Assert.Equal("WAF", block.Title);
+        Assert.Equal("cov-api", block.CoverageThemeId);
     }
 
     [Fact]

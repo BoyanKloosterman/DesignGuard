@@ -262,9 +262,9 @@ Hieronder: per tab één README-plaatje. Navigatie: klik in de **werkruimte** li
 
 ### Aanpak en bevindingen (pentest)
 
-**Waarvoor:** kick-off, scope, recon, testdekking en herstest onder **Pentest → Aanpak**. Observaties in **Bevindingen** (los van STRIDE). Geen scanners of exploits. Ontwerp blijft threat modeling.
+**Waarvoor:** kick-off onder **Pentest → Aanpak**. Tijdens de test: **Testdekking** (WSTG-matrix, aanvalsoppervlak, blockers) en **Bevindingen** (filterbaar register). Geen scanners of exploits. Ontwerp blijft threat modeling.
 
-DesignGuard heeft **twee sporen**: ontwerp (C4/STRIDE/eisen/controls) en pentest (aanpak + bevindingen). Beide komen samen in risicoanalyse en export.
+DesignGuard heeft **twee sporen**: ontwerp (C4/STRIDE/eisen/controls) en pentest (aanpak, testdekking, bevindingen). Beide komen samen in risicoanalyse en export.
 
 ### Beslissingen — `06-beslissingen.png`
 
@@ -388,6 +388,7 @@ Zie ook de **[PNG-index](#png-index)** voor de koppeling naar elke PNG.
 | Handmatige inhoud behouden | Inspector: **Behoud bij opnieuw genereren** | `03` / `04` |
 | Controls | **Controls**; op Dashboard: **Control-bibliotheek** | `05` |
 | Testdoel, scope, RoE | **Pentest → Aanpak** | — |
+| Testdekking / aanvalsoppervlak | **Pentest → Testdekking** | — |
 | Pentest-bevinding | **Pentest → Bevindingen** | — |
 | Kans × impact dreigingen en bevindingen | **Pentest → Risicoanalyse** | — |
 | Open punten en besluiten | **Beslissingen** | `06` |
@@ -461,10 +462,11 @@ Zorg dat MongoDB draait en bereikbaar is voordat je projecten opslaat.
 ## Aanbevolen werkwijze
 
 1. **Ontwerp** — C4, componenten, dreigingen, eisen, controls, traceability.
-2. **Pentest-aanpak** — kick-off (doel, testdiepte, contact, venster, omgeving, accounts, beperkingen), recon, testdekking, herstest. Checklist per fase.
-3. **Bevindingen** — observaties tijdens toetsing, kans × impact, status. Los van STRIDE.
-4. **Risicoanalyse** — dreigingen én bevindingen op dezelfde K×I-schaal.
-5. **Rapportage** — export Markdown/PDF/JSON. Regelmatig **Opslaan**.
+2. **Pentest-aanpak** — kick-off (doel, testdiepte, contact, venster, omgeving, accounts, beperkingen). Checklist per fase.
+3. **Testdekking** — WSTG-matrix, aanvalsoppervlak, blockers tijdens de test.
+4. **Bevindingen** — observaties, kans × impact, status. Los van STRIDE.
+5. **Risicoanalyse** — dreigingen én bevindingen op dezelfde K×I-schaal.
+6. **Rapportage** — export met testdekking, niet-getest en rest-risico. Regelmatig **Opslaan**.
 
 Twee sporen, geen live pentest.
 

@@ -86,10 +86,19 @@ public sealed class ProjectModel
     /// <summary>Beperkingen: WAF, testdata, verboden acties.</summary>
     public string AssessmentLimitations { get; set; } = "";
 
+    /// <summary>Vrije toelichting rest-risico voor het rapport.</summary>
+    public string AssessmentResidualNotes { get; set; } = "";
+
     /// <summary>Afgevinkte playbook-items (stabiele id's).</summary>
     public List<string> CompletedPlaybookItemIds { get; set; } = new();
 
     public List<PentestFindingModel> Findings { get; set; } = new();
+
+    public List<CoverageItemModel> CoverageItems { get; set; } = new();
+
+    public List<AttackSurfaceItemModel> AttackSurface { get; set; } = new();
+
+    public List<TestBlockerModel> TestBlockers { get; set; } = new();
 
     /// <summary>Afgewezen suggesties (rule keys), lokaal opgeslagen.</summary>
     public List<string> DismissedSuggestionKeys { get; set; } = new();

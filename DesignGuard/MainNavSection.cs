@@ -18,5 +18,6 @@ public enum MainNavSection
     AppSecurityReview = 12,
     RiskAnalysis = 13,
     Pentest = 14,
-    PentestFindings = 15
+    PentestFindings = 15,
+    PentestCoverage = 16
 }

@@ -220,6 +220,7 @@ public partial class MainViewModel
 
     public void OnFindingRiskChanged(PentestFindingModel _)
     {
+        RefreshFilters();
         RefreshRiskAnalysis();
         UpdateDashboard();
         OnPropertyChanged(nameof(SelectedFinding));
@@ -239,6 +240,7 @@ public partial class MainViewModel
         };
         Findings.Add(f);
         SelectedFinding = f;
+        RefreshFilters();
         RefreshRiskAnalysis();
         UpdateDashboard();
     }
@@ -249,7 +251,38 @@ public partial class MainViewModel
         if (f == null) return;
         Findings.Remove(f);
         if (SelectedFinding == f) SelectedFinding = null;
+        RefreshFilters();
         RefreshRiskAnalysis();
+        UpdateDashboard();
+    }
+
+    [RelayCommand]
+    private void AddAttackSurface()
+    {
+        AttackSurface.Add(new AttackSurfaceItemModel { Kind = "URL", Value = "https://" });
+        UpdateDashboard();
+    }
+
+    [RelayCommand]
+    private void RemoveAttackSurface(AttackSurfaceItemModel? item)
+    {
+        if (item == null) return;
+        AttackSurface.Remove(item);
+        UpdateDashboard();
+    }
+
+    [RelayCommand]
+    private void AddTestBlocker()
+    {
+        TestBlockers.Add(new TestBlockerModel { Title = "Nieuwe blokkade" });
+        UpdateDashboard();
+    }
+
+    [RelayCommand]
+    private void RemoveTestBlocker(TestBlockerModel? item)
+    {
+        if (item == null) return;
+        TestBlockers.Remove(item);
         UpdateDashboard();
     }
 }

@@ -57,7 +57,8 @@ public static class DemoProjectFactory
             AssessmentWindow = "Kantooruren, testomgeving, week 16.",
             AssessmentEnvironment = "test",
             AssessmentAccounts = "shop-user, admin-readonly — geen wachtwoorden in DesignGuard.",
-            AssessmentLimitations = "WAF actief. Geen DoS. Geen productie-writes."
+            AssessmentLimitations = "WAF actief. Geen DoS. Geen productie-writes.",
+            AssessmentResidualNotes = "Open IDOR op admin-API tot tenant-check live is."
         };
 
         p.TrustBoundaries.Add(new TrustBoundaryModel
@@ -571,10 +572,35 @@ public static class DemoProjectFactory
             EvidenceNotes = "Zelfde order-id van een andere tenant gaf HTTP 200. Geen exploit-stappen of payloads vastgelegd.",
             Recommendation = "Object-level autorisatie per tenant; weiger cross-tenant reads.",
             WstgCategory = "Autorisatie",
+            WstgId = "WSTG-ATHZ-04",
+            AffectedRole = "admin-readonly",
+            AffectedEnvironment = "test",
+            RemediationOwner = "Technische eigenaar",
+            FoundOn = "2026-04-10",
             Likelihood = 4,
             Impact = 5,
             Status = FindingStatus.Open,
             LinkedThreatId = ThreatSession
+        });
+
+        p.CoverageItems = CoverageCatalog.Merge(null);
+        var auth = p.CoverageItems.First(c => c.Id == "cov-auth");
+        auth.Status = CoverageStatus.Tested;
+        auth.Notes = "Login, reset en MFA nagelopen in test.";
+        var api = p.CoverageItems.First(c => c.Id == "cov-api");
+        api.Status = CoverageStatus.Blocked;
+        api.Notes = "WAF blokkeert testdekking op admin-API.";
+        p.AttackSurface.Add(new AttackSurfaceItemModel
+        {
+            Kind = "URL",
+            Value = "https://admin-api.test.example",
+            Notes = "Admin-API, grey-box"
+        });
+        p.TestBlockers.Add(new TestBlockerModel
+        {
+            Title = "WAF op admin-API",
+            Reason = "Rate-limit en managed rules; geen uitzondering in testweek.",
+            CoverageThemeId = "cov-api"
         });
 
         AddDemoC4Model(p);

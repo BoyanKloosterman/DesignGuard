@@ -1,13 +1,22 @@
 # SCA: periodieke checks op NuGet-updates (security patches)
+# Groeperen: losse PRs falen SCA omdat een bump van QuestPDF de CVE in MongoDB.Driver niet fixt.
 version: 2
 updates:
   - package-ecosystem: nuget
     directory: "/"
     schedule:
       interval: weekly
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
+    groups:
+      nuget:
+        patterns:
+          - "*"
 
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: monthly
+    groups:
+      github-actions:
+        patterns:
+          - "*"

@@ -37,6 +37,13 @@ public sealed class ProjectDocument
     public string GovernanceComplianceStakeholder { get; set; } = "";
     public string GovernanceReviewCadence { get; set; } = "";
 
+    public string AssessmentGoal { get; set; } = "";
+    public string AssessmentTestType { get; set; } = "Unspecified";
+    public string ScopeIn { get; set; } = "";
+    public string ScopeOut { get; set; } = "";
+    public string RulesOfEngagementNotes { get; set; } = "";
+    public string CompletedPlaybookItemIdsJson { get; set; } = "[]";
+
     public string C4ElementsJson { get; set; } = "[]";
     public string C4RelationsJson { get; set; } = "[]";
 
@@ -196,6 +203,8 @@ public sealed class ThreatDoc
     public string Title { get; set; } = "";
     public int StrideCategory { get; set; }
     public int Severity { get; set; }
+    public int Likelihood { get; set; }
+    public int Impact { get; set; }
     public int Status { get; set; }
     public string? StatusChangedAtUtc { get; set; }
     public string StatusChangedBy { get; set; } = "";

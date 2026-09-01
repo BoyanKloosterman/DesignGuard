@@ -98,6 +98,9 @@ public partial class MainViewModel
         {
             ValidationSummaryText = $"Validatie kon niet worden uitgevoerd: {ex.Message}";
         }
+
+        RefreshPlaybook();
+        RefreshRiskAnalysis();
     }
 
     private static string FormatValidation(IReadOnlyList<DesignValidationFinding> findings) =>

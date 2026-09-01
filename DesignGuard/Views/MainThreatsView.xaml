@@ -33,7 +33,7 @@
                         <TextBlock FontSize="11" Foreground="Gray">
                             <Run Text="{Binding StrideCategory, Mode=OneWay}" />
                             <Run Text=" — " />
-                            <Run Text="{Binding Severity, Mode=OneWay}" />
+                            <Run Text="{Binding RiskSummary, Mode=OneWay}" />
                             <Run Text=" — " />
                             <Run Text="{Binding Status, Mode=OneWay}" />
                         </TextBlock>

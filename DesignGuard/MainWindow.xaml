@@ -33,6 +33,7 @@
                 <views:MainThreatModelView />
                 <views:MainRequirementsView />
                 <views:MainControlsView />
+                <views:MainRiskAnalysisView />
                 <views:MainDecisionsView />
                 <views:MainReviewView />
                 <views:MainTraceabilityView />

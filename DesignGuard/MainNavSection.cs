@@ -1,6 +1,6 @@
 namespace DesignGuard;
 
-/// <summary>Volgorde = sidebar ListBox (0..); niet herschikken zonder UI aan te passen.</summary>
+/// <summary>Werkruimte-secties. UI-volgorde staat in WorkspaceNavGroups, niet in deze enum.</summary>
 public enum MainNavSection
 {
     Dashboard = 0,
@@ -15,5 +15,6 @@ public enum MainNavSection
     Traceability = 9,
     Export = 10,
     Settings = 11,
-    AppSecurityReview = 12
+    AppSecurityReview = 12,
+    RiskAnalysis = 13
 }

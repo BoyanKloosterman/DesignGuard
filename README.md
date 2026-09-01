@@ -73,7 +73,7 @@ Gebruik deze tabel om snel de juiste PNG bij een onderwerp te vinden.
 |-----------|-----------------|
 | **Nieuw project / Wizard / Opslaan / Verwijderen** | Leeg project, wizard met snelle start, alles naar MongoDB schrijven, project verwijderen. |
 | **Demoproject** | Zorgt dat het scenario *Demo — Webshop (uitgebreid)* bestaat en verschijnt in de lijst. |
-| **Werkruimte (navigatie)** | Kies het scherm: Dashboard, Ontwerp, Dreigingen, enz. |
+| **Werkruimte (navigatie)** | Gegroepeerd: Start, Analyse, Risico, Afronding, Systeem. |
 | **Thema / Uitlegniveau / Dichtheid** | Thema van de UI; **Beginner** toont kortere uitleg in de Inspector, **Advanced** toont o.a. STRIDE-expander volledig; dichtheid bepaalt hoe compact lijsten/kaarten zijn. |
 | **Projectlijst onderaan** | Welk project is actief. |
 | **Midden: tegels** | Voortgang op dreigingen en eisen (open, gemitigeerd, geïmplementeerd, …). |
@@ -255,6 +255,10 @@ Hieronder: per tab één README-plaatje. Navigatie: klik in de **werkruimte** li
 | **Handmatige control** | Nieuwe maatregel vastleggen. |
 | **Pas bibliotheek toe** | Trekt voorgedefinieerde controls binnen en koppelt waar mogelijk aan dreigingen/eisen. |
 | **Tabel** | Titel, categorie, tags, status (levenscyclus), gekoppelde stable id’s van dreiging/eisen, library-id, uitleg, implementatierichting. **Verwijder** per rij. |
+
+### Risicoanalyse
+
+**Waarvoor:** kans × impact per dreiging (1–5). Heatmap van open rest-risico; register gesorteerd op score. Ernst in export volgt uit de score.
 
 ### Beslissingen — `06-beslissingen.png`
 
@@ -447,24 +451,18 @@ Zorg dat MongoDB draait en bereikbaar is voordat je projecten opslaat.
 
 ## Aanbevolen werkwijze
 
-1. **Project aanmaken** — **Nieuw project** of **Wizard**; geef een duidelijke **naam** en **beschrijving**.
-2. **Systeemcontext** — Vul **systeemnaam**, **type**, **deployment** en zet de **vinkjes** die kloppen voor jouw scope.
-3. **Trust boundaries** — Definieer zones voordat je componenten plant.
-4. **Componenten** — Alle bouwstenen; markeer **Entry** en **Data**-gevoeligheid; koppel **Boundary**.
-5. **Datastromen** — Verbind alles wat data uitwisselt; voeg **labels** toe.
-6. **Rollen en assets** — Actoren en te beschermen objecten.
-7. **Ingangen en gevoelige data** — Documenteer aanvalsoppervlak en waar gevoelige categorieën leven.
-8. **Diagram** — **Diagram verversen** en overlays gebruiken om het verhaal te controleren.
-9. **Analyse vernieuwen** op **Dreigingen** en **Eisen** — daarna items in de Inspector afwerken.
-10. **Controls** — Maatregelen koppelen; bibliotheek toepassen waar nuttig.
-11. **Beslissingen en Review** — Open punten en lichte workflow.
-12. **Traceability** — Controleer het gegenereerde overzicht.
-13. **Exporteren** — Preview, dan delen.
-14. **Opslaan** — Regelmatig naar MongoDB.
+1. **Kick-off** — Dashboard: testdoel, testdiepte (black/grey/white box) en afspraken. Checklist van de aanpak afwerken.
+2. **Scope** — Ontwerp: in/out of scope, trust boundaries, componenten, entry points, assets, C4.
+3. **Analyse** — **Analyse vernieuwen**; dreigingen, eisen en controls nalopen.
+4. **Risicoanalyse** — Kans × impact (1–5) per dreiging; heatmap en register; rest-risico = open items.
+5. **Rapportage** — Traceability, review, export (Markdown/PDF/JSON). Regelmatig **Opslaan**.
+
+Dit is een assessment-werkproces, geen live pentest.
 
 ### Tips
 
 - Na grote ontwerpwijzigingen: **Diagram verversen** en daarna **Analyse vernieuwen**.
+- Score 1–4 laag, 5–9 midden, 10–16 hoog, 17–25 kritiek.
 - Maak **back-ups** van MongoDB en van `%LOCALAPPDATA%\DesignGuard\` vóór upgrades.
 
 ---

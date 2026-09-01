@@ -66,6 +66,14 @@ internal static class ProjectDocumentEntityConverter
             GovernanceTechnicalOwner = d.GovernanceTechnicalOwner,
             GovernanceComplianceStakeholder = d.GovernanceComplianceStakeholder,
             GovernanceReviewCadence = d.GovernanceReviewCadence,
+            AssessmentGoal = d.AssessmentGoal,
+            AssessmentTestType = d.AssessmentTestType,
+            ScopeIn = d.ScopeIn,
+            ScopeOut = d.ScopeOut,
+            RulesOfEngagementNotes = d.RulesOfEngagementNotes,
+            CompletedPlaybookItemIdsJson = string.IsNullOrWhiteSpace(d.CompletedPlaybookItemIdsJson)
+                ? "[]"
+                : d.CompletedPlaybookItemIdsJson,
             C4ElementsJson = d.C4ElementsJson,
             C4RelationsJson = string.IsNullOrWhiteSpace(d.C4RelationsJson) ? "[]" : d.C4RelationsJson,
             DismissedSuggestionKeysJson = d.DismissedSuggestionKeysJson,
@@ -182,6 +190,8 @@ internal static class ProjectDocumentEntityConverter
                 Title = t.Title,
                 StrideCategory = t.StrideCategory,
                 Severity = t.Severity,
+                Likelihood = t.Likelihood,
+                Impact = t.Impact,
                 Status = t.Status,
                 StatusChangedAtUtc = t.StatusChangedAtUtc,
                 StatusChangedBy = t.StatusChangedBy ?? "",

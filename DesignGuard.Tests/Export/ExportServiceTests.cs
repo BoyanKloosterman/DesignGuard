@@ -15,7 +15,10 @@ public sealed class ExportServiceTests
         {
             Name = "Testproject",
             Description = "Omschrijving",
-            SystemName = "Sys"
+            SystemName = "Sys",
+            AssessmentGoal = "Grey-box webapp",
+            AssessmentTestType = AssessmentTestType.GreyBox,
+            ScopeIn = "Testomgeving"
         };
 
         var md = _sut.ToMarkdown(p, [], []);
@@ -23,6 +26,8 @@ public sealed class ExportServiceTests
         Assert.Contains("# Testproject", md);
         Assert.Contains("## Projectoverzicht", md);
         Assert.Contains("## Systeemcontext", md);
+        Assert.Contains("## Kick-off en scope", md);
+        Assert.Contains("GreyBox", md);
         Assert.Contains("Omschrijving", md);
     }
 
@@ -57,5 +62,14 @@ public sealed class ExportServiceTests
         var md = _sut.ToMarkdown(p, [], new[] { req });
         Assert.Contains("Normatieve dekking", md);
         Assert.Contains("OWASP", md);
+    }
+
+    [Fact]
+    public void ToMarkdown_bevat_risicoregister()
+    {
+        var p = new ProjectModel { Name = "N" };
+        var md = _sut.ToMarkdown(p, [new ThreatModel { Title = "XSS", Likelihood = 3, Impact = 4 }], []);
+        Assert.Contains("Risicoanalyse", md);
+        Assert.Contains("K3 × I4 = 12 (Hoog)", md);
     }
 }

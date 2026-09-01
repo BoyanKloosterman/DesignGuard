@@ -32,6 +32,7 @@ public sealed class PdfReportService
         public const string C4Visual = "dg-sec-c4vis";
         public const string C4Scope = "dg-sec-c4scope";
         public const string Threats = "dg-sec-threats";
+        public const string Risk = "dg-sec-risk";
         public const string Requirements = "dg-sec-reqs";
         public const string Traceability = "dg-sec-trace";
         public const string Controls = "dg-sec-controls";
@@ -179,6 +180,7 @@ public sealed class PdfReportService
             list.Add(new(Sec.C4Visual, "C4-diagrammen (Mermaid C1-C4)", "C4-diagrammen (Mermaid)", BuildC4VisualBody));
 
         list.Add(new(Sec.C4Scope, "C4 threatmodel-scope", "C4 threatmodel-scope", BuildC4ScopeBody));
+        list.Add(new(Sec.Risk, "Risicoanalyse (kans × impact)", "Risicoanalyse (kans × impact)", BuildRiskBody));
         list.Add(new(Sec.Threats, "Dreigingen (selectie)", "Dreigingen (selectie)", BuildThreatsBody));
         list.Add(new(Sec.Requirements, "Security-eisen (selectie)", "Security-eisen (selectie)", BuildRequirementsBody));
         list.Add(new(Sec.Traceability, "Traceability (trigger-sleutels)", "Traceability (trigger-sleutels)", BuildTraceBody));
@@ -218,6 +220,10 @@ public sealed class PdfReportService
         s.Item().Text(
             $"{project.SystemName} — type {project.SystemType}, deployment {project.DeploymentContext}. " +
             $"Internet: {(project.InternetExposed ? "ja" : "nee")}, persoonsgegevens: {(project.PersonalDataProcessed ? "ja" : "nee")}.");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentGoal))
+            s.Item().Text($"Testdoel: {project.AssessmentGoal}");
+        if (!string.IsNullOrWhiteSpace(project.ScopeIn))
+            s.Item().Text($"In scope: {project.ScopeIn}");
     }
 
     private static void BuildArchBody(
@@ -322,6 +328,21 @@ public sealed class PdfReportService
         }
     }
 
+    private static void BuildRiskBody(
+        ColumnDescriptor s,
+        ProjectModel _,
+        IReadOnlyList<ThreatModel> threats,
+        IReadOnlyList<RequirementModel> __,
+        byte[]? ___,
+        IReadOnlyList<PdfC4MermaidBandImage>? ____)
+    {
+        s.Item().Text(
+                "Kans × impact (1–5). Score 1–4 laag, 5–9 midden, 10–16 hoog, 17–25 kritiek. Rest-risico = open dreigingen.")
+            .FontSize(9.5f).FontColor(PdfPalette.Muted);
+        foreach (var t in threats.OrderByDescending(x => x.RiskScore).ThenBy(x => x.Title).Take(PdfThreatListMax))
+            s.Item().Text($"{t.Title} — {t.RiskSummary} — {t.Status}");
+    }
+
     private static void BuildThreatsBody(
         ColumnDescriptor s,
         ProjectModel _,
@@ -332,7 +353,7 @@ public sealed class PdfReportService
     {
         foreach (var t in threats.OrderBy(x => x.Title).Take(PdfThreatListMax))
         {
-            s.Item().Text($"{t.Title} — {t.StrideCategory}, {t.Severity}, {t.Status}").SemiBold().FontColor(PdfPalette.Primary);
+            s.Item().Text($"{t.Title} — {t.StrideCategory}, {t.RiskSummary}, {t.Status}").SemiBold().FontColor(PdfPalette.Primary);
             s.Item().PaddingLeft(12).Text(t.Description);
             if (t.StatusChangedAtUtc is { } aud)
             {

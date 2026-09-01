@@ -20,7 +20,9 @@ public sealed class ThreatStatusAuditPersistenceTests
             StatusChangedAtUtc = auditUtc,
             StatusChangedBy = "Alice",
             StatusChangeNote = "Risico geaccepteerd ticket-42",
-            UserModified = true
+            UserModified = true,
+            Likelihood = 4,
+            Impact = 5
         });
 
         var doc = ProjectDocumentBuilder.Build(m, 99, auditUtc.AddDays(-1));
@@ -28,6 +30,9 @@ public sealed class ThreatStatusAuditPersistenceTests
 
         var t = Assert.Single(back.Threats);
         Assert.Equal(ThreatStatus.Accepted, t.Status);
+        Assert.Equal(4, t.Likelihood);
+        Assert.Equal(5, t.Impact);
+        Assert.Equal(20, t.RiskScore);
         Assert.Equal(auditUtc, t.StatusChangedAtUtc);
         Assert.Equal("Alice", t.StatusChangedBy);
         Assert.Equal("Risico geaccepteerd ticket-42", t.StatusChangeNote);

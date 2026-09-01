@@ -75,13 +75,22 @@
                                        FontWeight="SemiBold" TextWrapping="Wrap" />
                         </Expander.Header>
                         <StackPanel Margin="0,8,0,0">
-                            <TextBlock Text="STRIDE / ernst / status" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}"
-                                       ToolTip="STRIDE groepeert soorten aanvallen: Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privilege." />
+                            <TextBlock Text="STRIDE / kans × impact / status" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}"
+                                       ToolTip="Kans en impact 1–5. Ernst volgt uit de score." />
                             <ComboBox ItemsSource="{Binding DataContext.AllStrideCategories, RelativeSource={RelativeSource AncestorType=Window}}"
                                       SelectedItem="{Binding StrideCategory}" />
-                            <ComboBox Margin="0,4,0,0"
-                                      ItemsSource="{Binding DataContext.AllSeverities, RelativeSource={RelativeSource AncestorType=Window}}"
-                                      SelectedItem="{Binding Severity}" />
+                            <TextBlock Text="Kans" FontSize="11" Margin="0,6,0,0"
+                                       Foreground="{DynamicResource DgBrush.TextMuted}" />
+                            <ComboBox ItemsSource="{Binding DataContext.LikelihoodScale, RelativeSource={RelativeSource AncestorType=Window}}"
+                                      SelectedItem="{Binding Likelihood}"
+                                      SelectionChanged="ThreatRiskCombo_Changed" />
+                            <TextBlock Text="Impact" FontSize="11" Margin="0,6,0,0"
+                                       Foreground="{DynamicResource DgBrush.TextMuted}" />
+                            <ComboBox ItemsSource="{Binding DataContext.LikelihoodScale, RelativeSource={RelativeSource AncestorType=Window}}"
+                                      SelectedItem="{Binding Impact}"
+                                      SelectionChanged="ThreatRiskCombo_Changed" />
+                            <TextBlock Margin="0,6,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}"
+                                       Text="{Binding RiskSummary, Mode=OneWay}" />
                             <ComboBox Margin="0,4,0,0"
                                       ItemsSource="{Binding DataContext.AllThreatStatuses, RelativeSource={RelativeSource AncestorType=Window}}"
                                       SelectedItem="{Binding Status}"

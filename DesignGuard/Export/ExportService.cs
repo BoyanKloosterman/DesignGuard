@@ -48,6 +48,25 @@ public sealed class ExportService
         sb.AppendLine($"- **Bedrijfskritisch:** {(project.CriticalBusinessFunction ? "ja" : "nee")}");
         sb.AppendLine();
 
+        if (!string.IsNullOrWhiteSpace(project.AssessmentGoal) ||
+            project.AssessmentTestType != AssessmentTestType.Unspecified ||
+            !string.IsNullOrWhiteSpace(project.ScopeIn) ||
+            !string.IsNullOrWhiteSpace(project.ScopeOut) ||
+            !string.IsNullOrWhiteSpace(project.RulesOfEngagementNotes))
+        {
+            sb.AppendLine("## Kick-off en scope");
+            if (!string.IsNullOrWhiteSpace(project.AssessmentGoal))
+                sb.AppendLine($"- **Testdoel:** {project.AssessmentGoal}");
+            sb.AppendLine($"- **Testdiepte:** {project.AssessmentTestType}");
+            if (!string.IsNullOrWhiteSpace(project.ScopeIn))
+                sb.AppendLine($"- **In scope:** {project.ScopeIn}");
+            if (!string.IsNullOrWhiteSpace(project.ScopeOut))
+                sb.AppendLine($"- **Buiten scope:** {project.ScopeOut}");
+            if (!string.IsNullOrWhiteSpace(project.RulesOfEngagementNotes))
+                sb.AppendLine($"- **Afspraken:** {project.RulesOfEngagementNotes}");
+            sb.AppendLine();
+        }
+
         if (!string.IsNullOrWhiteSpace(project.GovernanceSecurityOwner) ||
             !string.IsNullOrWhiteSpace(project.GovernanceTechnicalOwner) ||
             !string.IsNullOrWhiteSpace(project.GovernanceComplianceStakeholder) ||
@@ -151,11 +170,21 @@ public sealed class ExportService
         }
 
         sb.AppendLine();
+        sb.AppendLine("## Risicoanalyse (kans × impact)");
+        sb.AppendLine("Score = kans × impact (1–25). 1–4 laag, 5–9 midden, 10–16 hoog, 17–25 kritiek. Alleen open dreigingen zijn rest-risico.");
+        sb.AppendLine();
+        foreach (var t in threats.OrderByDescending(x => x.RiskScore).ThenBy(x => x.Title))
+        {
+            sb.AppendLine(
+                $"- **{t.Title}** — {t.RiskSummary} — **Status:** {t.Status}");
+        }
+
+        sb.AppendLine();
         sb.AppendLine("## Threat model (STRIDE, regelgebaseerd + handmatig)");
         foreach (var t in threats.OrderBy(x => x.StrideCategory).ThenBy(x => x.Title))
         {
             sb.AppendLine($"### {t.Title}");
-            sb.AppendLine($"- **STRIDE:** {t.StrideCategory} — **Ernst:** {t.Severity} — **Status:** {t.Status}");
+            sb.AppendLine($"- **STRIDE:** {t.StrideCategory} — **Risico:** {t.RiskSummary} — **Ernst:** {t.Severity} — **Status:** {t.Status}");
             if (t.StatusChangedAtUtc is { } atUtc)
             {
                 var note = string.IsNullOrWhiteSpace(t.StatusChangeNote) ? "" : $" — **Toelichting:** {t.StatusChangeNote}";
@@ -296,7 +325,7 @@ public sealed class ExportService
         sb.AppendLine("DREIGINGEN");
         foreach (var t in threats)
         {
-            sb.AppendLine($"* {t.Title} [{t.StrideCategory}] {t.Severity} {t.Status}");
+            sb.AppendLine($"* {t.Title} [{t.StrideCategory}] {t.RiskSummary} {t.Status}");
             sb.AppendLine($"  {t.Description}");
             sb.AppendLine($"  Triggers: {string.Join(", ", t.TriggerKeys)}");
         }
@@ -337,10 +366,10 @@ public sealed class ExportService
         foreach (var c in project.Components)
             sb.AppendLine($"<tr><td>{Esc(c.Name)}</td><td>{Esc(c.Tag)}</td><td>{(c.IsEntryPoint ? "ja" : "nee")}</td></tr>");
         sb.AppendLine("</table>");
-        sb.AppendLine("<h2>Dreigingen</h2><table><tr><th>Titel</th><th>STRIDE</th><th>Ernst</th><th>Status</th></tr>");
+        sb.AppendLine("<h2>Dreigingen</h2><table><tr><th>Titel</th><th>STRIDE</th><th>Kans×impact</th><th>Status</th></tr>");
         foreach (var t in threats)
             sb.AppendLine(
-                $"<tr><td>{Esc(t.Title)}</td><td>{t.StrideCategory}</td><td>{t.Severity}</td><td>{t.Status}</td></tr>");
+                $"<tr><td>{Esc(t.Title)}</td><td>{t.StrideCategory}</td><td>{Esc(t.RiskSummary)}</td><td>{t.Status}</td></tr>");
         sb.AppendLine("</table>");
         sb.AppendLine("<h2>Eisen</h2><table><tr><th>Titel</th><th>Categorie</th><th>Prioriteit</th><th>Status</th></tr>");
         foreach (var r in requirements)
@@ -457,7 +486,7 @@ public sealed class ExportService
         foreach (var t in threats.OrderBy(x => x.StrideCategory).ThenBy(x => x.Title))
         {
             sb.AppendLine($"<h3>{Esc(t.Title)}</h3>");
-            sb.AppendLine($"<p class=\"tag\">{t.StrideCategory} — {t.Severity} — {t.Status} — herkomst {t.Origin}</p>");
+            sb.AppendLine($"<p class=\"tag\">{t.StrideCategory} — {Esc(t.RiskSummary)} — {t.Status} — herkomst {t.Origin}</p>");
             sb.AppendLine($"<p>{Esc(t.Description)}</p>");
             if (t.StatusChangedAtUtc is { } audHtml)
             {
@@ -549,6 +578,11 @@ public sealed class ExportService
                 project.GovernanceTechnicalOwner,
                 project.GovernanceComplianceStakeholder,
                 project.GovernanceReviewCadence,
+                project.AssessmentGoal,
+                AssessmentTestType = project.AssessmentTestType.ToString(),
+                project.ScopeIn,
+                project.ScopeOut,
+                project.RulesOfEngagementNotes,
                 c4Elements = project.C4Elements,
                 TrustBoundaries = project.TrustBoundaries,
                 Components = project.Components,
@@ -567,6 +601,10 @@ public sealed class ExportService
                 t.Title,
                 StrideCategory = t.StrideCategory.ToString(),
                 Severity = t.Severity.ToString(),
+                t.Likelihood,
+                t.Impact,
+                t.RiskScore,
+                RiskLevel = t.RiskLevel.ToString(),
                 Status = t.Status.ToString(),
                 statusChangedAtUtc = t.StatusChangedAtUtc,
                 t.StatusChangedBy,

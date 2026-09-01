@@ -33,24 +33,29 @@
                 <Button Content="Verwijderen" Style="{StaticResource DgButton.Toolbar}"
                         Command="{Binding DeleteProjectCommand}" />
                 <Button Content="Demoproject" Style="{StaticResource DgButton.Toolbar}"
-                        Command="{Binding EnsureDemoCommand}" Margin="0,0,0,12" />
+                        Command="{Binding EnsureDemoCommand}" Margin="0,0,8,12" />
                 <TextBlock Text="Werkruimte" Style="{StaticResource DgText.SectionLabel}" />
-                <ListBox Style="{StaticResource DgNavListBox}" MinHeight="220"
-                         SelectedIndex="{Binding NavSection, Mode=TwoWay, Converter={StaticResource NavSectionIndex}}">
-                    <ListBoxItem Content="Dashboard" />
-                    <ListBoxItem Content="Ontwerp" />
-                    <ListBoxItem Content="Dreigingen" />
-                    <ListBoxItem Content="C4-model" />
-                    <ListBoxItem Content="Threatmodel" />
-                    <ListBoxItem Content="Eisen" />
-                    <ListBoxItem Content="Controls" />
-                    <ListBoxItem Content="Beslissingen" />
-                    <ListBoxItem Content="Review" />
-                    <ListBoxItem Content="Traceability" />
-                    <ListBoxItem Content="Export" />
-                    <ListBoxItem Content="Instellingen" />
-                    <ListBoxItem Content="App security review" />
-                </ListBox>
+                <ItemsControl ItemsSource="{Binding WorkspaceNavGroups}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,0,0,8">
+                                <TextBlock Text="{Binding Title}" Style="{StaticResource DgText.SectionLabel}"
+                                           FontSize="11" Margin="2,4,0,4"
+                                           Foreground="{DynamicResource DgBrush.TextMuted}" />
+                                <ItemsControl ItemsSource="{Binding Items}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Content="{Binding Title}"
+                                                    Style="{StaticResource DgNavButton}"
+                                                    Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding Section}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
                 <TextBlock Text="Weergave" Style="{StaticResource DgText.SectionLabel}" Margin="0,12,0,4" />
                 <TextBlock Text="Thema" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
                 <ComboBox Margin="0,2,0,8" ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding UiTheme}" />

@@ -1,3 +1,5 @@
+using DesignGuard.Services;
+
 namespace DesignGuard.Models;
 
 public sealed class ThreatModel
@@ -11,6 +13,13 @@ public sealed class ThreatModel
     public string Title { get; set; } = "";
     public StrideCategory StrideCategory { get; set; }
     public SeverityEstimate Severity { get; set; } = SeverityEstimate.Medium;
+    /// <summary>Kans 1–5; 0 = nog niet gezet (backfill uit ernst).</summary>
+    public int Likelihood { get; set; }
+    /// <summary>Impact 1–5; 0 = nog niet gezet (backfill uit ernst).</summary>
+    public int Impact { get; set; }
+    public int RiskScore => RiskScoring.Score(Likelihood, Impact);
+    public RiskLevel RiskLevel => RiskScoring.LevelOf(this);
+    public string RiskSummary => RiskScoring.FormatSummary(this);
     public ThreatStatus Status { get; set; } = ThreatStatus.Open;
 
     /// <summary>UTC-tijdstip van de laatste statuswijziging (review/mitigatie).</summary>

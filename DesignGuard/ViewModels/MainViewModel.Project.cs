@@ -97,6 +97,12 @@ public partial class MainViewModel
         EditorGovernanceTechnicalOwner = "";
         EditorGovernanceComplianceStakeholder = "";
         EditorGovernanceReviewCadence = "";
+        EditorAssessmentGoal = "";
+        EditorAssessmentTestType = AssessmentTestType.Unspecified.ToString();
+        EditorScopeIn = "";
+        EditorScopeOut = "";
+        EditorRulesOfEngagementNotes = "";
+        _completedPlaybookItemIds.Clear();
         DetachComponentRowTagSuggestionHandlers();
         TrustBoundaries.Clear();
         Components.Clear();
@@ -114,6 +120,7 @@ public partial class MainViewModel
         SelectedC4Relation = null;
         Suggestions.Clear();
         _dismissedSuggestionKeys.Clear();
+        _completedPlaybookItemIds.Clear();
         Threats.Clear();
         Requirements.Clear();
         MermaidCode = string.Empty;
@@ -151,6 +158,12 @@ public partial class MainViewModel
         EditorGovernanceTechnicalOwner = p.GovernanceTechnicalOwner;
         EditorGovernanceComplianceStakeholder = p.GovernanceComplianceStakeholder;
         EditorGovernanceReviewCadence = p.GovernanceReviewCadence;
+        EditorAssessmentGoal = p.AssessmentGoal;
+        EditorAssessmentTestType = p.AssessmentTestType.ToString();
+        EditorScopeIn = p.ScopeIn;
+        EditorScopeOut = p.ScopeOut;
+        EditorRulesOfEngagementNotes = p.RulesOfEngagementNotes;
+        _completedPlaybookItemIds = new HashSet<string>(p.CompletedPlaybookItemIds, StringComparer.Ordinal);
         _dismissedSuggestionKeys = new HashSet<string>(p.DismissedSuggestionKeys, StringComparer.Ordinal);
 
         TrustBoundaries.Clear();
@@ -562,6 +575,14 @@ public partial class MainViewModel
             GovernanceTechnicalOwner = EditorGovernanceTechnicalOwner,
             GovernanceComplianceStakeholder = EditorGovernanceComplianceStakeholder,
             GovernanceReviewCadence = EditorGovernanceReviewCadence,
+            AssessmentGoal = EditorAssessmentGoal,
+            AssessmentTestType = Enum.TryParse<AssessmentTestType>(EditorAssessmentTestType, out var att)
+                ? att
+                : AssessmentTestType.Unspecified,
+            ScopeIn = EditorScopeIn,
+            ScopeOut = EditorScopeOut,
+            RulesOfEngagementNotes = EditorRulesOfEngagementNotes,
+            CompletedPlaybookItemIds = _completedPlaybookItemIds.ToList(),
             TrustBoundaries = tbList,
             Components = compList,
             DataFlows = flows,

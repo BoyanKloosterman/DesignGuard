@@ -46,7 +46,12 @@ public static class DemoProjectFactory
                 "• Webhook HMAC: implementatie klaar in staging; productie-cutover week 16.\n" +
                 "• Admin SPA: nog geen volledige device-flow getest met nieuwe sessiestore.\n" +
                 "• Object storage: bucket policy 'private + signed URL' — IAM-review door infra gepland.\n" +
-                "• DDoS-risico: geaccepteerd t.o.v. CDN; geen extra actie tenzij SLA wijzigt."
+                "• DDoS-risico: geaccepteerd t.o.v. CDN; geen extra actie tenzij SLA wijzigt.",
+            AssessmentGoal = "Grey-box assessment van de webshop: misbruik van sessies, admin, webhooks en dataopslag in kaart brengen.",
+            AssessmentTestType = AssessmentTestType.GreyBox,
+            ScopeIn = "Shop SPA, admin-API, API-gateway, PostgreSQL, Redis, object storage, PSP-webhooks (testomgeving).",
+            ScopeOut = "Productie-writes, fysieke toegang, social engineering, derde-partij PSP-platform zelf.",
+            RulesOfEngagementNotes = "Alleen testomgeving. Geen DoS-loadtests. Escalatie via security-eigenaar."
         };
 
         p.TrustBoundaries.Add(new TrustBoundaryModel
@@ -486,6 +491,9 @@ public static class DemoProjectFactory
                 WhyIncluded = "Inbound callbacks van externe PSP."
             }
         });
+
+        foreach (var t in p.Threats)
+            RiskScoring.EnsureScores(t);
 
         p.Requirements.Add(new RequirementModel
         {

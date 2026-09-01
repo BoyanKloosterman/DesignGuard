@@ -120,4 +120,37 @@ public sealed class AnalysisMergeServiceTests
         Assert.Equal("Charlie", r.StatusChangedBy);
         Assert.Equal("OK", r.StatusChangeNote);
     }
+
+    [Fact]
+    public void MergeThreats_behoudt_kans_en_impact_van_oude_generated_rij()
+    {
+        var project = new ProjectModel();
+        project.Threats.Add(new ThreatModel
+        {
+            Origin = ThreatOrigin.Generated,
+            UserModified = false,
+            RuleFingerprint = "t1",
+            Title = "Oud",
+            Likelihood = 5,
+            Impact = 4
+        });
+
+        _sut.MergeThreats(project, new List<ThreatModel>
+        {
+            new()
+            {
+                Origin = ThreatOrigin.Generated,
+                RuleFingerprint = "t1",
+                Title = "Nieuw",
+                Likelihood = 2,
+                Impact = 2
+            }
+        });
+
+        var t = Assert.Single(project.Threats);
+        Assert.Equal("Nieuw", t.Title);
+        Assert.Equal(5, t.Likelihood);
+        Assert.Equal(4, t.Impact);
+        Assert.Equal(SeverityEstimate.High, t.Severity);
+    }
 }

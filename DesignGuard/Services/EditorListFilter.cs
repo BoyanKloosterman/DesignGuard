@@ -7,7 +7,7 @@ public static class EditorListFilter
 {
     public const string QuickFilterAlle = "Alle";
     public const string QuickFilterAlleenOpen = "Alleen open";
-    public const string QuickFilterAlleenHoog = "Alleen hoog (ernst)";
+    public const string QuickFilterAlleenHoog = "Alleen hoog / kritiek";
 
     public static IReadOnlyList<ThreatModel> FilterAndSortThreats(
         IEnumerable<ThreatModel> threats,
@@ -28,13 +28,14 @@ public static class EditorListFilter
         if (string.Equals(quickFilter, QuickFilterAlleenOpen, StringComparison.OrdinalIgnoreCase))
             tq = tq.Where(t => t.Status == ThreatStatus.Open);
         else if (string.Equals(quickFilter, QuickFilterAlleenHoog, StringComparison.OrdinalIgnoreCase))
-            tq = tq.Where(t => t.Severity == SeverityEstimate.High);
+            tq = tq.Where(t => t.RiskLevel is RiskLevel.High or RiskLevel.Critical
+                               || t.Severity == SeverityEstimate.High);
 
         tq = threatSort switch
         {
             "Status" => tq.OrderBy(t => t.Status).ThenBy(t => t.Title),
             "Category" => tq.OrderBy(t => t.StrideCategory).ThenBy(t => t.Title),
-            _ => tq.OrderByDescending(t => t.Severity).ThenBy(t => t.Title)
+            _ => tq.OrderByDescending(t => t.RiskScore).ThenByDescending(t => t.Severity).ThenBy(t => t.Title)
         };
 
         return tq.ToList();

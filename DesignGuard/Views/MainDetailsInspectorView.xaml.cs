@@ -23,6 +23,14 @@ public partial class MainDetailsInspectorView : UserControl
         }
     }
 
+    private void ThreatRiskCombo_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.RemovedItems.Count == 0) return;
+        if (DataContext is not MainViewModel vm) return;
+        if (sender is not FrameworkElement fe || fe.DataContext is not ThreatModel t) return;
+        vm.OnThreatRiskChanged(t);
+    }
+
     private void ThreatStatusCombo_GotFocus(object sender, RoutedEventArgs e) =>
         CaptureThreatStatusBaseline(sender as ComboBox);
 

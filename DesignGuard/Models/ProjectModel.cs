@@ -57,6 +57,23 @@ public sealed class ProjectModel
     /// <summary>Reviewritme (bv. kwartaal) of planning-notitie.</summary>
     public string GovernanceReviewCadence { get; set; } = "";
 
+    /// <summary>Testdoel / opdrachtformulering (kick-off).</summary>
+    public string AssessmentGoal { get; set; } = "";
+
+    public AssessmentTestType AssessmentTestType { get; set; } = AssessmentTestType.Unspecified;
+
+    /// <summary>In-scope samenvatting (systemen, omgevingen, accounts).</summary>
+    public string ScopeIn { get; set; } = "";
+
+    /// <summary>Expliciet buiten scope.</summary>
+    public string ScopeOut { get; set; } = "";
+
+    /// <summary>Afspraken / rules of engagement (geen juridisch contract).</summary>
+    public string RulesOfEngagementNotes { get; set; } = "";
+
+    /// <summary>Afgevinkte playbook-items (stabiele id's).</summary>
+    public List<string> CompletedPlaybookItemIds { get; set; } = new();
+
     /// <summary>Afgewezen suggesties (rule keys), lokaal opgeslagen.</summary>
     public List<string> DismissedSuggestionKeys { get; set; } = new();
 

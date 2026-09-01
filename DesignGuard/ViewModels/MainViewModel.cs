@@ -149,29 +149,31 @@ public partial class MainViewModel : ObservableObject
             Title = "Start",
             Items =
             [
-                new WorkspaceNavItem { Title = "Dashboard", Section = MainNavSection.Dashboard },
-                new WorkspaceNavItem { Title = "Ontwerp", Section = MainNavSection.Design },
-                new WorkspaceNavItem { Title = "C4-model", Section = MainNavSection.C4Model }
+                new WorkspaceNavItem { Title = "Dashboard", Section = MainNavSection.Dashboard }
             ]
         },
         new WorkspaceNavGroup
         {
-            Title = "Analyse",
+            Title = "Ontwerp",
             Items =
             [
+                new WorkspaceNavItem { Title = "Ontwerp", Section = MainNavSection.Design },
+                new WorkspaceNavItem { Title = "C4-model", Section = MainNavSection.C4Model },
                 new WorkspaceNavItem { Title = "Dreigingen", Section = MainNavSection.Threats },
                 new WorkspaceNavItem { Title = "Threatmodel", Section = MainNavSection.ThreatModel },
                 new WorkspaceNavItem { Title = "Eisen", Section = MainNavSection.Requirements },
-                new WorkspaceNavItem { Title = "Controls", Section = MainNavSection.Controls }
+                new WorkspaceNavItem { Title = "Controls", Section = MainNavSection.Controls },
+                new WorkspaceNavItem { Title = "Traceability", Section = MainNavSection.Traceability }
             ]
         },
         new WorkspaceNavGroup
         {
-            Title = "Risico",
+            Title = "Pentest",
             Items =
             [
-                new WorkspaceNavItem { Title = "Risicoanalyse", Section = MainNavSection.RiskAnalysis },
-                new WorkspaceNavItem { Title = "Beslissingen", Section = MainNavSection.Decisions }
+                new WorkspaceNavItem { Title = "Aanpak", Section = MainNavSection.Pentest },
+                new WorkspaceNavItem { Title = "Bevindingen", Section = MainNavSection.PentestFindings },
+                new WorkspaceNavItem { Title = "Risicoanalyse", Section = MainNavSection.RiskAnalysis }
             ]
         },
         new WorkspaceNavGroup
@@ -179,8 +181,8 @@ public partial class MainViewModel : ObservableObject
             Title = "Afronding",
             Items =
             [
+                new WorkspaceNavItem { Title = "Beslissingen", Section = MainNavSection.Decisions },
                 new WorkspaceNavItem { Title = "Review", Section = MainNavSection.Review },
-                new WorkspaceNavItem { Title = "Traceability", Section = MainNavSection.Traceability },
                 new WorkspaceNavItem { Title = "Export", Section = MainNavSection.Export }
             ]
         },
@@ -264,6 +266,22 @@ public partial class MainViewModel : ObservableObject
     public IReadOnlyList<string> UiDensityOptions { get; } = new[] { "Comfortable", "Compact" };
 
     public IReadOnlyList<int> LikelihoodScale { get; } = RiskScoring.Scale;
+
+    public IReadOnlyList<FindingStatus> AllFindingStatuses { get; } =
+        Enum.GetValues(typeof(FindingStatus)).Cast<FindingStatus>().ToArray();
+
+    public IReadOnlyList<string> WstgCategoryOptions { get; } =
+    [
+        "Authenticatie",
+        "Sessiebeheer",
+        "Autorisatie",
+        "Inputvalidatie",
+        "Cryptografie",
+        "Business logic",
+        "API",
+        "Foutafhandeling",
+        "Overig"
+    ];
 
     public IReadOnlyList<string> AssessmentTestTypeOptions { get; } =
         Enum.GetNames(typeof(AssessmentTestType)).ToList();
@@ -395,6 +413,18 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private string _editorRulesOfEngagementNotes = "";
 
+    [ObservableProperty] private string _editorAssessmentContact = "";
+
+    [ObservableProperty] private string _editorAssessmentWindow = "";
+
+    [ObservableProperty] private string _editorAssessmentEnvironment = "";
+
+    [ObservableProperty] private string _editorAssessmentAccounts = "";
+
+    [ObservableProperty] private string _editorAssessmentLimitations = "";
+
+    [ObservableProperty] private ObservableCollection<PentestFindingModel> _findings = new();
+
     [ObservableProperty] private ObservableCollection<TrustBoundaryRowViewModel> _trustBoundaries = new();
 
     [ObservableProperty] private ObservableCollection<ComponentRowViewModel> _components = new();
@@ -491,6 +521,8 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private int _implementedRequirementCount;
 
+    [ObservableProperty] private int _openFindingCount;
+
     [ObservableProperty] private string _validationSummaryText = "";
 
     [ObservableProperty]
@@ -504,6 +536,10 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowProjectOverviewInDetails))]
     private ComponentRowViewModel? _selectedComponent;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowProjectOverviewInDetails))]
+    private PentestFindingModel? _selectedFinding;
 
     [ObservableProperty] private string _exportPreview = "";
 
@@ -522,7 +558,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<AppSecurityReviewRowViewModel> _appSecurityReviewRows = new();
 
     public bool ShowProjectOverviewInDetails =>
-        SelectedThreat == null && SelectedRequirement == null && SelectedComponent == null;
+        SelectedThreat == null && SelectedRequirement == null && SelectedComponent == null && SelectedFinding == null;
 
     public bool HasOpenProject => CurrentProjectId != 0;
 
@@ -623,6 +659,8 @@ public partial class MainViewModel : ObservableObject
         }
 
         if (value == MainNavSection.RiskAnalysis) RefreshRiskAnalysis();
+        if (value is MainNavSection.Pentest or MainNavSection.PentestFindings) RefreshPlaybook();
+        if (value == MainNavSection.PentestFindings) RefreshRiskAnalysis();
         if (value == MainNavSection.Traceability) RefreshTraceability();
         if (value == MainNavSection.Export) RefreshExportPreview();
         if (value == MainNavSection.Settings)
@@ -638,8 +676,27 @@ public partial class MainViewModel : ObservableObject
         if (value == MainNavSection.Dashboard) RefreshPlaybook();
     }
 
+    partial void OnSelectedFindingChanged(PentestFindingModel? value)
+    {
+        if (value == null) return;
+        SelectedThreat = null;
+        SelectedRequirement = null;
+        SelectedComponent = null;
+    }
+
+    partial void OnSelectedRequirementChanged(RequirementModel? value)
+    {
+        if (value != null) SelectedFinding = null;
+    }
+
+    partial void OnSelectedComponentChanged(ComponentRowViewModel? value)
+    {
+        if (value != null) SelectedFinding = null;
+    }
+
     partial void OnSelectedThreatChanged(ThreatModel? value)
     {
+        if (value != null) SelectedFinding = null;
         if (NavSection == MainNavSection.Design) RefreshDiagram();
     }
 

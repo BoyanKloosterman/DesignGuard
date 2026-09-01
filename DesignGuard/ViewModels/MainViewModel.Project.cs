@@ -102,6 +102,13 @@ public partial class MainViewModel
         EditorScopeIn = "";
         EditorScopeOut = "";
         EditorRulesOfEngagementNotes = "";
+        EditorAssessmentContact = "";
+        EditorAssessmentWindow = "";
+        EditorAssessmentEnvironment = "";
+        EditorAssessmentAccounts = "";
+        EditorAssessmentLimitations = "";
+        Findings.Clear();
+        SelectedFinding = null;
         _completedPlaybookItemIds.Clear();
         DetachComponentRowTagSuggestionHandlers();
         TrustBoundaries.Clear();
@@ -163,6 +170,13 @@ public partial class MainViewModel
         EditorScopeIn = p.ScopeIn;
         EditorScopeOut = p.ScopeOut;
         EditorRulesOfEngagementNotes = p.RulesOfEngagementNotes;
+        EditorAssessmentContact = p.AssessmentContact;
+        EditorAssessmentWindow = p.AssessmentWindow;
+        EditorAssessmentEnvironment = p.AssessmentEnvironment;
+        EditorAssessmentAccounts = p.AssessmentAccounts;
+        EditorAssessmentLimitations = p.AssessmentLimitations;
+        Findings = new ObservableCollection<PentestFindingModel>(p.Findings);
+        SelectedFinding = null;
         _completedPlaybookItemIds = new HashSet<string>(p.CompletedPlaybookItemIds, StringComparer.Ordinal);
         _dismissedSuggestionKeys = new HashSet<string>(p.DismissedSuggestionKeys, StringComparer.Ordinal);
 
@@ -582,7 +596,13 @@ public partial class MainViewModel
             ScopeIn = EditorScopeIn,
             ScopeOut = EditorScopeOut,
             RulesOfEngagementNotes = EditorRulesOfEngagementNotes,
+            AssessmentContact = EditorAssessmentContact,
+            AssessmentWindow = EditorAssessmentWindow,
+            AssessmentEnvironment = EditorAssessmentEnvironment,
+            AssessmentAccounts = EditorAssessmentAccounts,
+            AssessmentLimitations = EditorAssessmentLimitations,
             CompletedPlaybookItemIds = _completedPlaybookItemIds.ToList(),
+            Findings = Findings.ToList(),
             TrustBoundaries = tbList,
             Components = compList,
             DataFlows = flows,

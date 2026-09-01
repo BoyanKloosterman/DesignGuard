@@ -55,36 +55,15 @@
                              Text="{Binding EditorGovernanceReviewCadence, UpdateSourceTrigger=PropertyChanged}" />
                 </Grid>
             </GroupBox>
-            <GroupBox Header="Kick-off en scope" Margin="0,8,0,0">
-                <Grid Margin="8">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="160" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Testdoel" VerticalAlignment="Center" />
-                    <TextBox Grid.Column="1" Text="{Binding EditorAssessmentGoal, UpdateSourceTrigger=PropertyChanged}"
-                             TextWrapping="Wrap" AcceptsReturn="True" MinHeight="40" />
-                    <TextBlock Grid.Row="1" Text="Testdiepte" Margin="0,8,0,0" VerticalAlignment="Center" />
-                    <ComboBox Grid.Row="1" Grid.Column="1" Margin="0,8,0,0"
-                              ItemsSource="{Binding AssessmentTestTypeOptions}"
-                              SelectedItem="{Binding EditorAssessmentTestType}" />
-                    <TextBlock Grid.Row="2" Text="In scope" Margin="0,8,0,0" />
-                    <TextBox Grid.Row="2" Grid.Column="1" Margin="0,8,0,0" Height="48" TextWrapping="Wrap" AcceptsReturn="True"
-                             Text="{Binding EditorScopeIn, UpdateSourceTrigger=PropertyChanged}" />
-                    <TextBlock Grid.Row="3" Text="Buiten scope" Margin="0,8,0,0" />
-                    <TextBox Grid.Row="3" Grid.Column="1" Margin="0,8,0,0" Height="48" TextWrapping="Wrap" AcceptsReturn="True"
-                             Text="{Binding EditorScopeOut, UpdateSourceTrigger=PropertyChanged}" />
-                    <TextBlock Grid.Row="4" Text="Afspraken / RoE" Margin="0,8,0,0" />
-                    <TextBox Grid.Row="4" Grid.Column="1" Margin="0,8,0,0" Height="48" TextWrapping="Wrap" AcceptsReturn="True"
-                             Text="{Binding EditorRulesOfEngagementNotes, UpdateSourceTrigger=PropertyChanged}" />
-                </Grid>
+            <GroupBox Header="Pentest-aanpak" Margin="0,8,0,0">
+                <StackPanel Margin="8">
+                    <TextBlock Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"
+                               Text="Kick-off, scope, testdekking en bevindingen staan onder Pentest → Aanpak. Dit scherm blijft threat modeling." />
+                    <Button Content="Naar aanpak" HorizontalAlignment="Left" Margin="0,8,0,0"
+                            Style="{StaticResource DgButton.Toolbar}"
+                            Command="{Binding NavigateCommand}"
+                            CommandParameter="{x:Static dg:MainNavSection.Pentest}" />
+                </StackPanel>
             </GroupBox>
             <GroupBox Header="Systeemcontext" Margin="0,8,0,0">
                 <Grid Margin="8">

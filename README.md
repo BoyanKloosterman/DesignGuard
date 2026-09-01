@@ -36,7 +36,7 @@ De interface heeft **drie kolommen** (op elke screenshot hetzelfde patroon):
 | **Werkruimte** | Links midden | Navigatie naar alle hoofdschermen + **thema**, **uitlegniveau**, **dichtheid** |
 | **Projectlijst** | Links onder | Actief project; klik om te wisselen |
 | **Hoofdinhoud** | Midden | Het gekozen scherm (formulieren, lijsten, diagram, exportpreview, …) |
-| **Details (Inspector)** | Rechts | Suggesties + bewerking van geselecteerde **dreiging**, **eis** of **component** |
+| **Details (Inspector)** | Rechts | Suggesties + bewerking van geselecteerde **dreiging**, **eis**, **bevinding** of **component** |
 | **Statusbalk** | Onder | Status- en foutmeldingen (o.a. MongoDB) |
 
 **Zo lees je de plaatjes:** links staat altijd *waar* je naartoe navigeert; het midden is *het werk*; rechts is *uitleg en bewerking* van je selectie. Onderaan de statusregel zie je o.a. of het project geladen is.
@@ -73,7 +73,7 @@ Gebruik deze tabel om snel de juiste PNG bij een onderwerp te vinden.
 |-----------|-----------------|
 | **Nieuw project / Wizard / Opslaan / Verwijderen** | Leeg project, wizard met snelle start, alles naar MongoDB schrijven, project verwijderen. |
 | **Demoproject** | Zorgt dat het scenario *Demo — Webshop (uitgebreid)* bestaat en verschijnt in de lijst. |
-| **Werkruimte (navigatie)** | Gegroepeerd: Start, Analyse, Risico, Afronding, Systeem. |
+| **Werkruimte (navigatie)** | Gegroepeerd: Start, Ontwerp, Pentest, Afronding, Systeem. |
 | **Thema / Uitlegniveau / Dichtheid** | Thema van de UI; **Beginner** toont kortere uitleg in de Inspector, **Advanced** toont o.a. STRIDE-expander volledig; dichtheid bepaalt hoe compact lijsten/kaarten zijn. |
 | **Projectlijst onderaan** | Welk project is actief. |
 | **Midden: tegels** | Voortgang op dreigingen en eisen (open, gemitigeerd, geïmplementeerd, …). |
@@ -258,7 +258,13 @@ Hieronder: per tab één README-plaatje. Navigatie: klik in de **werkruimte** li
 
 ### Risicoanalyse
 
-**Waarvoor:** kans × impact per dreiging (1–5). Heatmap van open rest-risico; register gesorteerd op score. Ernst in export volgt uit de score.
+**Waarvoor:** kans × impact (1–5) op twee registers: ontwerp-dreigingen en pentest-bevindingen. Heatmaps van open rest-risico; zelfde schaal.
+
+### Aanpak en bevindingen (pentest)
+
+**Waarvoor:** kick-off, scope, recon, testdekking en herstest onder **Pentest → Aanpak**. Observaties in **Bevindingen** (los van STRIDE). Geen scanners of exploits. Ontwerp blijft threat modeling.
+
+DesignGuard heeft **twee sporen**: ontwerp (C4/STRIDE/eisen/controls) en pentest (aanpak + bevindingen). Beide komen samen in risicoanalyse en export.
 
 ### Beslissingen — `06-beslissingen.png`
 
@@ -352,7 +358,7 @@ Het ingebouwde project **Demo — Webshop (uitgebreid)** (constant in code: `Dem
 - **Meerdere componenten** (SPA’s, gateway, services, PostgreSQL, Redis, object storage, PSP, mail).
 - **Datastromen** tussen de relevante paren.
 - **Rollen, assets, entry points** en **gevoelige datacategorieën** zodat de tab *Ontwerp* op meerdere schermhoogtes uitleg heeft.
-- **Dreigingen, eisen, controls en review-items** in gemengde status (alsof er al in is gewerkt).
+- **Dreigingen, eisen, controls, één voorbeeld-bevinding en review-items** in gemengde status (alsof er al in is gewerkt).
 
 Het demoproject wordt bij eerste start aangemaakt als MongoDB bereikbaar is. Oudere demo’s met andere namen blijven staan tot je ze opruimt.
 
@@ -381,6 +387,9 @@ Zie ook de **[PNG-index](#png-index)** voor de koppeling naar elke PNG.
 | STRIDE en status van één dreiging | Dreiging selecteren → **Inspector** | `03` |
 | Handmatige inhoud behouden | Inspector: **Behoud bij opnieuw genereren** | `03` / `04` |
 | Controls | **Controls**; op Dashboard: **Control-bibliotheek** | `05` |
+| Testdoel, scope, RoE | **Pentest → Aanpak** | — |
+| Pentest-bevinding | **Pentest → Bevindingen** | — |
+| Kans × impact dreigingen en bevindingen | **Pentest → Risicoanalyse** | — |
 | Open punten en besluiten | **Beslissingen** | `06` |
 | Review-workflow | **Review** | `07` |
 | Trace-overzicht alleen-lezen | **Traceability** | `08` |
@@ -451,13 +460,13 @@ Zorg dat MongoDB draait en bereikbaar is voordat je projecten opslaat.
 
 ## Aanbevolen werkwijze
 
-1. **Kick-off** — Dashboard: testdoel, testdiepte (black/grey/white box) en afspraken. Checklist van de aanpak afwerken.
-2. **Scope** — Ontwerp: in/out of scope, trust boundaries, componenten, entry points, assets, C4.
-3. **Analyse** — **Analyse vernieuwen**; dreigingen, eisen en controls nalopen.
-4. **Risicoanalyse** — Kans × impact (1–5) per dreiging; heatmap en register; rest-risico = open items.
-5. **Rapportage** — Traceability, review, export (Markdown/PDF/JSON). Regelmatig **Opslaan**.
+1. **Ontwerp** — C4, componenten, dreigingen, eisen, controls, traceability.
+2. **Pentest-aanpak** — kick-off (doel, testdiepte, contact, venster, omgeving, accounts, beperkingen), recon, testdekking, herstest. Checklist per fase.
+3. **Bevindingen** — observaties tijdens toetsing, kans × impact, status. Los van STRIDE.
+4. **Risicoanalyse** — dreigingen én bevindingen op dezelfde K×I-schaal.
+5. **Rapportage** — export Markdown/PDF/JSON. Regelmatig **Opslaan**.
 
-Dit is een assessment-werkproces, geen live pentest.
+Twee sporen, geen live pentest.
 
 ### Tips
 

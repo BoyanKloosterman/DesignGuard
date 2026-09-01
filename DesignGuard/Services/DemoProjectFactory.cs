@@ -21,6 +21,7 @@ public static class DemoProjectFactory
     private const string ReqWebhookSig = "d3m0req000000000000000000000002";
     private const string ReqHeaders = "d3m0req000000000000000000000003";
     private const string ReqSecretsRot = "d3m0req000000000000000000000004";
+    private const string FindingAdminIdor = "d3m0finding00000000000000000001";
 
     public static ProjectModel CreateDemoProject()
     {
@@ -51,7 +52,12 @@ public static class DemoProjectFactory
             AssessmentTestType = AssessmentTestType.GreyBox,
             ScopeIn = "Shop SPA, admin-API, API-gateway, PostgreSQL, Redis, object storage, PSP-webhooks (testomgeving).",
             ScopeOut = "Productie-writes, fysieke toegang, social engineering, derde-partij PSP-platform zelf.",
-            RulesOfEngagementNotes = "Alleen testomgeving. Geen DoS-loadtests. Escalatie via security-eigenaar."
+            RulesOfEngagementNotes = "Alleen testomgeving. Geen DoS-loadtests. Escalatie via security-eigenaar.",
+            AssessmentContact = "Security-eigenaar; escalatie technische eigenaar.",
+            AssessmentWindow = "Kantooruren, testomgeving, week 16.",
+            AssessmentEnvironment = "test",
+            AssessmentAccounts = "shop-user, admin-readonly — geen wachtwoorden in DesignGuard.",
+            AssessmentLimitations = "WAF actief. Geen DoS. Geen productie-writes."
         };
 
         p.TrustBoundaries.Add(new TrustBoundaryModel
@@ -554,6 +560,21 @@ public static class DemoProjectFactory
             WhyApplies = "Meerdere externe integraties (PSP, mail).",
             Notes = "Wacht op vault-upgrade Q3.",
             SourceTags = new List<string> { "demo", "ops" }
+        });
+
+        p.Findings.Add(new PentestFindingModel
+        {
+            Id = FindingAdminIdor,
+            Title = "Admin-order zonder tenant-check in test",
+            Description = "In de testomgeving was een order van een andere tenant opvraagbaar via de admin-API.",
+            AffectedTarget = "https://admin-api.test.example/orders/{id}",
+            EvidenceNotes = "Zelfde order-id van een andere tenant gaf HTTP 200. Geen exploit-stappen of payloads vastgelegd.",
+            Recommendation = "Object-level autorisatie per tenant; weiger cross-tenant reads.",
+            WstgCategory = "Autorisatie",
+            Likelihood = 4,
+            Impact = 5,
+            Status = FindingStatus.Open,
+            LinkedThreatId = ThreatSession
         });
 
         AddDemoC4Model(p);

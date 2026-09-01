@@ -89,11 +89,17 @@ public static class RiskScoring
         t.Severity = ToSeverity(LevelOf(t));
     }
 
+    public static string FormatSummary(int likelihood, int impact)
+    {
+        var score = Score(likelihood, impact);
+        if (score <= 0) return "n.n.b.";
+        return $"K{likelihood} × I{impact} = {score} ({LevelLabel(Level(score))})";
+    }
+
     public static string FormatSummary(ThreatModel t)
     {
         if (!HasScores(t)) return t.Severity.ToString();
-        var score = Score(t.Likelihood, t.Impact);
-        return $"K{t.Likelihood} × I{t.Impact} = {score} ({LevelLabel(Level(score))})";
+        return FormatSummary(t.Likelihood, t.Impact);
     }
 
     /// <summary>Voorstel voor kans/impact op basis van ernst en ontwerpcontext.</summary>

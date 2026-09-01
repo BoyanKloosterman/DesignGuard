@@ -203,7 +203,7 @@ public sealed class PdfReportService
         s.Item().Text(
             $"Componenten: {project.Components.Count}, datastromen: {project.DataFlows.Count}, " +
             $"C4-elementen: {project.C4Elements.Count}, dreigingen: {threats.Count}, eisen: {requirements.Count}, " +
-            $"controls: {project.Controls.Count}.");
+            $"bevindingen: {project.Findings.Count}, controls: {project.Controls.Count}.");
         s.Item().Text(
                 "PDF toont beperkte lengtes voor dreigingen/eisen/traceability. Volledige inhoud: export Markdown of JSON.")
             .FontSize(9.5f).FontColor(PdfPalette.Muted);
@@ -222,8 +222,16 @@ public sealed class PdfReportService
             $"Internet: {(project.InternetExposed ? "ja" : "nee")}, persoonsgegevens: {(project.PersonalDataProcessed ? "ja" : "nee")}.");
         if (!string.IsNullOrWhiteSpace(project.AssessmentGoal))
             s.Item().Text($"Testdoel: {project.AssessmentGoal}");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentContact))
+            s.Item().Text($"Contact: {project.AssessmentContact}");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentWindow))
+            s.Item().Text($"Tijdvenster: {project.AssessmentWindow}");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentEnvironment))
+            s.Item().Text($"Omgeving: {project.AssessmentEnvironment}");
         if (!string.IsNullOrWhiteSpace(project.ScopeIn))
             s.Item().Text($"In scope: {project.ScopeIn}");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentLimitations))
+            s.Item().Text($"Beperkingen: {project.AssessmentLimitations}");
     }
 
     private static void BuildArchBody(
@@ -330,17 +338,21 @@ public sealed class PdfReportService
 
     private static void BuildRiskBody(
         ColumnDescriptor s,
-        ProjectModel _,
+        ProjectModel project,
         IReadOnlyList<ThreatModel> threats,
         IReadOnlyList<RequirementModel> __,
         byte[]? ___,
         IReadOnlyList<PdfC4MermaidBandImage>? ____)
     {
         s.Item().Text(
-                "Kans × impact (1–5). Score 1–4 laag, 5–9 midden, 10–16 hoog, 17–25 kritiek. Rest-risico = open dreigingen.")
+                "Kans × impact (1–5). Score 1–4 laag, 5–9 midden, 10–16 hoog, 17–25 kritiek. Rest-risico = open dreigingen en open bevindingen.")
             .FontSize(9.5f).FontColor(PdfPalette.Muted);
+        s.Item().Text("Ontwerp-dreigingen").SemiBold();
         foreach (var t in threats.OrderByDescending(x => x.RiskScore).ThenBy(x => x.Title).Take(PdfThreatListMax))
             s.Item().Text($"{t.Title} — {t.RiskSummary} — {t.Status}");
+        s.Item().PaddingTop(6).Text("Pentest-bevindingen").SemiBold();
+        foreach (var f in project.Findings.OrderByDescending(x => x.RiskScore).ThenBy(x => x.Title).Take(PdfThreatListMax))
+            s.Item().Text($"{f.Title} — {f.RiskSummary} — {f.Status}");
     }
 
     private static void BuildThreatsBody(

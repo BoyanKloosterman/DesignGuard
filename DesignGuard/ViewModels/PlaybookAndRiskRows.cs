@@ -30,6 +30,7 @@ public sealed class PlaybookPhaseRowViewModel
     public required DesignGuard.MainNavSection NavSection { get; init; }
     public required string ProgressText { get; init; }
     public required bool IsCurrent { get; init; }
+    public required bool IsSelected { get; init; }
     public required IReadOnlyList<string> Practices { get; init; }
     public required IReadOnlyList<PlaybookItemRowViewModel> Items { get; init; }
 }

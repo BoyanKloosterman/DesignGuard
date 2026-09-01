@@ -31,6 +31,14 @@ public partial class MainDetailsInspectorView : UserControl
         vm.OnThreatRiskChanged(t);
     }
 
+    private void FindingRiskCombo_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.RemovedItems.Count == 0) return;
+        if (DataContext is not MainViewModel vm) return;
+        if (sender is not FrameworkElement fe || fe.DataContext is not PentestFindingModel f) return;
+        vm.OnFindingRiskChanged(f);
+    }
+
     private void ThreatStatusCombo_GotFocus(object sender, RoutedEventArgs e) =>
         CaptureThreatStatusBaseline(sender as ComboBox);
 

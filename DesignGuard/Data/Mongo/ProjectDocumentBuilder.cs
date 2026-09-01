@@ -39,7 +39,13 @@ internal static class ProjectDocumentBuilder
             ScopeIn = m.ScopeIn,
             ScopeOut = m.ScopeOut,
             RulesOfEngagementNotes = m.RulesOfEngagementNotes,
+            AssessmentContact = m.AssessmentContact,
+            AssessmentWindow = m.AssessmentWindow,
+            AssessmentEnvironment = m.AssessmentEnvironment,
+            AssessmentAccounts = m.AssessmentAccounts,
+            AssessmentLimitations = m.AssessmentLimitations,
             CompletedPlaybookItemIdsJson = JsonBlobs.Serialize(m.CompletedPlaybookItemIds),
+            FindingsJson = JsonBlobs.Serialize(m.Findings),
             C4ElementsJson = JsonBlobs.Serialize(m.C4Elements),
             C4RelationsJson = JsonBlobs.Serialize(m.C4Relations),
             DismissedSuggestionKeysJson = JsonBlobs.Serialize(m.DismissedSuggestionKeys)

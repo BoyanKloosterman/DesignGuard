@@ -10,7 +10,7 @@
         <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
             <TextBlock Text="Risicoanalyse" Style="{StaticResource DgText.Title}" />
             <TextBlock Margin="0,6,0,0" Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"
-                       Text="Kans × impact (1–5). Score 1–4 laag, 5–9 midden, 10–16 hoog, 17–25 kritiek. Heatmap toont alleen open dreigingen. Gemitigeerd en geaccepteerd staan in het register." />
+                       Text="Kans × impact (1–5). Score 1–4 laag, 5–9 midden, 10–16 hoog, 17–25 kritiek. Twee registers: ontwerp-dreigingen en pentest-bevindingen. Heatmaps tellen alleen open items." />
             <TextBlock Margin="0,8,0,0" Text="{Binding RiskSummaryText}" TextWrapping="Wrap" FontSize="12" />
         </StackPanel>
         <Grid>
@@ -18,48 +18,102 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Border Style="{StaticResource DgCard}" Margin="0,0,0,12">
-                <StackPanel>
-                    <TextBlock Text="Heatmap — open dreigingen" FontWeight="SemiBold" />
-                    <TextBlock Style="{StaticResource DgText.Muted}" FontSize="11" Margin="0,4,0,8"
-                               Text="Rijen: impact 5 (boven) tot 1. Kolommen: kans 1 tot 5." />
-                    <ItemsControl ItemsSource="{Binding RiskMatrixCells}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <UniformGrid Columns="5" Rows="5" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Style="{StaticResource DgCard}" Margin="0,0,8,12">
+                    <StackPanel>
+                        <TextBlock Text="Heatmap — open dreigingen" FontWeight="SemiBold" />
+                        <TextBlock Style="{StaticResource DgText.Muted}" FontSize="11" Margin="0,4,0,8"
+                                   Text="Rijen: impact 5 (boven) tot 1. Kolommen: kans 1 tot 5." />
+                        <ItemsControl ItemsSource="{Binding RiskMatrixCells}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="5" Rows="5" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border ToolTip="{Binding ToolTip}"
+                                            BorderBrush="{DynamicResource DgBrush.Border}"
+                                            BorderThickness="1" Margin="2" MinHeight="36" Padding="4"
+                                            Background="{DynamicResource DgBrush.Surface}">
+                                        <TextBlock Text="{Binding Display}" HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center" FontWeight="SemiBold" />
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource DgCard}" Margin="8,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Heatmap — open bevindingen" FontWeight="SemiBold" />
+                        <TextBlock Style="{StaticResource DgText.Muted}" FontSize="11" Margin="0,4,0,8"
+                                   Text="Open, bevestigd en herstest. Zelfde schaal." />
+                        <ItemsControl ItemsSource="{Binding FindingRiskMatrixCells}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="5" Rows="5" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border ToolTip="{Binding ToolTip}"
+                                            BorderBrush="{DynamicResource DgBrush.Border}"
+                                            BorderThickness="1" Margin="2" MinHeight="36" Padding="4"
+                                            Background="{DynamicResource DgBrush.Surface}">
+                                        <TextBlock Text="{Binding Display}" HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center" FontWeight="SemiBold" />
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <DockPanel Margin="0,0,8,0">
+                    <TextBlock DockPanel.Dock="Top" Text="Ontwerp-dreigingen" Style="{StaticResource DgText.SectionLabel}" />
+                    <ListBox ItemsSource="{Binding RiskRegister}" SelectedItem="{Binding SelectedThreat}">
+                        <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Border ToolTip="{Binding ToolTip}"
-                                        BorderBrush="{DynamicResource DgBrush.Border}"
-                                        BorderThickness="1" Margin="2" MinHeight="36" Padding="4"
-                                        Background="{DynamicResource DgBrush.Surface}">
-                                    <TextBlock Text="{Binding Display}" HorizontalAlignment="Center"
-                                               VerticalAlignment="Center" FontWeight="SemiBold" />
-                                </Border>
+                                <StackPanel Margin="4">
+                                    <TextBlock Text="{Binding Title}" FontWeight="Bold" TextWrapping="Wrap" />
+                                    <TextBlock FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}">
+                                        <Run Text="{Binding RiskSummary, Mode=OneWay}" />
+                                        <Run Text=" — " />
+                                        <Run Text="{Binding Status, Mode=OneWay}" />
+                                    </TextBlock>
+                                </StackPanel>
                             </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Border>
-            <DockPanel Grid.Row="1">
-                <TextBlock DockPanel.Dock="Top" Text="Risicoregister" Style="{StaticResource DgText.SectionLabel}" />
-                <ListBox ItemsSource="{Binding RiskRegister}" SelectedItem="{Binding SelectedThreat}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Margin="4">
-                                <TextBlock Text="{Binding Title}" FontWeight="Bold" TextWrapping="Wrap" />
-                                <TextBlock FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}">
-                                    <Run Text="{Binding RiskSummary, Mode=OneWay}" />
-                                    <Run Text=" — " />
-                                    <Run Text="{Binding Status, Mode=OneWay}" />
-                                </TextBlock>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </DockPanel>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+                <DockPanel Grid.Column="1" Margin="8,0,0,0">
+                    <TextBlock DockPanel.Dock="Top" Text="Pentest-bevindingen" Style="{StaticResource DgText.SectionLabel}" />
+                    <ListBox ItemsSource="{Binding FindingRiskRegister}" SelectedItem="{Binding SelectedFinding}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="4">
+                                    <TextBlock Text="{Binding Title}" FontWeight="Bold" TextWrapping="Wrap" />
+                                    <TextBlock FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}">
+                                        <Run Text="{Binding RiskSummary, Mode=OneWay}" />
+                                        <Run Text=" — " />
+                                        <Run Text="{Binding Status, Mode=OneWay}" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Grid>
         </Grid>
     </DockPanel>
 </UserControl>

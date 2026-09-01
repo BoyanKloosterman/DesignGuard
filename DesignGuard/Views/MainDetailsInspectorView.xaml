@@ -38,7 +38,7 @@
                     <TextBlock Text="Geen selectie" FontWeight="SemiBold" />
                     <TextBlock Text="{Binding EditorProjectName}" TextWrapping="Wrap" Margin="0,4,0,0"
                                Foreground="{DynamicResource DgBrush.TextSecondary}" />
-                    <TextBlock Text="Klik op een component in het diagram of kies een dreiging of eis in de lijst."
+                    <TextBlock Text="Klik op een component in het diagram of kies een dreiging, eis of bevinding in de lijst."
                                Style="{StaticResource DgText.Muted}" FontSize="11" Margin="0,8,0,0" />
                 </StackPanel>
             </Border>
@@ -243,6 +243,51 @@
                 </StackPanel>
             </Border>
             </Grid>
+            <Border Visibility="{Binding SelectedFinding, Converter={StaticResource NotNullToVisibility}}" Style="{StaticResource DgCard}" Margin="0,0,0,8">
+                <StackPanel DataContext="{Binding SelectedFinding}">
+                    <TextBlock Text="Bevinding" FontWeight="SemiBold" />
+                    <TextBlock Text="Titel" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                    <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" MinHeight="28" />
+                    <TextBlock Text="Beschrijving" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                    <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" Height="64" />
+                    <TextBlock Text="Getroffen doel (URL/host/functie)" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                    <TextBox Text="{Binding AffectedTarget, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" />
+                    <TextBlock Text="Waarneming (geen PoC)" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                    <TextBox Text="{Binding EvidenceNotes, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" Height="56" />
+                    <TextBlock Text="Advies" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                    <TextBox Text="{Binding Recommendation, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" Height="56" />
+                    <TextBlock Text="WSTG-categorie" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                    <ComboBox ItemsSource="{Binding DataContext.WstgCategoryOptions, RelativeSource={RelativeSource AncestorType=Window}}"
+                              SelectedItem="{Binding WstgCategory}" />
+                    <TextBlock Text="Kans" FontSize="11" Margin="0,6,0,0"
+                               Foreground="{DynamicResource DgBrush.TextMuted}" />
+                    <ComboBox ItemsSource="{Binding DataContext.LikelihoodScale, RelativeSource={RelativeSource AncestorType=Window}}"
+                              SelectedItem="{Binding Likelihood}"
+                              SelectionChanged="FindingRiskCombo_Changed" />
+                    <TextBlock Text="Impact" FontSize="11" Margin="0,6,0,0"
+                               Foreground="{DynamicResource DgBrush.TextMuted}" />
+                    <ComboBox ItemsSource="{Binding DataContext.LikelihoodScale, RelativeSource={RelativeSource AncestorType=Window}}"
+                              SelectedItem="{Binding Impact}"
+                              SelectionChanged="FindingRiskCombo_Changed" />
+                    <TextBlock Margin="0,6,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextSecondary}"
+                               Text="{Binding RiskSummary, Mode=OneWay}" />
+                    <TextBlock Text="Status" FontSize="11" Margin="0,6,0,0" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                    <ComboBox ItemsSource="{Binding DataContext.AllFindingStatuses, RelativeSource={RelativeSource AncestorType=Window}}"
+                              SelectedItem="{Binding Status}"
+                              SelectionChanged="FindingRiskCombo_Changed" />
+                    <TextBlock Text="Koppeling dreiging (optioneel)" FontSize="11" Margin="0,8,0,0"
+                               Foreground="{DynamicResource DgBrush.TextMuted}" />
+                    <ComboBox ItemsSource="{Binding DataContext.ControlThreatPickList, RelativeSource={RelativeSource AncestorType=Window}}"
+                              DisplayMemberPath="Display"
+                              SelectedValuePath="Id"
+                              SelectedValue="{Binding LinkedThreatId}" />
+                    <TextBlock Text="Notities" Margin="0,8,0,0" FontSize="11" Foreground="{DynamicResource DgBrush.TextMuted}" />
+                    <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" MinHeight="36" />
+                    <Button Content="Verwijder bevinding" Style="{StaticResource DgButton.Toolbar}" Margin="0,12,0,0"
+                            Command="{Binding DataContext.RemoveFindingCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="{Binding}" />
+                </StackPanel>
+            </Border>
             <Border Visibility="{Binding SelectedComponent, Converter={StaticResource NotNullToVisibility}}" Style="{StaticResource DgCard}">
                 <StackPanel DataContext="{Binding SelectedComponent}">
                     <TextBlock Text="Component" FontWeight="SemiBold" />

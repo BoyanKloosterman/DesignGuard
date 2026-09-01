@@ -71,8 +71,25 @@ public sealed class ProjectModel
     /// <summary>Afspraken / rules of engagement (geen juridisch contract).</summary>
     public string RulesOfEngagementNotes { get; set; } = "";
 
+    /// <summary>Opdrachtgever-contact en escalatie (geen secrets).</summary>
+    public string AssessmentContact { get; set; } = "";
+
+    /// <summary>Testvenster, bijv. 1–12 sep, alleen kantooruren.</summary>
+    public string AssessmentWindow { get; set; } = "";
+
+    /// <summary>test / acc / prod of een vrije toelichting.</summary>
+    public string AssessmentEnvironment { get; set; } = "";
+
+    /// <summary>Testaccounts en rollen. Geen wachtwoorden.</summary>
+    public string AssessmentAccounts { get; set; } = "";
+
+    /// <summary>Beperkingen: WAF, testdata, verboden acties.</summary>
+    public string AssessmentLimitations { get; set; } = "";
+
     /// <summary>Afgevinkte playbook-items (stabiele id's).</summary>
     public List<string> CompletedPlaybookItemIds { get; set; } = new();
+
+    public List<PentestFindingModel> Findings { get; set; } = new();
 
     /// <summary>Afgewezen suggesties (rule keys), lokaal opgeslagen.</summary>
     public List<string> DismissedSuggestionKeys { get; set; } = new();

@@ -71,9 +71,15 @@ internal static class ProjectDocumentEntityConverter
             ScopeIn = d.ScopeIn,
             ScopeOut = d.ScopeOut,
             RulesOfEngagementNotes = d.RulesOfEngagementNotes,
+            AssessmentContact = d.AssessmentContact,
+            AssessmentWindow = d.AssessmentWindow,
+            AssessmentEnvironment = d.AssessmentEnvironment,
+            AssessmentAccounts = d.AssessmentAccounts,
+            AssessmentLimitations = d.AssessmentLimitations,
             CompletedPlaybookItemIdsJson = string.IsNullOrWhiteSpace(d.CompletedPlaybookItemIdsJson)
                 ? "[]"
                 : d.CompletedPlaybookItemIdsJson,
+            FindingsJson = string.IsNullOrWhiteSpace(d.FindingsJson) ? "[]" : d.FindingsJson,
             C4ElementsJson = d.C4ElementsJson,
             C4RelationsJson = string.IsNullOrWhiteSpace(d.C4RelationsJson) ? "[]" : d.C4RelationsJson,
             DismissedSuggestionKeysJson = d.DismissedSuggestionKeysJson,

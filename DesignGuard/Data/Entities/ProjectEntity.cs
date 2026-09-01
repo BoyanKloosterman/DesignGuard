@@ -36,7 +36,13 @@ public sealed class ProjectEntity
     public string ScopeIn { get; set; } = "";
     public string ScopeOut { get; set; } = "";
     public string RulesOfEngagementNotes { get; set; } = "";
+    public string AssessmentContact { get; set; } = "";
+    public string AssessmentWindow { get; set; } = "";
+    public string AssessmentEnvironment { get; set; } = "";
+    public string AssessmentAccounts { get; set; } = "";
+    public string AssessmentLimitations { get; set; } = "";
     public string CompletedPlaybookItemIdsJson { get; set; } = "[]";
+    public string FindingsJson { get; set; } = "[]";
 
     public string C4ElementsJson { get; set; } = "[]";
     public string C4RelationsJson { get; set; } = "[]";

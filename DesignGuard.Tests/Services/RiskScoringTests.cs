@@ -58,5 +58,18 @@ public sealed class RiskScoringTests
     {
         var t = new ThreatModel { Likelihood = 3, Impact = 4 };
         Assert.Equal("K3 × I4 = 12 (Hoog)", RiskScoring.FormatSummary(t));
+        Assert.Equal("K3 × I4 = 12 (Hoog)", RiskScoring.FormatSummary(3, 4));
+    }
+
+    [Fact]
+    public void Finding_kxI_volgt_zelfde_schaal()
+    {
+        var f = new PentestFindingModel { Likelihood = 4, Impact = 5, Status = FindingStatus.Open };
+        Assert.Equal(20, f.RiskScore);
+        Assert.Equal(RiskLevel.Critical, f.RiskLevel);
+        Assert.Equal("K4 × I5 = 20 (Kritiek)", f.RiskSummary);
+        Assert.True(f.CountsInHeatmap);
+        f.Status = FindingStatus.Remediated;
+        Assert.False(f.CountsInHeatmap);
     }
 }

@@ -39,4 +39,7 @@ internal static class JsonBlobs
 
     public static List<C4RelationModel> C4RelationList(string? json) =>
         Deserialize<List<C4RelationModel>>(json ?? "[]") ?? new List<C4RelationModel>();
+
+    public static List<PentestFindingModel> FindingList(string? json) =>
+        Deserialize<List<PentestFindingModel>>(json ?? "[]") ?? new List<PentestFindingModel>();
 }

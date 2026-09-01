@@ -16,5 +16,7 @@ public enum MainNavSection
     Export = 10,
     Settings = 11,
     AppSecurityReview = 12,
-    RiskAnalysis = 13
+    RiskAnalysis = 13,
+    Pentest = 14,
+    PentestFindings = 15
 }

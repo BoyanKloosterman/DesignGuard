@@ -39,6 +39,48 @@ public sealed class ThreatStatusAuditPersistenceTests
     }
 
     [Fact]
+    public void Finding_rondrit_via_FindingsJson()
+    {
+        var m = new ProjectModel { Name = "P", SystemName = "S" };
+        m.Findings.Add(new PentestFindingModel
+        {
+            Id = "find-1",
+            Title = "IDOR",
+            Description = "Cross-tenant read",
+            AffectedTarget = "https://api.test/orders/1",
+            EvidenceNotes = "HTTP 200",
+            Recommendation = "Object-level authz",
+            WstgCategory = "Autorisatie",
+            Likelihood = 4,
+            Impact = 5,
+            Status = FindingStatus.Confirmed,
+            LinkedThreatId = "th-1",
+            Notes = "testomgeving"
+        });
+        m.AssessmentContact = "Sec";
+        m.AssessmentWindow = "week 16";
+        m.AssessmentEnvironment = "test";
+        m.AssessmentAccounts = "shop-user";
+        m.AssessmentLimitations = "geen DoS";
+
+        var doc = ProjectDocumentBuilder.Build(m, 7, DateTime.UtcNow);
+        Assert.Contains("IDOR", doc.FindingsJson, StringComparison.Ordinal);
+        Assert.Equal("Sec", doc.AssessmentContact);
+
+        var back = ProjectDocumentMapper.ToModel(doc);
+        var f = Assert.Single(back.Findings);
+        Assert.Equal("find-1", f.Id);
+        Assert.Equal("IDOR", f.Title);
+        Assert.Equal(4, f.Likelihood);
+        Assert.Equal(5, f.Impact);
+        Assert.Equal(20, f.RiskScore);
+        Assert.Equal(FindingStatus.Confirmed, f.Status);
+        Assert.Equal("th-1", f.LinkedThreatId);
+        Assert.Equal("test", back.AssessmentEnvironment);
+        Assert.Equal("geen DoS", back.AssessmentLimitations);
+    }
+
+    [Fact]
     public void Requirement_status_audit_rondrit_via_ProjectDocument()
     {
         var auditUtc = new DateTime(2026, 4, 18, 9, 0, 0, DateTimeKind.Utc);

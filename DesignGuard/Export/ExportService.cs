@@ -48,6 +48,13 @@ public sealed class ExportService
         sb.AppendLine($"- **Bedrijfskritisch:** {(project.CriticalBusinessFunction ? "ja" : "nee")}");
         sb.AppendLine();
 
+        if (HasPentestKickoff(project))
+        {
+            sb.AppendLine("## Kick-off en scope (pentest)");
+            AppendKickoffMarkdown(sb, project);
+            sb.AppendLine();
+        }
+
         if (!string.IsNullOrWhiteSpace(project.GovernanceSecurityOwner) ||
             !string.IsNullOrWhiteSpace(project.GovernanceTechnicalOwner) ||
             !string.IsNullOrWhiteSpace(project.GovernanceComplianceStakeholder) ||
@@ -151,11 +158,67 @@ public sealed class ExportService
         }
 
         sb.AppendLine();
+        sb.AppendLine("## Risicoanalyse (kans × impact)");
+        sb.AppendLine("Score = kans × impact (1–25). 1–4 laag, 5–9 midden, 10–16 hoog, 17–25 kritiek. Open dreigingen en open bevindingen zijn rest-risico.");
+        sb.AppendLine();
+        sb.AppendLine("### Ontwerp-dreigingen");
+        foreach (var t in threats.OrderByDescending(x => x.RiskScore).ThenBy(x => x.Title))
+        {
+            sb.AppendLine(
+                $"- **{t.Title}** — {t.RiskSummary} — **Status:** {t.Status}");
+        }
+
+        sb.AppendLine();
+        sb.AppendLine("### Pentest-bevindingen");
+        foreach (var f in project.Findings.OrderByDescending(x => x.RiskScore).ThenBy(x => x.Title))
+        {
+            sb.AppendLine(
+                $"- **{f.Title}** — {f.RiskSummary} — **Status:** {f.Status} — {f.WstgCategory}");
+        }
+
+        sb.AppendLine();
+        AppendPentestWorkMarkdown(sb, project);
+
+        sb.AppendLine("## Bevindingenregister");
+        if (project.Findings.Count == 0)
+            sb.AppendLine("_Geen pentest-bevindingen._");
+        foreach (var f in project.Findings.OrderByDescending(x => x.RiskScore).ThenBy(x => x.Title))
+        {
+            sb.AppendLine($"### {f.Title}");
+            sb.AppendLine($"- **Categorie:** {f.WstgCategory} — **Risico:** {f.RiskSummary} — **Status:** {f.Status}");
+            if (!string.IsNullOrWhiteSpace(f.WstgId))
+                sb.AppendLine($"- **WSTG-id:** {f.WstgId}");
+            if (!string.IsNullOrWhiteSpace(f.AffectedTarget))
+                sb.AppendLine($"- **Doel:** {f.AffectedTarget}");
+            if (!string.IsNullOrWhiteSpace(f.AffectedRole))
+                sb.AppendLine($"- **Rol:** {f.AffectedRole}");
+            if (!string.IsNullOrWhiteSpace(f.AffectedEnvironment))
+                sb.AppendLine($"- **Omgeving:** {f.AffectedEnvironment}");
+            if (!string.IsNullOrWhiteSpace(f.RemediationOwner))
+                sb.AppendLine($"- **Herstel-eigenaar:** {f.RemediationOwner}");
+            if (!string.IsNullOrWhiteSpace(f.FoundOn))
+                sb.AppendLine($"- **Gevonden op:** {f.FoundOn}");
+            if (!string.IsNullOrWhiteSpace(f.RetestedOn))
+                sb.AppendLine($"- **Hertoetst op:** {f.RetestedOn}");
+            if (!string.IsNullOrWhiteSpace(f.Description))
+                sb.AppendLine($"- **Beschrijving:** {f.Description}");
+            if (!string.IsNullOrWhiteSpace(f.EvidenceNotes))
+                sb.AppendLine($"- **Waarneming:** {f.EvidenceNotes}");
+            if (!string.IsNullOrWhiteSpace(f.Recommendation))
+                sb.AppendLine($"- **Advies:** {f.Recommendation}");
+            if (!string.IsNullOrWhiteSpace(f.LinkedThreatId))
+                sb.AppendLine($"- **Gekoppelde dreiging:** {f.LinkedThreatId}");
+            if (!string.IsNullOrWhiteSpace(f.Notes))
+                sb.AppendLine($"- **Notities:** {f.Notes}");
+            sb.AppendLine();
+        }
+
+        sb.AppendLine();
         sb.AppendLine("## Threat model (STRIDE, regelgebaseerd + handmatig)");
         foreach (var t in threats.OrderBy(x => x.StrideCategory).ThenBy(x => x.Title))
         {
             sb.AppendLine($"### {t.Title}");
-            sb.AppendLine($"- **STRIDE:** {t.StrideCategory} — **Ernst:** {t.Severity} — **Status:** {t.Status}");
+            sb.AppendLine($"- **STRIDE:** {t.StrideCategory} — **Risico:** {t.RiskSummary} — **Ernst:** {t.Severity} — **Status:** {t.Status}");
             if (t.StatusChangedAtUtc is { } atUtc)
             {
                 var note = string.IsNullOrWhiteSpace(t.StatusChangeNote) ? "" : $" — **Toelichting:** {t.StatusChangeNote}";
@@ -245,7 +308,7 @@ public sealed class ExportService
         sb.AppendLine(
             $"- {project.Components.Count} componenten, {project.DataFlows.Count} datastromen, {project.UserRoles.Count} rollen, {project.TrustBoundaries.Count} trust boundaries.");
         sb.AppendLine(
-            $"- {threats.Count} dreigingen ({threats.Count(t => t.Status == ThreatStatus.Open)} open), {requirements.Count} eisen.");
+            $"- {threats.Count} dreigingen ({threats.Count(t => t.Status == ThreatStatus.Open)} open), {requirements.Count} eisen, {project.Findings.Count} pentest-bevindingen.");
         sb.AppendLine("- Gebruik dit document als werkdocument voor review — geen compliance-besluit.");
 
         return sb.ToString();
@@ -296,7 +359,7 @@ public sealed class ExportService
         sb.AppendLine("DREIGINGEN");
         foreach (var t in threats)
         {
-            sb.AppendLine($"* {t.Title} [{t.StrideCategory}] {t.Severity} {t.Status}");
+            sb.AppendLine($"* {t.Title} [{t.StrideCategory}] {t.RiskSummary} {t.Status}");
             sb.AppendLine($"  {t.Description}");
             sb.AppendLine($"  Triggers: {string.Join(", ", t.TriggerKeys)}");
         }
@@ -315,7 +378,7 @@ public sealed class ExportService
 
         sb.AppendLine();
         sb.AppendLine("SAMENVATTING");
-        sb.AppendLine($"{threats.Count} dreigingen, {requirements.Count} eisen.");
+        sb.AppendLine($"{threats.Count} dreigingen, {requirements.Count} eisen, {project.Findings.Count} bevindingen.");
         return sb.ToString();
     }
 
@@ -337,11 +400,23 @@ public sealed class ExportService
         foreach (var c in project.Components)
             sb.AppendLine($"<tr><td>{Esc(c.Name)}</td><td>{Esc(c.Tag)}</td><td>{(c.IsEntryPoint ? "ja" : "nee")}</td></tr>");
         sb.AppendLine("</table>");
-        sb.AppendLine("<h2>Dreigingen</h2><table><tr><th>Titel</th><th>STRIDE</th><th>Ernst</th><th>Status</th></tr>");
+        sb.AppendLine("<h2>Dreigingen</h2><table><tr><th>Titel</th><th>STRIDE</th><th>Kans×impact</th><th>Status</th></tr>");
         foreach (var t in threats)
             sb.AppendLine(
-                $"<tr><td>{Esc(t.Title)}</td><td>{t.StrideCategory}</td><td>{t.Severity}</td><td>{t.Status}</td></tr>");
+                $"<tr><td>{Esc(t.Title)}</td><td>{t.StrideCategory}</td><td>{Esc(t.RiskSummary)}</td><td>{t.Status}</td></tr>");
         sb.AppendLine("</table>");
+        if (HasPentestKickoff(project))
+        {
+            sb.AppendLine("<h2>Kick-off en scope (pentest)</h2><ul>");
+            AppendKickoffHtml(sb, project);
+            sb.AppendLine("</ul>");
+        }
+        sb.AppendLine("<h2>Bevindingen</h2><table><tr><th>Titel</th><th>Categorie</th><th>Kans×impact</th><th>Status</th></tr>");
+        foreach (var f in project.Findings)
+            sb.AppendLine(
+                $"<tr><td>{Esc(f.Title)}</td><td>{Esc(f.WstgCategory)}</td><td>{Esc(f.RiskSummary)}</td><td>{f.Status}</td></tr>");
+        sb.AppendLine("</table>");
+        AppendPentestWorkHtml(sb, project);
         sb.AppendLine("<h2>Eisen</h2><table><tr><th>Titel</th><th>Categorie</th><th>Prioriteit</th><th>Status</th></tr>");
         foreach (var r in requirements)
             sb.AppendLine(
@@ -398,11 +473,18 @@ public sealed class ExportService
             sb.AppendLine("</ul>");
         }
 
+        if (HasPentestKickoff(project))
+        {
+            sb.AppendLine("<h2>Kick-off en scope (pentest)</h2><ul>");
+            AppendKickoffHtml(sb, project);
+            sb.AppendLine("</ul>");
+        }
+
         sb.AppendLine("<h2>Executive summary</h2>");
         sb.AppendLine("<p>");
         sb.AppendLine(
             $"{project.Components.Count} componenten, {project.DataFlows.Count} datastromen, {threats.Count} dreigingen, " +
-            $"{requirements.Count} eisen, {project.Controls.Count} controls, {project.TrustBoundaries.Count} trust boundaries.");
+            $"{requirements.Count} eisen, {project.Findings.Count} bevindingen, {project.Controls.Count} controls, {project.TrustBoundaries.Count} trust boundaries.");
         sb.AppendLine("</p>");
 
         sb.AppendLine("<h2>Projectoverzicht en systeemcontext</h2>");
@@ -435,6 +517,24 @@ public sealed class ExportService
 
         sb.AppendLine("</ul><div class=\"page-break\"></div>");
 
+        sb.AppendLine("<h2>Pentest-bevindingen</h2>");
+        if (project.Findings.Count == 0)
+            sb.AppendLine("<p class=\"meta\">Geen pentest-bevindingen.</p>");
+        foreach (var f in project.Findings.OrderByDescending(x => x.RiskScore).ThenBy(x => x.Title))
+        {
+            sb.AppendLine($"<h3>{Esc(f.Title)}</h3>");
+            sb.AppendLine($"<p class=\"tag\">{Esc(f.WstgCategory)} — {Esc(f.RiskSummary)} — {f.Status}</p>");
+            if (!string.IsNullOrWhiteSpace(f.AffectedTarget))
+                sb.AppendLine($"<p>Doel: {Esc(f.AffectedTarget)}</p>");
+            sb.AppendLine($"<p>{Esc(f.Description)}</p>");
+            if (!string.IsNullOrWhiteSpace(f.EvidenceNotes))
+                sb.AppendLine($"<p>Waarneming: {Esc(f.EvidenceNotes)}</p>");
+            if (!string.IsNullOrWhiteSpace(f.Recommendation))
+                sb.AppendLine($"<p>Advies: {Esc(f.Recommendation)}</p>");
+        }
+
+        AppendPentestWorkHtml(sb, project);
+
         sb.AppendLine("<h2>Assets en gevoelige data</h2><h3>Assets</h3><ul>");
         var compByIdHtml = project.Components.ToDictionary(c => c.Id, c => c.Name);
         foreach (var a in project.Assets)
@@ -457,7 +557,7 @@ public sealed class ExportService
         foreach (var t in threats.OrderBy(x => x.StrideCategory).ThenBy(x => x.Title))
         {
             sb.AppendLine($"<h3>{Esc(t.Title)}</h3>");
-            sb.AppendLine($"<p class=\"tag\">{t.StrideCategory} — {t.Severity} — {t.Status} — herkomst {t.Origin}</p>");
+            sb.AppendLine($"<p class=\"tag\">{t.StrideCategory} — {Esc(t.RiskSummary)} — {t.Status} — herkomst {t.Origin}</p>");
             sb.AppendLine($"<p>{Esc(t.Description)}</p>");
             if (t.StatusChangedAtUtc is { } audHtml)
             {
@@ -524,7 +624,7 @@ public sealed class ExportService
     {
         var doc = new
         {
-            schema = "designguard.export.v3",
+            schema = "designguard.export.v4",
             project = new
             {
                 project.Id,
@@ -549,6 +649,50 @@ public sealed class ExportService
                 project.GovernanceTechnicalOwner,
                 project.GovernanceComplianceStakeholder,
                 project.GovernanceReviewCadence,
+                project.AssessmentGoal,
+                AssessmentTestType = project.AssessmentTestType.ToString(),
+                project.ScopeIn,
+                project.ScopeOut,
+                project.RulesOfEngagementNotes,
+                project.AssessmentContact,
+                project.AssessmentWindow,
+                project.AssessmentEnvironment,
+                project.AssessmentAccounts,
+                project.AssessmentLimitations,
+                project.AssessmentResidualNotes,
+                coverage = CoverageCatalog.Merge(project.CoverageItems).Select(c => new
+                {
+                    c.Id,
+                    c.Title,
+                    c.WstgRef,
+                    Status = c.Status.ToString(),
+                    c.Notes
+                }),
+                attackSurface = project.AttackSurface,
+                testBlockers = project.TestBlockers,
+                findings = project.Findings.Select(f => new
+                {
+                    f.Id,
+                    f.Title,
+                    f.Description,
+                    f.AffectedTarget,
+                    f.AffectedRole,
+                    f.AffectedEnvironment,
+                    f.EvidenceNotes,
+                    f.Recommendation,
+                    f.WstgCategory,
+                    f.WstgId,
+                    f.Likelihood,
+                    f.Impact,
+                    f.RiskScore,
+                    RiskLevel = f.RiskLevel.ToString(),
+                    Status = f.Status.ToString(),
+                    f.LinkedThreatId,
+                    f.RemediationOwner,
+                    f.FoundOn,
+                    f.RetestedOn,
+                    f.Notes
+                }),
                 c4Elements = project.C4Elements,
                 TrustBoundaries = project.TrustBoundaries,
                 Components = project.Components,
@@ -567,6 +711,10 @@ public sealed class ExportService
                 t.Title,
                 StrideCategory = t.StrideCategory.ToString(),
                 Severity = t.Severity.ToString(),
+                t.Likelihood,
+                t.Impact,
+                t.RiskScore,
+                RiskLevel = t.RiskLevel.ToString(),
                 Status = t.Status.ToString(),
                 statusChangedAtUtc = t.StatusChangedAtUtc,
                 t.StatusChangedBy,
@@ -608,6 +756,128 @@ public sealed class ExportService
             })
         };
         return JsonSerializer.Serialize(doc, JsonOpts);
+    }
+
+    private static bool HasPentestKickoff(ProjectModel project) =>
+        !string.IsNullOrWhiteSpace(project.AssessmentGoal) ||
+        project.AssessmentTestType != AssessmentTestType.Unspecified ||
+        !string.IsNullOrWhiteSpace(project.ScopeIn) ||
+        !string.IsNullOrWhiteSpace(project.ScopeOut) ||
+        !string.IsNullOrWhiteSpace(project.RulesOfEngagementNotes) ||
+        !string.IsNullOrWhiteSpace(project.AssessmentContact) ||
+        !string.IsNullOrWhiteSpace(project.AssessmentWindow) ||
+        !string.IsNullOrWhiteSpace(project.AssessmentEnvironment) ||
+        !string.IsNullOrWhiteSpace(project.AssessmentAccounts) ||
+        !string.IsNullOrWhiteSpace(project.AssessmentLimitations);
+
+    private static void AppendKickoffMarkdown(StringBuilder sb, ProjectModel project)
+    {
+        if (!string.IsNullOrWhiteSpace(project.AssessmentGoal))
+            sb.AppendLine($"- **Testdoel:** {project.AssessmentGoal}");
+        sb.AppendLine($"- **Testdiepte:** {project.AssessmentTestType}");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentContact))
+            sb.AppendLine($"- **Contact / escalatie:** {project.AssessmentContact}");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentWindow))
+            sb.AppendLine($"- **Tijdvenster:** {project.AssessmentWindow}");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentEnvironment))
+            sb.AppendLine($"- **Omgeving:** {project.AssessmentEnvironment}");
+        if (!string.IsNullOrWhiteSpace(project.ScopeIn))
+            sb.AppendLine($"- **In scope:** {project.ScopeIn}");
+        if (!string.IsNullOrWhiteSpace(project.ScopeOut))
+            sb.AppendLine($"- **Buiten scope:** {project.ScopeOut}");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentAccounts))
+            sb.AppendLine($"- **Testaccounts / rollen:** {project.AssessmentAccounts}");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentLimitations))
+            sb.AppendLine($"- **Beperkingen:** {project.AssessmentLimitations}");
+        if (!string.IsNullOrWhiteSpace(project.RulesOfEngagementNotes))
+            sb.AppendLine($"- **Afspraken:** {project.RulesOfEngagementNotes}");
+    }
+
+    private static void AppendKickoffHtml(StringBuilder sb, ProjectModel project)
+    {
+        if (!string.IsNullOrWhiteSpace(project.AssessmentGoal))
+            sb.AppendLine($"<li>Testdoel: {Esc(project.AssessmentGoal)}</li>");
+        sb.AppendLine($"<li>Testdiepte: {project.AssessmentTestType}</li>");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentContact))
+            sb.AppendLine($"<li>Contact / escalatie: {Esc(project.AssessmentContact)}</li>");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentWindow))
+            sb.AppendLine($"<li>Tijdvenster: {Esc(project.AssessmentWindow)}</li>");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentEnvironment))
+            sb.AppendLine($"<li>Omgeving: {Esc(project.AssessmentEnvironment)}</li>");
+        if (!string.IsNullOrWhiteSpace(project.ScopeIn))
+            sb.AppendLine($"<li>In scope: {Esc(project.ScopeIn)}</li>");
+        if (!string.IsNullOrWhiteSpace(project.ScopeOut))
+            sb.AppendLine($"<li>Buiten scope: {Esc(project.ScopeOut)}</li>");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentAccounts))
+            sb.AppendLine($"<li>Testaccounts / rollen: {Esc(project.AssessmentAccounts)}</li>");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentLimitations))
+            sb.AppendLine($"<li>Beperkingen: {Esc(project.AssessmentLimitations)}</li>");
+        if (!string.IsNullOrWhiteSpace(project.RulesOfEngagementNotes))
+            sb.AppendLine($"<li>Afspraken: {Esc(project.RulesOfEngagementNotes)}</li>");
+    }
+
+    private static void AppendPentestWorkMarkdown(StringBuilder sb, ProjectModel project)
+    {
+        var coverage = CoverageCatalog.Merge(project.CoverageItems);
+        sb.AppendLine("## Testdekking");
+        sb.AppendLine(CoverageCatalog.Summary(coverage));
+        sb.AppendLine();
+        foreach (var c in coverage)
+        {
+            var note = string.IsNullOrWhiteSpace(c.Notes) ? "" : $" — {c.Notes}";
+            sb.AppendLine($"- **{c.Title}** ({c.WstgRef}): {c.Status}{note}");
+        }
+
+        if (project.AttackSurface.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("### Aanvalsoppervlak");
+            foreach (var a in project.AttackSurface)
+                sb.AppendLine($"- **{a.Kind}** `{a.Value}`{(string.IsNullOrWhiteSpace(a.Notes) ? "" : $" — {a.Notes}")}");
+        }
+
+        sb.AppendLine();
+        sb.AppendLine("## Niet getest");
+        var skipped = CoverageCatalog.NotTested(coverage);
+        if (skipped.Count == 0 && project.TestBlockers.Count == 0)
+            sb.AppendLine("_Geen geblokkeerde of n.v.t. thema's._");
+        foreach (var c in skipped)
+            sb.AppendLine($"- **{c.Title}:** {c.Status}{(string.IsNullOrWhiteSpace(c.Notes) ? "" : $" — {c.Notes}")}");
+        foreach (var b in project.TestBlockers)
+            sb.AppendLine($"- **Blokkade:** {b.Title} — {b.Reason}");
+
+        sb.AppendLine();
+        sb.AppendLine("## Rest-risico");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentResidualNotes))
+            sb.AppendLine(project.AssessmentResidualNotes);
+        var residual = CoverageCatalog.ResidualFindings(project.Findings);
+        if (residual.Count == 0 && string.IsNullOrWhiteSpace(project.AssessmentResidualNotes))
+            sb.AppendLine("_Geen open hoog/kritiek bevindingen._");
+        foreach (var f in residual)
+            sb.AppendLine($"- **{f.Title}** — {f.RiskSummary} — {f.Status}");
+        sb.AppendLine();
+    }
+
+    private static void AppendPentestWorkHtml(StringBuilder sb, ProjectModel project)
+    {
+        var coverage = CoverageCatalog.Merge(project.CoverageItems);
+        sb.AppendLine($"<h2>Testdekking</h2><p>{Esc(CoverageCatalog.Summary(coverage))}</p><ul>");
+        foreach (var c in coverage)
+            sb.AppendLine($"<li>{Esc(c.Title)} ({Esc(c.WstgRef)}): {c.Status} {Esc(c.Notes)}</li>");
+        sb.AppendLine("</ul>");
+        sb.AppendLine("<h2>Niet getest</h2><ul>");
+        foreach (var c in CoverageCatalog.NotTested(coverage))
+            sb.AppendLine($"<li>{Esc(c.Title)}: {c.Status} {Esc(c.Notes)}</li>");
+        foreach (var b in project.TestBlockers)
+            sb.AppendLine($"<li>Blokkade: {Esc(b.Title)} — {Esc(b.Reason)}</li>");
+        sb.AppendLine("</ul>");
+        sb.AppendLine("<h2>Rest-risico</h2>");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentResidualNotes))
+            sb.AppendLine($"<p>{Esc(project.AssessmentResidualNotes)}</p>");
+        sb.AppendLine("<ul>");
+        foreach (var f in CoverageCatalog.ResidualFindings(project.Findings))
+            sb.AppendLine($"<li>{Esc(f.Title)} — {Esc(f.RiskSummary)} — {f.Status}</li>");
+        sb.AppendLine("</ul>");
     }
 
     private static string Esc(string? s) => System.Net.WebUtility.HtmlEncode(s ?? "");

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using DesignGuard.Models;
+using DesignGuard.Services;
 
 namespace DesignGuard.Data;
 
@@ -39,4 +40,16 @@ internal static class JsonBlobs
 
     public static List<C4RelationModel> C4RelationList(string? json) =>
         Deserialize<List<C4RelationModel>>(json ?? "[]") ?? new List<C4RelationModel>();
+
+    public static List<PentestFindingModel> FindingList(string? json) =>
+        Deserialize<List<PentestFindingModel>>(json ?? "[]") ?? new List<PentestFindingModel>();
+
+    public static List<CoverageItemModel> CoverageList(string? json) =>
+        CoverageCatalog.Merge(Deserialize<List<CoverageItemModel>>(json ?? "[]"));
+
+    public static List<AttackSurfaceItemModel> AttackSurfaceList(string? json) =>
+        Deserialize<List<AttackSurfaceItemModel>>(json ?? "[]") ?? new List<AttackSurfaceItemModel>();
+
+    public static List<TestBlockerModel> TestBlockerList(string? json) =>
+        Deserialize<List<TestBlockerModel>>(json ?? "[]") ?? new List<TestBlockerModel>();
 }

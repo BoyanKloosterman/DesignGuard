@@ -35,6 +35,12 @@ public sealed class AnalysisMergeService
                 g.StatusChangedAtUtc = old.StatusChangedAtUtc;
                 g.StatusChangedBy = old.StatusChangedBy;
                 g.StatusChangeNote = old.StatusChangeNote;
+                if (RiskScoring.HasScores(old))
+                {
+                    g.Likelihood = old.Likelihood;
+                    g.Impact = old.Impact;
+                    RiskScoring.SyncSeverity(g);
+                }
                 if (string.IsNullOrWhiteSpace(g.SourceAttribution.KnowledgePackId) &&
                     !string.IsNullOrWhiteSpace(old.SourceAttribution.KnowledgePackId))
                     g.SourceAttribution = old.SourceAttribution;

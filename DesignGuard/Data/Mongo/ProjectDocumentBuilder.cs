@@ -1,5 +1,6 @@
 using DesignGuard.Data.Mongo.Documents;
 using DesignGuard.Models;
+using DesignGuard.Services;
 using ProjectMapperCore = DesignGuard.Data.ProjectMapper;
 
 namespace DesignGuard.Data.Mongo;
@@ -34,6 +35,22 @@ internal static class ProjectDocumentBuilder
             GovernanceTechnicalOwner = m.GovernanceTechnicalOwner,
             GovernanceComplianceStakeholder = m.GovernanceComplianceStakeholder,
             GovernanceReviewCadence = m.GovernanceReviewCadence,
+            AssessmentGoal = m.AssessmentGoal,
+            AssessmentTestType = m.AssessmentTestType.ToString(),
+            ScopeIn = m.ScopeIn,
+            ScopeOut = m.ScopeOut,
+            RulesOfEngagementNotes = m.RulesOfEngagementNotes,
+            AssessmentContact = m.AssessmentContact,
+            AssessmentWindow = m.AssessmentWindow,
+            AssessmentEnvironment = m.AssessmentEnvironment,
+            AssessmentAccounts = m.AssessmentAccounts,
+            AssessmentLimitations = m.AssessmentLimitations,
+            AssessmentResidualNotes = m.AssessmentResidualNotes,
+            CompletedPlaybookItemIdsJson = JsonBlobs.Serialize(m.CompletedPlaybookItemIds),
+            FindingsJson = JsonBlobs.Serialize(m.Findings),
+            CoverageJson = JsonBlobs.Serialize(CoverageCatalog.Merge(m.CoverageItems)),
+            AttackSurfaceJson = JsonBlobs.Serialize(m.AttackSurface),
+            TestBlockersJson = JsonBlobs.Serialize(m.TestBlockers),
             C4ElementsJson = JsonBlobs.Serialize(m.C4Elements),
             C4RelationsJson = JsonBlobs.Serialize(m.C4Relations),
             DismissedSuggestionKeysJson = JsonBlobs.Serialize(m.DismissedSuggestionKeys)
@@ -291,6 +308,8 @@ internal static class ProjectDocumentBuilder
         Title = t.Title,
         StrideCategory = (int)t.StrideCategory,
         Severity = (int)t.Severity,
+        Likelihood = t.Likelihood,
+        Impact = t.Impact,
         Status = (int)t.Status,
         StatusChangedAtUtc = ProjectMapperCore.FormatOptionalUtc(t.StatusChangedAtUtc),
         StatusChangedBy = t.StatusChangedBy ?? "",

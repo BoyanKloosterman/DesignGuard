@@ -55,6 +55,16 @@
                              Text="{Binding EditorGovernanceReviewCadence, UpdateSourceTrigger=PropertyChanged}" />
                 </Grid>
             </GroupBox>
+            <GroupBox Header="Pentest-aanpak" Margin="0,8,0,0">
+                <StackPanel Margin="8">
+                    <TextBlock Style="{StaticResource DgText.Muted}" FontSize="11" TextWrapping="Wrap"
+                               Text="Kick-off, scope, testdekking en bevindingen staan onder Pentest → Aanpak. Dit scherm blijft threat modeling." />
+                    <Button Content="Naar aanpak" HorizontalAlignment="Left" Margin="0,8,0,0"
+                            Style="{StaticResource DgButton.Toolbar}"
+                            Command="{Binding NavigateCommand}"
+                            CommandParameter="{x:Static dg:MainNavSection.Pentest}" />
+                </StackPanel>
+            </GroupBox>
             <GroupBox Header="Systeemcontext" Margin="0,8,0,0">
                 <Grid Margin="8">
                     <Grid.RowDefinitions>

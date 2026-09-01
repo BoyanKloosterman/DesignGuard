@@ -79,6 +79,8 @@ public partial class MainViewModel
         FilteredRequirements = new ObservableCollection<RequirementModel>(
             EditorListFilter.FilterAndSortRequirements(Requirements, RequirementFilterText, RequirementSort,
                 RequirementQuickFilter));
+        FilteredFindings = new ObservableCollection<PentestFindingModel>(
+            EditorListFilter.FilterAndSortFindings(Findings, FindingFilterText, FindingSort, FindingQuickFilter));
     }
 
     private void UpdateDashboard()
@@ -98,6 +100,10 @@ public partial class MainViewModel
         {
             ValidationSummaryText = $"Validatie kon niet worden uitgevoerd: {ex.Message}";
         }
+
+        RefreshPlaybook();
+        RefreshRiskAnalysis();
+        CoverageSummaryText = CoverageCatalog.Summary(CoverageItems);
     }
 
     private static string FormatValidation(IReadOnlyList<DesignValidationFinding> findings) =>

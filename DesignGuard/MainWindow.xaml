@@ -27,12 +27,16 @@
 
             <Grid Grid.Column="1" Margin="{DynamicResource DgThickness.PageMargin}">
                 <views:MainDashboardView />
+                <views:MainPentestView />
+                <views:MainPentestCoverageView />
+                <views:MainPentestFindingsView />
                 <views:MainDesignView />
                 <views:MainThreatsView />
                 <views:MainC4View />
                 <views:MainThreatModelView />
                 <views:MainRequirementsView />
                 <views:MainControlsView />
+                <views:MainRiskAnalysisView />
                 <views:MainDecisionsView />
                 <views:MainReviewView />
                 <views:MainTraceabilityView />

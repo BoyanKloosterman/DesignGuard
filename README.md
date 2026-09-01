@@ -36,7 +36,7 @@ De interface heeft **drie kolommen** (op elke screenshot hetzelfde patroon):
 | **Werkruimte** | Links midden | Navigatie naar alle hoofdschermen + **thema**, **uitlegniveau**, **dichtheid** |
 | **Projectlijst** | Links onder | Actief project; klik om te wisselen |
 | **Hoofdinhoud** | Midden | Het gekozen scherm (formulieren, lijsten, diagram, exportpreview, …) |
-| **Details (Inspector)** | Rechts | Suggesties + bewerking van geselecteerde **dreiging**, **eis** of **component** |
+| **Details (Inspector)** | Rechts | Suggesties + bewerking van geselecteerde **dreiging**, **eis**, **bevinding** of **component** |
 | **Statusbalk** | Onder | Status- en foutmeldingen (o.a. MongoDB) |
 
 **Zo lees je de plaatjes:** links staat altijd *waar* je naartoe navigeert; het midden is *het werk*; rechts is *uitleg en bewerking* van je selectie. Onderaan de statusregel zie je o.a. of het project geladen is.
@@ -73,7 +73,7 @@ Gebruik deze tabel om snel de juiste PNG bij een onderwerp te vinden.
 |-----------|-----------------|
 | **Nieuw project / Wizard / Opslaan / Verwijderen** | Leeg project, wizard met snelle start, alles naar MongoDB schrijven, project verwijderen. |
 | **Demoproject** | Zorgt dat het scenario *Demo — Webshop (uitgebreid)* bestaat en verschijnt in de lijst. |
-| **Werkruimte (navigatie)** | Kies het scherm: Dashboard, Ontwerp, Dreigingen, enz. |
+| **Werkruimte (navigatie)** | Gegroepeerd: Start, Ontwerp, Pentest, Afronding, Systeem. |
 | **Thema / Uitlegniveau / Dichtheid** | Thema van de UI; **Beginner** toont kortere uitleg in de Inspector, **Advanced** toont o.a. STRIDE-expander volledig; dichtheid bepaalt hoe compact lijsten/kaarten zijn. |
 | **Projectlijst onderaan** | Welk project is actief. |
 | **Midden: tegels** | Voortgang op dreigingen en eisen (open, gemitigeerd, geïmplementeerd, …). |
@@ -256,6 +256,16 @@ Hieronder: per tab één README-plaatje. Navigatie: klik in de **werkruimte** li
 | **Pas bibliotheek toe** | Trekt voorgedefinieerde controls binnen en koppelt waar mogelijk aan dreigingen/eisen. |
 | **Tabel** | Titel, categorie, tags, status (levenscyclus), gekoppelde stable id’s van dreiging/eisen, library-id, uitleg, implementatierichting. **Verwijder** per rij. |
 
+### Risicoanalyse
+
+**Waarvoor:** kans × impact (1–5) op twee registers: ontwerp-dreigingen en pentest-bevindingen. Heatmaps van open rest-risico; zelfde schaal.
+
+### Aanpak en bevindingen (pentest)
+
+**Waarvoor:** kick-off onder **Pentest → Aanpak**. Tijdens de test: **Testdekking** (WSTG-matrix, aanvalsoppervlak, blockers) en **Bevindingen** (filterbaar register). Geen scanners of exploits. Ontwerp blijft threat modeling.
+
+DesignGuard heeft **twee sporen**: ontwerp (C4/STRIDE/eisen/controls) en pentest (aanpak, testdekking, bevindingen). Beide komen samen in risicoanalyse en export.
+
 ### Beslissingen — `06-beslissingen.png`
 
 ![Open issues, design-notities, snapshots](docs/screenshots/06-beslissingen.png)
@@ -348,7 +358,7 @@ Het ingebouwde project **Demo — Webshop (uitgebreid)** (constant in code: `Dem
 - **Meerdere componenten** (SPA’s, gateway, services, PostgreSQL, Redis, object storage, PSP, mail).
 - **Datastromen** tussen de relevante paren.
 - **Rollen, assets, entry points** en **gevoelige datacategorieën** zodat de tab *Ontwerp* op meerdere schermhoogtes uitleg heeft.
-- **Dreigingen, eisen, controls en review-items** in gemengde status (alsof er al in is gewerkt).
+- **Dreigingen, eisen, controls, één voorbeeld-bevinding en review-items** in gemengde status (alsof er al in is gewerkt).
 
 Het demoproject wordt bij eerste start aangemaakt als MongoDB bereikbaar is. Oudere demo’s met andere namen blijven staan tot je ze opruimt.
 
@@ -377,6 +387,10 @@ Zie ook de **[PNG-index](#png-index)** voor de koppeling naar elke PNG.
 | STRIDE en status van één dreiging | Dreiging selecteren → **Inspector** | `03` |
 | Handmatige inhoud behouden | Inspector: **Behoud bij opnieuw genereren** | `03` / `04` |
 | Controls | **Controls**; op Dashboard: **Control-bibliotheek** | `05` |
+| Testdoel, scope, RoE | **Pentest → Aanpak** | — |
+| Testdekking / aanvalsoppervlak | **Pentest → Testdekking** | — |
+| Pentest-bevinding | **Pentest → Bevindingen** | — |
+| Kans × impact dreigingen en bevindingen | **Pentest → Risicoanalyse** | — |
 | Open punten en besluiten | **Beslissingen** | `06` |
 | Review-workflow | **Review** | `07` |
 | Trace-overzicht alleen-lezen | **Traceability** | `08` |
@@ -447,24 +461,19 @@ Zorg dat MongoDB draait en bereikbaar is voordat je projecten opslaat.
 
 ## Aanbevolen werkwijze
 
-1. **Project aanmaken** — **Nieuw project** of **Wizard**; geef een duidelijke **naam** en **beschrijving**.
-2. **Systeemcontext** — Vul **systeemnaam**, **type**, **deployment** en zet de **vinkjes** die kloppen voor jouw scope.
-3. **Trust boundaries** — Definieer zones voordat je componenten plant.
-4. **Componenten** — Alle bouwstenen; markeer **Entry** en **Data**-gevoeligheid; koppel **Boundary**.
-5. **Datastromen** — Verbind alles wat data uitwisselt; voeg **labels** toe.
-6. **Rollen en assets** — Actoren en te beschermen objecten.
-7. **Ingangen en gevoelige data** — Documenteer aanvalsoppervlak en waar gevoelige categorieën leven.
-8. **Diagram** — **Diagram verversen** en overlays gebruiken om het verhaal te controleren.
-9. **Analyse vernieuwen** op **Dreigingen** en **Eisen** — daarna items in de Inspector afwerken.
-10. **Controls** — Maatregelen koppelen; bibliotheek toepassen waar nuttig.
-11. **Beslissingen en Review** — Open punten en lichte workflow.
-12. **Traceability** — Controleer het gegenereerde overzicht.
-13. **Exporteren** — Preview, dan delen.
-14. **Opslaan** — Regelmatig naar MongoDB.
+1. **Ontwerp** — C4, componenten, dreigingen, eisen, controls, traceability.
+2. **Pentest-aanpak** — kick-off (doel, testdiepte, contact, venster, omgeving, accounts, beperkingen). Checklist per fase.
+3. **Testdekking** — WSTG-matrix, aanvalsoppervlak, blockers tijdens de test.
+4. **Bevindingen** — observaties, kans × impact, status. Los van STRIDE.
+5. **Risicoanalyse** — dreigingen én bevindingen op dezelfde K×I-schaal.
+6. **Rapportage** — export met testdekking, niet-getest en rest-risico. Regelmatig **Opslaan**.
+
+Twee sporen, geen live pentest.
 
 ### Tips
 
 - Na grote ontwerpwijzigingen: **Diagram verversen** en daarna **Analyse vernieuwen**.
+- Score 1–4 laag, 5–9 midden, 10–16 hoog, 17–25 kritiek.
 - Maak **back-ups** van MongoDB en van `%LOCALAPPDATA%\DesignGuard\` vóór upgrades.
 
 ---

@@ -16,6 +16,8 @@ public partial class MainViewModel
             Description = "Beschrijf het scenario.",
             StrideCategory = StrideCategory.Tampering,
             Severity = SeverityEstimate.Medium,
+            Likelihood = 3,
+            Impact = 3,
             Status = ThreatStatus.Open,
             GenerationReason = "Toegevoegd door gebruiker.",
             Explanation = new ExplanationModel

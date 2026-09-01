@@ -1,6 +1,7 @@
 using System.Globalization;
 using DesignGuard.Data.Entities;
 using DesignGuard.Models;
+using DesignGuard.Services;
 
 namespace DesignGuard.Data;
 
@@ -43,6 +44,24 @@ internal static class ProjectMapper
             GovernanceTechnicalOwner = e.GovernanceTechnicalOwner,
             GovernanceComplianceStakeholder = e.GovernanceComplianceStakeholder,
             GovernanceReviewCadence = e.GovernanceReviewCadence,
+            AssessmentGoal = e.AssessmentGoal,
+            AssessmentTestType = Enum.TryParse<AssessmentTestType>(e.AssessmentTestType, out var att)
+                ? att
+                : AssessmentTestType.Unspecified,
+            ScopeIn = e.ScopeIn,
+            ScopeOut = e.ScopeOut,
+            RulesOfEngagementNotes = e.RulesOfEngagementNotes,
+            AssessmentContact = e.AssessmentContact,
+            AssessmentWindow = e.AssessmentWindow,
+            AssessmentEnvironment = e.AssessmentEnvironment,
+            AssessmentAccounts = e.AssessmentAccounts,
+            AssessmentLimitations = e.AssessmentLimitations,
+            AssessmentResidualNotes = e.AssessmentResidualNotes,
+            CompletedPlaybookItemIds = JsonBlobs.StringList(e.CompletedPlaybookItemIdsJson),
+            Findings = JsonBlobs.FindingList(e.FindingsJson),
+            CoverageItems = JsonBlobs.CoverageList(e.CoverageJson),
+            AttackSurface = JsonBlobs.AttackSurfaceList(e.AttackSurfaceJson),
+            TestBlockers = JsonBlobs.TestBlockerList(e.TestBlockersJson),
             C4Elements = JsonBlobs.C4ElementList(e.C4ElementsJson),
             C4Relations = JsonBlobs.C4RelationList(e.C4RelationsJson),
             DismissedSuggestionKeys = JsonBlobs.StringList(e.DismissedSuggestionKeysJson),
@@ -183,30 +202,37 @@ internal static class ProjectMapper
         };
     }
 
-    public static ThreatModel ToThreat(ThreatEntity e) => new()
+    public static ThreatModel ToThreat(ThreatEntity e)
     {
-        Id = e.StableId,
-        RuleFingerprint = e.RuleFingerprint,
-        Origin = (ThreatOrigin)e.Origin,
-        UserModified = e.UserModified,
-        Title = e.Title,
-        StrideCategory = (StrideCategory)e.StrideCategory,
-        Severity = (SeverityEstimate)e.Severity,
-        Status = (ThreatStatus)e.Status,
-        StatusChangedAtUtc = ParseOptionalUtc(e.StatusChangedAtUtc),
-        StatusChangedBy = e.StatusChangedBy ?? "",
-        StatusChangeNote = e.StatusChangeNote ?? "",
-        Notes = e.Notes,
-        Description = e.Description,
-        GenerationReason = e.GenerationReason,
-        SuggestedMitigations = JsonBlobs.StringList(e.MitigationsJson),
-        AffectedComponents = JsonBlobs.StringList(e.AffectedComponentsJson),
-        AffectedAssets = JsonBlobs.StringList(e.AffectedAssetsJson),
-        TriggerKeys = JsonBlobs.StringList(e.TriggerKeysJson),
-        Explanation = JsonBlobs.Explanation(e.ExplanationJson),
-        RelatedDesignNoteIds = JsonBlobs.IntList(e.RelatedDesignNoteIdsJson),
-        SourceAttribution = JsonBlobs.SourceAttribution(e.SourceAttributionJson)
-    };
+        var t = new ThreatModel
+        {
+            Id = e.StableId,
+            RuleFingerprint = e.RuleFingerprint,
+            Origin = (ThreatOrigin)e.Origin,
+            UserModified = e.UserModified,
+            Title = e.Title,
+            StrideCategory = (StrideCategory)e.StrideCategory,
+            Severity = (SeverityEstimate)e.Severity,
+            Likelihood = e.Likelihood,
+            Impact = e.Impact,
+            Status = (ThreatStatus)e.Status,
+            StatusChangedAtUtc = ParseOptionalUtc(e.StatusChangedAtUtc),
+            StatusChangedBy = e.StatusChangedBy ?? "",
+            StatusChangeNote = e.StatusChangeNote ?? "",
+            Notes = e.Notes,
+            Description = e.Description,
+            GenerationReason = e.GenerationReason,
+            SuggestedMitigations = JsonBlobs.StringList(e.MitigationsJson),
+            AffectedComponents = JsonBlobs.StringList(e.AffectedComponentsJson),
+            AffectedAssets = JsonBlobs.StringList(e.AffectedAssetsJson),
+            TriggerKeys = JsonBlobs.StringList(e.TriggerKeysJson),
+            Explanation = JsonBlobs.Explanation(e.ExplanationJson),
+            RelatedDesignNoteIds = JsonBlobs.IntList(e.RelatedDesignNoteIdsJson),
+            SourceAttribution = JsonBlobs.SourceAttribution(e.SourceAttributionJson)
+        };
+        RiskScoring.EnsureScores(t);
+        return t;
+    }
 
     public static RequirementModel ToRequirement(RequirementEntity e) => new()
     {
@@ -243,6 +269,8 @@ internal static class ProjectMapper
         Title = m.Title,
         StrideCategory = (int)m.StrideCategory,
         Severity = (int)m.Severity,
+        Likelihood = m.Likelihood,
+        Impact = m.Impact,
         Status = (int)m.Status,
         StatusChangedAtUtc = FormatOptionalUtc(m.StatusChangedAtUtc),
         StatusChangedBy = m.StatusChangedBy ?? "",

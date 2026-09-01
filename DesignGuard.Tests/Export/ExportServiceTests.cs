@@ -1,5 +1,6 @@
 using DesignGuard.Export;
 using DesignGuard.Models;
+using DesignGuard.Services;
 using Xunit;
 
 namespace DesignGuard.Tests.Export;
@@ -15,7 +16,10 @@ public sealed class ExportServiceTests
         {
             Name = "Testproject",
             Description = "Omschrijving",
-            SystemName = "Sys"
+            SystemName = "Sys",
+            AssessmentGoal = "Grey-box webapp",
+            AssessmentTestType = AssessmentTestType.GreyBox,
+            ScopeIn = "Testomgeving"
         };
 
         var md = _sut.ToMarkdown(p, [], []);
@@ -23,6 +27,8 @@ public sealed class ExportServiceTests
         Assert.Contains("# Testproject", md);
         Assert.Contains("## Projectoverzicht", md);
         Assert.Contains("## Systeemcontext", md);
+        Assert.Contains("## Kick-off en scope (pentest)", md);
+        Assert.Contains("GreyBox", md);
         Assert.Contains("Omschrijving", md);
     }
 
@@ -57,5 +63,81 @@ public sealed class ExportServiceTests
         var md = _sut.ToMarkdown(p, [], new[] { req });
         Assert.Contains("Normatieve dekking", md);
         Assert.Contains("OWASP", md);
+    }
+
+    [Fact]
+    public void ToMarkdown_bevat_risicoregister()
+    {
+        var p = new ProjectModel { Name = "N" };
+        var md = _sut.ToMarkdown(p, [new ThreatModel { Title = "XSS", Likelihood = 3, Impact = 4 }], []);
+        Assert.Contains("Risicoanalyse", md);
+        Assert.Contains("K3 × I4 = 12 (Hoog)", md);
+    }
+
+    [Fact]
+    public void ToMarkdown_bevat_kickoff_extra_velden_en_bevinding()
+    {
+        var p = new ProjectModel
+        {
+            Name = "P",
+            AssessmentGoal = "Grey-box",
+            AssessmentContact = "Sec-eigenaar",
+            AssessmentWindow = "week 16",
+            AssessmentEnvironment = "test",
+            AssessmentAccounts = "shop-user",
+            AssessmentLimitations = "geen DoS",
+            Findings =
+            [
+                new PentestFindingModel
+                {
+                    Title = "IDOR admin",
+                    WstgCategory = "Autorisatie",
+                    Likelihood = 4,
+                    Impact = 5,
+                    Status = FindingStatus.Open,
+                    EvidenceNotes = "HTTP 200 op andere tenant"
+                }
+            ]
+        };
+
+        var md = _sut.ToMarkdown(p, [], []);
+        Assert.Contains("Kick-off en scope (pentest)", md);
+        Assert.Contains("Sec-eigenaar", md);
+        Assert.Contains("week 16", md);
+        Assert.Contains("Bevindingenregister", md);
+        Assert.Contains("IDOR admin", md);
+        Assert.Contains("K4 × I5 = 20 (Kritiek)", md);
+    }
+
+    [Fact]
+    public void ToMarkdown_bevat_niet_getest_en_rest_risico()
+    {
+        var p = new ProjectModel
+        {
+            Name = "P",
+            AssessmentResidualNotes = "IDOR open tot fix.",
+            CoverageItems = CoverageCatalog.Merge(null),
+            Findings =
+            [
+                new PentestFindingModel
+                {
+                    Title = "IDOR admin",
+                    Likelihood = 4,
+                    Impact = 5,
+                    Status = FindingStatus.Open
+                }
+            ]
+        };
+        p.CoverageItems.First(c => c.Id == "cov-api").Status = CoverageStatus.Blocked;
+        p.CoverageItems.First(c => c.Id == "cov-api").Notes = "WAF";
+        p.TestBlockers.Add(new TestBlockerModel { Title = "WAF", Reason = "rate-limit" });
+
+        var md = _sut.ToMarkdown(p, [], []);
+        Assert.Contains("## Testdekking", md);
+        Assert.Contains("## Niet getest", md);
+        Assert.Contains("WAF", md);
+        Assert.Contains("## Rest-risico", md);
+        Assert.Contains("IDOR open tot fix.", md);
+        Assert.Contains("IDOR admin", md);
     }
 }

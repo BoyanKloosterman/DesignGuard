@@ -57,6 +57,49 @@ public sealed class ProjectModel
     /// <summary>Reviewritme (bv. kwartaal) of planning-notitie.</summary>
     public string GovernanceReviewCadence { get; set; } = "";
 
+    /// <summary>Testdoel / opdrachtformulering (kick-off).</summary>
+    public string AssessmentGoal { get; set; } = "";
+
+    public AssessmentTestType AssessmentTestType { get; set; } = AssessmentTestType.Unspecified;
+
+    /// <summary>In-scope samenvatting (systemen, omgevingen, accounts).</summary>
+    public string ScopeIn { get; set; } = "";
+
+    /// <summary>Expliciet buiten scope.</summary>
+    public string ScopeOut { get; set; } = "";
+
+    /// <summary>Afspraken / rules of engagement (geen juridisch contract).</summary>
+    public string RulesOfEngagementNotes { get; set; } = "";
+
+    /// <summary>Opdrachtgever-contact en escalatie (geen secrets).</summary>
+    public string AssessmentContact { get; set; } = "";
+
+    /// <summary>Testvenster, bijv. 1–12 sep, alleen kantooruren.</summary>
+    public string AssessmentWindow { get; set; } = "";
+
+    /// <summary>test / acc / prod of een vrije toelichting.</summary>
+    public string AssessmentEnvironment { get; set; } = "";
+
+    /// <summary>Testaccounts en rollen. Geen wachtwoorden.</summary>
+    public string AssessmentAccounts { get; set; } = "";
+
+    /// <summary>Beperkingen: WAF, testdata, verboden acties.</summary>
+    public string AssessmentLimitations { get; set; } = "";
+
+    /// <summary>Vrije toelichting rest-risico voor het rapport.</summary>
+    public string AssessmentResidualNotes { get; set; } = "";
+
+    /// <summary>Afgevinkte playbook-items (stabiele id's).</summary>
+    public List<string> CompletedPlaybookItemIds { get; set; } = new();
+
+    public List<PentestFindingModel> Findings { get; set; } = new();
+
+    public List<CoverageItemModel> CoverageItems { get; set; } = new();
+
+    public List<AttackSurfaceItemModel> AttackSurface { get; set; } = new();
+
+    public List<TestBlockerModel> TestBlockers { get; set; } = new();
+
     /// <summary>Afgewezen suggesties (rule keys), lokaal opgeslagen.</summary>
     public List<string> DismissedSuggestionKeys { get; set; } = new();
 

@@ -1,6 +1,7 @@
 using System.Linq;
 using DesignGuard.Knowledge;
 using DesignGuard.Models;
+using DesignGuard.Services;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -32,6 +33,7 @@ public sealed class PdfReportService
         public const string C4Visual = "dg-sec-c4vis";
         public const string C4Scope = "dg-sec-c4scope";
         public const string Threats = "dg-sec-threats";
+        public const string Risk = "dg-sec-risk";
         public const string Requirements = "dg-sec-reqs";
         public const string Traceability = "dg-sec-trace";
         public const string Controls = "dg-sec-controls";
@@ -179,6 +181,7 @@ public sealed class PdfReportService
             list.Add(new(Sec.C4Visual, "C4-diagrammen (Mermaid C1-C4)", "C4-diagrammen (Mermaid)", BuildC4VisualBody));
 
         list.Add(new(Sec.C4Scope, "C4 threatmodel-scope", "C4 threatmodel-scope", BuildC4ScopeBody));
+        list.Add(new(Sec.Risk, "Risicoanalyse (kans × impact)", "Risicoanalyse (kans × impact)", BuildRiskBody));
         list.Add(new(Sec.Threats, "Dreigingen (selectie)", "Dreigingen (selectie)", BuildThreatsBody));
         list.Add(new(Sec.Requirements, "Security-eisen (selectie)", "Security-eisen (selectie)", BuildRequirementsBody));
         list.Add(new(Sec.Traceability, "Traceability (trigger-sleutels)", "Traceability (trigger-sleutels)", BuildTraceBody));
@@ -201,7 +204,7 @@ public sealed class PdfReportService
         s.Item().Text(
             $"Componenten: {project.Components.Count}, datastromen: {project.DataFlows.Count}, " +
             $"C4-elementen: {project.C4Elements.Count}, dreigingen: {threats.Count}, eisen: {requirements.Count}, " +
-            $"controls: {project.Controls.Count}.");
+            $"bevindingen: {project.Findings.Count}, controls: {project.Controls.Count}.");
         s.Item().Text(
                 "PDF toont beperkte lengtes voor dreigingen/eisen/traceability. Volledige inhoud: export Markdown of JSON.")
             .FontSize(9.5f).FontColor(PdfPalette.Muted);
@@ -218,6 +221,18 @@ public sealed class PdfReportService
         s.Item().Text(
             $"{project.SystemName} — type {project.SystemType}, deployment {project.DeploymentContext}. " +
             $"Internet: {(project.InternetExposed ? "ja" : "nee")}, persoonsgegevens: {(project.PersonalDataProcessed ? "ja" : "nee")}.");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentGoal))
+            s.Item().Text($"Testdoel: {project.AssessmentGoal}");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentContact))
+            s.Item().Text($"Contact: {project.AssessmentContact}");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentWindow))
+            s.Item().Text($"Tijdvenster: {project.AssessmentWindow}");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentEnvironment))
+            s.Item().Text($"Omgeving: {project.AssessmentEnvironment}");
+        if (!string.IsNullOrWhiteSpace(project.ScopeIn))
+            s.Item().Text($"In scope: {project.ScopeIn}");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentLimitations))
+            s.Item().Text($"Beperkingen: {project.AssessmentLimitations}");
     }
 
     private static void BuildArchBody(
@@ -322,6 +337,31 @@ public sealed class PdfReportService
         }
     }
 
+    private static void BuildRiskBody(
+        ColumnDescriptor s,
+        ProjectModel project,
+        IReadOnlyList<ThreatModel> threats,
+        IReadOnlyList<RequirementModel> __,
+        byte[]? ___,
+        IReadOnlyList<PdfC4MermaidBandImage>? ____)
+    {
+        s.Item().Text(
+                "Kans × impact (1–5). Score 1–4 laag, 5–9 midden, 10–16 hoog, 17–25 kritiek. Rest-risico = open dreigingen en open bevindingen.")
+            .FontSize(9.5f).FontColor(PdfPalette.Muted);
+        s.Item().Text("Ontwerp-dreigingen").SemiBold();
+        foreach (var t in threats.OrderByDescending(x => x.RiskScore).ThenBy(x => x.Title).Take(PdfThreatListMax))
+            s.Item().Text($"{t.Title} — {t.RiskSummary} — {t.Status}");
+        s.Item().PaddingTop(6).Text("Pentest-bevindingen").SemiBold();
+        foreach (var f in project.Findings.OrderByDescending(x => x.RiskScore).ThenBy(x => x.Title).Take(PdfThreatListMax))
+            s.Item().Text($"{f.Title} — {f.RiskSummary} — {f.Status}");
+        var coverage = CoverageCatalog.Merge(project.CoverageItems);
+        s.Item().PaddingTop(6).Text(CoverageCatalog.Summary(coverage)).FontSize(9.5f).FontColor(PdfPalette.Muted);
+        foreach (var c in CoverageCatalog.NotTested(coverage))
+            s.Item().Text($"Niet getest: {c.Title} ({c.Status})");
+        if (!string.IsNullOrWhiteSpace(project.AssessmentResidualNotes))
+            s.Item().Text($"Rest-risico: {project.AssessmentResidualNotes}");
+    }
+
     private static void BuildThreatsBody(
         ColumnDescriptor s,
         ProjectModel _,
@@ -332,7 +372,7 @@ public sealed class PdfReportService
     {
         foreach (var t in threats.OrderBy(x => x.Title).Take(PdfThreatListMax))
         {
-            s.Item().Text($"{t.Title} — {t.StrideCategory}, {t.Severity}, {t.Status}").SemiBold().FontColor(PdfPalette.Primary);
+            s.Item().Text($"{t.Title} — {t.StrideCategory}, {t.RiskSummary}, {t.Status}").SemiBold().FontColor(PdfPalette.Primary);
             s.Item().PaddingLeft(12).Text(t.Description);
             if (t.StatusChangedAtUtc is { } aud)
             {

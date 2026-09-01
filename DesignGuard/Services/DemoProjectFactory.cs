@@ -21,6 +21,7 @@ public static class DemoProjectFactory
     private const string ReqWebhookSig = "d3m0req000000000000000000000002";
     private const string ReqHeaders = "d3m0req000000000000000000000003";
     private const string ReqSecretsRot = "d3m0req000000000000000000000004";
+    private const string FindingAdminIdor = "d3m0finding00000000000000000001";
 
     public static ProjectModel CreateDemoProject()
     {
@@ -46,7 +47,18 @@ public static class DemoProjectFactory
                 "• Webhook HMAC: implementatie klaar in staging; productie-cutover week 16.\n" +
                 "• Admin SPA: nog geen volledige device-flow getest met nieuwe sessiestore.\n" +
                 "• Object storage: bucket policy 'private + signed URL' — IAM-review door infra gepland.\n" +
-                "• DDoS-risico: geaccepteerd t.o.v. CDN; geen extra actie tenzij SLA wijzigt."
+                "• DDoS-risico: geaccepteerd t.o.v. CDN; geen extra actie tenzij SLA wijzigt.",
+            AssessmentGoal = "Grey-box assessment van de webshop: misbruik van sessies, admin, webhooks en dataopslag in kaart brengen.",
+            AssessmentTestType = AssessmentTestType.GreyBox,
+            ScopeIn = "Shop SPA, admin-API, API-gateway, PostgreSQL, Redis, object storage, PSP-webhooks (testomgeving).",
+            ScopeOut = "Productie-writes, fysieke toegang, social engineering, derde-partij PSP-platform zelf.",
+            RulesOfEngagementNotes = "Alleen testomgeving. Geen DoS-loadtests. Escalatie via security-eigenaar.",
+            AssessmentContact = "Security-eigenaar; escalatie technische eigenaar.",
+            AssessmentWindow = "Kantooruren, testomgeving, week 16.",
+            AssessmentEnvironment = "test",
+            AssessmentAccounts = "shop-user, admin-readonly — geen wachtwoorden in DesignGuard.",
+            AssessmentLimitations = "WAF actief. Geen DoS. Geen productie-writes.",
+            AssessmentResidualNotes = "Open IDOR op admin-API tot tenant-check live is."
         };
 
         p.TrustBoundaries.Add(new TrustBoundaryModel
@@ -487,6 +499,9 @@ public static class DemoProjectFactory
             }
         });
 
+        foreach (var t in p.Threats)
+            RiskScoring.EnsureScores(t);
+
         p.Requirements.Add(new RequirementModel
         {
             Id = ReqDbLeast,
@@ -546,6 +561,46 @@ public static class DemoProjectFactory
             WhyApplies = "Meerdere externe integraties (PSP, mail).",
             Notes = "Wacht op vault-upgrade Q3.",
             SourceTags = new List<string> { "demo", "ops" }
+        });
+
+        p.Findings.Add(new PentestFindingModel
+        {
+            Id = FindingAdminIdor,
+            Title = "Admin-order zonder tenant-check in test",
+            Description = "In de testomgeving was een order van een andere tenant opvraagbaar via de admin-API.",
+            AffectedTarget = "https://admin-api.test.example/orders/{id}",
+            EvidenceNotes = "Zelfde order-id van een andere tenant gaf HTTP 200. Geen exploit-stappen of payloads vastgelegd.",
+            Recommendation = "Object-level autorisatie per tenant; weiger cross-tenant reads.",
+            WstgCategory = "Autorisatie",
+            WstgId = "WSTG-ATHZ-04",
+            AffectedRole = "admin-readonly",
+            AffectedEnvironment = "test",
+            RemediationOwner = "Technische eigenaar",
+            FoundOn = "2026-04-10",
+            Likelihood = 4,
+            Impact = 5,
+            Status = FindingStatus.Open,
+            LinkedThreatId = ThreatSession
+        });
+
+        p.CoverageItems = CoverageCatalog.Merge(null);
+        var auth = p.CoverageItems.First(c => c.Id == "cov-auth");
+        auth.Status = CoverageStatus.Tested;
+        auth.Notes = "Login, reset en MFA nagelopen in test.";
+        var api = p.CoverageItems.First(c => c.Id == "cov-api");
+        api.Status = CoverageStatus.Blocked;
+        api.Notes = "WAF blokkeert testdekking op admin-API.";
+        p.AttackSurface.Add(new AttackSurfaceItemModel
+        {
+            Kind = "URL",
+            Value = "https://admin-api.test.example",
+            Notes = "Admin-API, grey-box"
+        });
+        p.TestBlockers.Add(new TestBlockerModel
+        {
+            Title = "WAF op admin-API",
+            Reason = "Rate-limit en managed rules; geen uitzondering in testweek.",
+            CoverageThemeId = "cov-api"
         });
 
         AddDemoC4Model(p);

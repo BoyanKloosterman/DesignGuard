@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using DesignGuard;
 using DesignGuard.Configuration;
 using DesignGuard.Data.Mongo;
@@ -43,7 +44,9 @@ public partial class MainViewModel : ObservableObject
     private readonly IAppConfigurationService _appConfiguration;
     private readonly IMongoDiagnosticsService _mongoDiagnostics;
     private readonly DesignValidationService _designValidation;
+    private readonly PentestPlaybookService _playbook;
     private HashSet<string> _dismissedSuggestionKeys = new(StringComparer.Ordinal);
+    private HashSet<string> _completedPlaybookItemIds = new(StringComparer.Ordinal);
     private readonly DispatcherTimer _filterDebounceTimer;
     private bool _suppressPreferencePersist;
     private ObservableCollection<ThreatModel>? _threatsWatchedForPicker;
@@ -66,7 +69,8 @@ public partial class MainViewModel : ObservableObject
         AppSecurityReviewService appSecurityReview,
         IAppConfigurationService appConfiguration,
         IMongoDiagnosticsService mongoDiagnostics,
-        DesignValidationService designValidation)
+        DesignValidationService designValidation,
+        PentestPlaybookService playbook)
     {
         _projects = projects;
         _threatService = threatService;
@@ -86,6 +90,7 @@ public partial class MainViewModel : ObservableObject
         _appConfiguration = appConfiguration;
         _mongoDiagnostics = mongoDiagnostics;
         _designValidation = designValidation;
+        _playbook = playbook;
         _suppressPreferencePersist = true;
         UiTheme = string.IsNullOrWhiteSpace(_userSettings.Current.Theme) ? "Light" : _userSettings.Current.Theme;
         DetailLevel = string.IsNullOrWhiteSpace(_userSettings.Current.DetailLevel)
@@ -118,6 +123,7 @@ public partial class MainViewModel : ObservableObject
         DesignNoteKindOptions = Enum.GetNames(typeof(DesignNoteKind)).ToList();
         FilteredThreats = new ObservableCollection<ThreatModel>();
         FilteredRequirements = new ObservableCollection<RequirementModel>();
+        FilteredFindings = new ObservableCollection<PentestFindingModel>();
         Suggestions = new ObservableCollection<ModelingSuggestion>();
         KnowledgePackRows = new ObservableCollection<KnowledgePackToggleRow>();
         AppSecurityReviewRows = new ObservableCollection<AppSecurityReviewRowViewModel>();
@@ -130,6 +136,76 @@ public partial class MainViewModel : ObservableObject
         _threatsWatchedForPicker = Threats;
         Threats.CollectionChanged += OnThreatsCollectionChangedForControlPickers;
         RefreshControlThreatPickList();
+        WorkspaceNavGroups = BuildWorkspaceNavGroups();
+        SyncWorkspaceNavSelection();
+        RefreshPlaybook();
+    }
+
+    public IReadOnlyList<WorkspaceNavGroup> WorkspaceNavGroups { get; }
+
+    private static IReadOnlyList<WorkspaceNavGroup> BuildWorkspaceNavGroups() =>
+    [
+        new WorkspaceNavGroup
+        {
+            Title = "Start",
+            Items =
+            [
+                new WorkspaceNavItem { Title = "Dashboard", Section = MainNavSection.Dashboard }
+            ]
+        },
+        new WorkspaceNavGroup
+        {
+            Title = "Ontwerp",
+            Items =
+            [
+                new WorkspaceNavItem { Title = "Ontwerp", Section = MainNavSection.Design },
+                new WorkspaceNavItem { Title = "C4-model", Section = MainNavSection.C4Model },
+                new WorkspaceNavItem { Title = "Dreigingen", Section = MainNavSection.Threats },
+                new WorkspaceNavItem { Title = "Threatmodel", Section = MainNavSection.ThreatModel },
+                new WorkspaceNavItem { Title = "Eisen", Section = MainNavSection.Requirements },
+                new WorkspaceNavItem { Title = "Controls", Section = MainNavSection.Controls },
+                new WorkspaceNavItem { Title = "Traceability", Section = MainNavSection.Traceability }
+            ]
+        },
+        new WorkspaceNavGroup
+        {
+            Title = "Pentest",
+            Items =
+            [
+                new WorkspaceNavItem { Title = "Aanpak", Section = MainNavSection.Pentest },
+                new WorkspaceNavItem { Title = "Testdekking", Section = MainNavSection.PentestCoverage },
+                new WorkspaceNavItem { Title = "Bevindingen", Section = MainNavSection.PentestFindings },
+                new WorkspaceNavItem { Title = "Risicoanalyse", Section = MainNavSection.RiskAnalysis }
+            ]
+        },
+        new WorkspaceNavGroup
+        {
+            Title = "Afronding",
+            Items =
+            [
+                new WorkspaceNavItem { Title = "Beslissingen", Section = MainNavSection.Decisions },
+                new WorkspaceNavItem { Title = "Review", Section = MainNavSection.Review },
+                new WorkspaceNavItem { Title = "Export", Section = MainNavSection.Export }
+            ]
+        },
+        new WorkspaceNavGroup
+        {
+            Title = "Systeem",
+            Items =
+            [
+                new WorkspaceNavItem { Title = "Instellingen", Section = MainNavSection.Settings },
+                new WorkspaceNavItem { Title = "App security review", Section = MainNavSection.AppSecurityReview }
+            ]
+        }
+    ];
+
+    private void SyncWorkspaceNavSelection()
+    {
+        foreach (var group in WorkspaceNavGroups)
+        {
+            foreach (var item in group.Items)
+                item.IsSelected = item.Section == NavSection;
+        }
     }
 
     private void OnThreatsCollectionChangedForControlPickers(object? _, NotifyCollectionChangedEventArgs __) =>
@@ -191,7 +267,43 @@ public partial class MainViewModel : ObservableObject
 
     public IReadOnlyList<string> UiDensityOptions { get; } = new[] { "Comfortable", "Compact" };
 
-    public IReadOnlyList<string> ThreatSortOptions { get; } = new[] { "Severity", "Status", "Category" };
+    public IReadOnlyList<int> LikelihoodScale { get; } = RiskScoring.Scale;
+
+    public IReadOnlyList<FindingStatus> AllFindingStatuses { get; } =
+        Enum.GetValues(typeof(FindingStatus)).Cast<FindingStatus>().ToArray();
+
+    public IReadOnlyList<CoverageStatus> AllCoverageStatuses { get; } =
+        Enum.GetValues(typeof(CoverageStatus)).Cast<CoverageStatus>().ToArray();
+
+    public IReadOnlyList<string> AttackSurfaceKindOptions { get; } = ["Host", "URL", "API", "Rol"];
+
+    public IReadOnlyList<string> FindingSortOptions { get; } = ["Risico", "Status", "Categorie"];
+
+    public IReadOnlyList<string> FindingQuickFilterOptions { get; } =
+    [
+        EditorListFilter.QuickFilterAlle,
+        EditorListFilter.QuickFilterAlleenOpen,
+        EditorListFilter.QuickFilterAlleenHoog,
+        EditorListFilter.FindingQuickFilterHerstest
+    ];
+
+    public IReadOnlyList<string> WstgCategoryOptions { get; } =
+    [
+        "Authenticatie",
+        "Sessiebeheer",
+        "Autorisatie",
+        "Inputvalidatie",
+        "Cryptografie",
+        "Business logic",
+        "API",
+        "Foutafhandeling",
+        "Overig"
+    ];
+
+    public IReadOnlyList<string> AssessmentTestTypeOptions { get; } =
+        Enum.GetNames(typeof(AssessmentTestType)).ToList();
+
+    public IReadOnlyList<string> ThreatSortOptions { get; } = new[] { "Risico", "Status", "Category" };
 
     public IReadOnlyList<string> RequirementSortOptions { get; } = new[] { "Priority", "Status", "Category" };
 
@@ -227,8 +339,11 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private ProjectSummaryItem? _selectedProjectSummary;
 
-    /// <summary>Actieve werkruimte-tab; volgorde = sidebar, zie <see cref="MainNavSection"/>.</summary>
+    /// <summary>Actieve werkruimte-tab; zie <see cref="MainNavSection"/>.</summary>
     [ObservableProperty] private MainNavSection _navSection;
+
+    [RelayCommand]
+    private void Navigate(MainNavSection section) => NavSection = section;
 
     [ObservableProperty] private string _statusMessage = "DesignGuard v6 — klaar.";
 
@@ -305,6 +420,36 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private string _editorGovernanceReviewCadence = "";
 
+    [ObservableProperty] private string _editorAssessmentGoal = "";
+
+    [ObservableProperty] private string _editorAssessmentTestType = AssessmentTestType.Unspecified.ToString();
+
+    [ObservableProperty] private string _editorScopeIn = "";
+
+    [ObservableProperty] private string _editorScopeOut = "";
+
+    [ObservableProperty] private string _editorRulesOfEngagementNotes = "";
+
+    [ObservableProperty] private string _editorAssessmentContact = "";
+
+    [ObservableProperty] private string _editorAssessmentWindow = "";
+
+    [ObservableProperty] private string _editorAssessmentEnvironment = "";
+
+    [ObservableProperty] private string _editorAssessmentAccounts = "";
+
+    [ObservableProperty] private string _editorAssessmentLimitations = "";
+
+    [ObservableProperty] private string _editorAssessmentResidualNotes = "";
+
+    [ObservableProperty] private ObservableCollection<PentestFindingModel> _findings = new();
+
+    [ObservableProperty] private ObservableCollection<CoverageItemModel> _coverageItems = new();
+
+    [ObservableProperty] private ObservableCollection<AttackSurfaceItemModel> _attackSurface = new();
+
+    [ObservableProperty] private ObservableCollection<TestBlockerModel> _testBlockers = new();
+
     [ObservableProperty] private ObservableCollection<TrustBoundaryRowViewModel> _trustBoundaries = new();
 
     [ObservableProperty] private ObservableCollection<ComponentRowViewModel> _components = new();
@@ -379,11 +524,19 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private ObservableCollection<RequirementModel> _filteredRequirements = new();
 
+    [ObservableProperty] private ObservableCollection<PentestFindingModel> _filteredFindings = new();
+
+    [ObservableProperty] private string _findingFilterText = "";
+
+    [ObservableProperty] private string _findingSort = "Risico";
+
+    [ObservableProperty] private string _findingQuickFilter = EditorListFilter.QuickFilterAlle;
+
     [ObservableProperty] private string _threatFilterText = "";
 
     [ObservableProperty] private string _requirementFilterText = "";
 
-    [ObservableProperty] private string _threatSort = "Severity";
+    [ObservableProperty] private string _threatSort = "Risico";
 
     [ObservableProperty] private string _requirementSort = "Priority";
 
@@ -401,6 +554,10 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private int _implementedRequirementCount;
 
+    [ObservableProperty] private int _openFindingCount;
+
+    [ObservableProperty] private string _coverageSummaryText = "";
+
     [ObservableProperty] private string _validationSummaryText = "";
 
     [ObservableProperty]
@@ -414,6 +571,10 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowProjectOverviewInDetails))]
     private ComponentRowViewModel? _selectedComponent;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowProjectOverviewInDetails))]
+    private PentestFindingModel? _selectedFinding;
 
     [ObservableProperty] private string _exportPreview = "";
 
@@ -432,7 +593,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<AppSecurityReviewRowViewModel> _appSecurityReviewRows = new();
 
     public bool ShowProjectOverviewInDetails =>
-        SelectedThreat == null && SelectedRequirement == null && SelectedComponent == null;
+        SelectedThreat == null && SelectedRequirement == null && SelectedComponent == null && SelectedFinding == null;
 
     public bool HasOpenProject => CurrentProjectId != 0;
 
@@ -523,14 +684,20 @@ public partial class MainViewModel : ObservableObject
 
     partial void OnNavSectionChanged(MainNavSection value)
     {
+        SyncWorkspaceNavSelection();
         if (value == MainNavSection.Design) RefreshDiagram();
         if (value == MainNavSection.C4Model) RefreshC4ThreatLinkCounts();
-        if (value is MainNavSection.Threats or MainNavSection.ThreatModel or MainNavSection.Requirements)
+        if (value is MainNavSection.Threats or MainNavSection.ThreatModel or MainNavSection.Requirements
+            or MainNavSection.PentestFindings)
         {
             RefreshFilters();
             UpdateDashboard();
         }
 
+        if (value == MainNavSection.RiskAnalysis) RefreshRiskAnalysis();
+        if (value is MainNavSection.Pentest or MainNavSection.PentestFindings or MainNavSection.PentestCoverage)
+            RefreshPlaybook();
+        if (value == MainNavSection.PentestFindings) RefreshRiskAnalysis();
         if (value == MainNavSection.Traceability) RefreshTraceability();
         if (value == MainNavSection.Export) RefreshExportPreview();
         if (value == MainNavSection.Settings)
@@ -543,10 +710,30 @@ public partial class MainViewModel : ObservableObject
             or MainNavSection.ThreatModel or MainNavSection.Requirements or MainNavSection.Controls
             or MainNavSection.Decisions or MainNavSection.Review)
             RefreshSuggestions();
+        if (value == MainNavSection.Dashboard) RefreshPlaybook();
+    }
+
+    partial void OnSelectedFindingChanged(PentestFindingModel? value)
+    {
+        if (value == null) return;
+        SelectedThreat = null;
+        SelectedRequirement = null;
+        SelectedComponent = null;
+    }
+
+    partial void OnSelectedRequirementChanged(RequirementModel? value)
+    {
+        if (value != null) SelectedFinding = null;
+    }
+
+    partial void OnSelectedComponentChanged(ComponentRowViewModel? value)
+    {
+        if (value != null) SelectedFinding = null;
     }
 
     partial void OnSelectedThreatChanged(ThreatModel? value)
     {
+        if (value != null) SelectedFinding = null;
         if (NavSection == MainNavSection.Design) RefreshDiagram();
     }
 
@@ -561,6 +748,16 @@ public partial class MainViewModel : ObservableObject
         _filterDebounceTimer.Stop();
         _filterDebounceTimer.Start();
     }
+
+    partial void OnFindingFilterTextChanged(string value)
+    {
+        _filterDebounceTimer.Stop();
+        _filterDebounceTimer.Start();
+    }
+
+    partial void OnFindingSortChanged(string value) => RefreshFilters();
+
+    partial void OnFindingQuickFilterChanged(string value) => RefreshFilters();
 
     partial void OnThreatSortChanged(string value) => RefreshFilters();
 

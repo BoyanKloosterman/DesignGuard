@@ -14,6 +14,8 @@ public sealed class ThreatEntity
     public string Title { get; set; } = "";
     public int StrideCategory { get; set; }
     public int Severity { get; set; }
+    public int Likelihood { get; set; }
+    public int Impact { get; set; }
     public int Status { get; set; }
 
     /// <summary>ISO-8601 UTC of leeg.</summary>

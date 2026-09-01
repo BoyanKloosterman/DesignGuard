@@ -102,4 +102,26 @@ public sealed class EditorListFilterTests
         Assert.Single(r);
         Assert.Equal(hi, r[0]);
     }
+
+    [Fact]
+    public void FilterAndSortFindings_zoek_en_hoog()
+    {
+        var low = new PentestFindingModel { Title = "Cookie", Likelihood = 2, Impact = 2, Status = FindingStatus.Open };
+        var high = new PentestFindingModel { Title = "IDOR admin", Likelihood = 4, Impact = 5, Status = FindingStatus.Open };
+        var r = EditorListFilter.FilterAndSortFindings(new[] { low, high }, "idor", "Risico",
+            EditorListFilter.QuickFilterAlleenHoog);
+        Assert.Single(r);
+        Assert.Equal(high, r[0]);
+    }
+
+    [Fact]
+    public void FilterAndSortFindings_herstest()
+    {
+        var open = new PentestFindingModel { Title = "A", Status = FindingStatus.Open, Likelihood = 3, Impact = 3 };
+        var re = new PentestFindingModel { Title = "B", Status = FindingStatus.Retest, Likelihood = 3, Impact = 3 };
+        var r = EditorListFilter.FilterAndSortFindings(new[] { open, re }, null, "Status",
+            EditorListFilter.FindingQuickFilterHerstest);
+        Assert.Single(r);
+        Assert.Equal(re, r[0]);
+    }
 }

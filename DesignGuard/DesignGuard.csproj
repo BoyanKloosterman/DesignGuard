@@ -18,7 +18,7 @@
     <None Update="Resources\control-library.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Resources\app_security_checklist.json">
+    <None Update="Resources\pentest_playbook.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="KnowledgePacks\**\*">

@@ -31,6 +31,11 @@ public sealed class ThreatGenerationService
                 seq++;
                 RuleTriggerBootstrap.Apply(ruleName, t, ctx);
                 ApplySeverityHeuristics(ctx, t);
+                RiskScoring.ApplyHeuristics(new SystemDesignContextLike(
+                    ctx.Project.InternetExposed,
+                    ctx.HasAdminSurface,
+                    ctx.Project.PersonalDataProcessed,
+                    ctx.Project.CriticalBusinessFunction), t);
                 _knowledgePacks.EnrichThreat(t);
                 list.Add(t);
             }

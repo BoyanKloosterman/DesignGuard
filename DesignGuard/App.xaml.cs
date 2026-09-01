@@ -54,6 +54,7 @@ public partial class App : Application
         services.AddSingleton<AnalysisMergeService>();
         services.AddSingleton<TraceabilityService>();
         services.AddSingleton<ProjectTemplateService>();
+        services.AddSingleton<PentestPlaybookService>();
         services.AddSingleton<DesignValidationService>();
         services.AddSingleton(sp => new ThreatGenerationService(new IThreatRule[]
         {
